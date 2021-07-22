@@ -7,7 +7,7 @@ package com.spectralogic.rioclient
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-data class CreateSpectraDevice(
+data class SpectraDeviceCreateRequest(
     val name: String,
     val mgmtInterface: String,
     val username: String,
@@ -15,11 +15,20 @@ data class CreateSpectraDevice(
     val dataPath: String? = null
 ): RioRequest
 
-data class SpectraDeviceResponse(val name: String, val username: String, val mgmtInterface: String, val dataPath: String? = null)
-data class ListSpectraDevicesResponse(val devices: List<SpectraDeviceResponse>, val page: PageInfo)
+data class SpectraDeviceResponse(
+    val name: String,
+    val username: String,
+    val mgmtInterface: String,
+    val dataPath: String? = null
+)
+
+data class SpectraDevicesListResponse(
+    val devices: List<SpectraDeviceResponse>,
+    val page: PageInfo
+)
 
 
-data class CreateFlashnetDevice(
+data class FlashnetDeviceCreateRequest(
     val name: String,
     val host: String,
     val port: Int?,
@@ -49,7 +58,10 @@ data class FlashnetDeviceResponse(
     val databaseUsername: String? = null
 )
 
-data class ListFlashnetDevicesResponse(val devices: List<FlashnetDeviceResponse>, val page: PageInfo)
+data class FlashnetDevicesListResponse(
+    val devices: List<FlashnetDeviceResponse>,
+    val page: PageInfo
+    )
 
 data class TbpfrDeviceResponse(
     val name: String,
@@ -57,18 +69,24 @@ data class TbpfrDeviceResponse(
     val tempStorage: String
 )
 
-data class ListTbpfrDevicesResponse(val devices: List<TbpfrDeviceResponse>, val page: PageInfo)
+data class TbpfrDevicesListResponse(
+    val devices: List<TbpfrDeviceResponse>,
+    val page: PageInfo
+)
 
-sealed class CreateEndpointDevice(open val name: String, val type: String): RioRequest
+sealed class EndpointDeviceCreateRequest(
+    open val name: String,
+    val type: String
+): RioRequest
 
-data class CreateFtpEndpointDevice(
+data class FtpEndpointDeviceCreateRequest(
     override val name: String,
     val endpoint: String,
     val username: String,
     val password: String
-) : CreateEndpointDevice(name, "ftp")
+) : EndpointDeviceCreateRequest(name, "ftp")
 
-data class CreateS3EndpointDevice(
+data class S3EndpointDeviceCreateRequest(
     override val name: String,
     val https: String,
     val bucket: String,
@@ -77,11 +95,11 @@ data class CreateS3EndpointDevice(
     @JsonProperty("secret_key")
     val secretKey: String,
     val region: String
-) : CreateEndpointDevice(name, "s3")
+) : EndpointDeviceCreateRequest(name, "s3")
 
-data class CreateUriEndpointDevice(
+data class UriEndpointDeviceCreateRequest(
     override val name: String,
     val endpoint: String
-) : CreateEndpointDevice(name, "uri")
+) : EndpointDeviceCreateRequest(name, "uri")
 
 

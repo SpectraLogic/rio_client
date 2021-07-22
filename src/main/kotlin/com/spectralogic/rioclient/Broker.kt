@@ -7,19 +7,24 @@ package com.spectralogic.rioclient
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.common.collect.ImmutableMap
-import com.spectralogic.rioclient.PageInfo
 import java.util.*
 
 data class Broker(
     val name: String
 )
 
-data class CreateBroker(
+data class BrokerCreateRequest(
     val name: String,
     val agentName: String,
     val agentConfig: AgentConfig,
     val agentType: String? = "bp_agent"
 ): RioRequest
+
+data class BrokerResponse(
+    val name: String,
+    val creationDate: String,
+    val objectCount: Long
+)
 
 sealed class AgentConfig
 
@@ -31,6 +36,17 @@ data class BpAgentConfig(
     val dataPolicyUUID: UUID? = null,
     val https: Boolean = false
 ) : AgentConfig()
+
+fun BpAgentConfig.toImmutableMap(): ImmutableMap<String, String> {
+    val builder = ImmutableMap.builder<String, String>()
+    builder.put("bucket", this.bucket)
+    builder.put("blackPearlName", this.blackPearlName)
+    builder.put("username", this.username)
+    builder.put("createBucket", this.createBucket.toString())
+    builder.put("https", this.https.toString())
+    this.dataPolicyUUID?.let { builder.put("dataPolicyUUID", it.toString()) }
+    return builder.build()
+}
 
 data class Vs3AgentConfig(
     val vs3DeviceName: String,
@@ -56,20 +72,28 @@ data class SglLtfsAgentConfig(
     val username: String
 )
 
-data class CreateGenericAgentRequest(
+data class AgentCreateRequest(
     val name: String,
     val type: String,
     val agentConfig: ImmutableMap<String, String>
 ): RioRequest
 
-data class CreateGenericAgentResponse(
+data class AgentResponse(
     val name: String,
     val type: String,
+    val creationDate: String,
+    val lastIndexDate: String?,
     val writable: Boolean,
-    val agentConfig: ImmutableMap<String, String>
+    val agentConfig: Map<String, String>,
+    val indexState: String?
 )
 
-data class ObjectDetails(
+data class ListAgents(
+    @JsonProperty("agents") override val objects: List<AgentResponse>,
+    override val page: PageInfo
+) : PageData<AgentResponse>
+
+data class ObjectResponse(
     val name: String,
     val size: Long,
     val creationDate: String,
@@ -79,40 +103,21 @@ data class ObjectDetails(
 )
 
 
-data class ListObjectMetadata(
-    override val objects: List<ObjectDetails>,
+data class ObjectListResponse(
+    override val objects: List<ObjectResponse>,
     override val page: PageInfo
-) : PageData<ObjectDetails>
+) : PageData<ObjectResponse>
 
-data class ListBrokersResponse(
-    @JsonProperty("brokers") override val objects: List<BrokersResponse>,
+data class BrokersListResponse(
+    @JsonProperty("brokers") override val objects: List<BrokerResponse>,
     override val page: PageInfo
-) : PageData<BrokersResponse>
+) : PageData<BrokerResponse>
 
-data class BrokersResponse(
-    val name: String,
-    val creationDate: String,
-    val objectCount: Int
-)
-
-data class ListAgentsResponse(
-    val agents: List<AgentInfo>,
+data class AgentsListResponse(
+    val agents: List<AgentResponse>,
     val page: PageInfo
 )
 
-data class ListAgents(
-    @JsonProperty("agents") override val objects: List<AgentInfo>,
-    override val page: PageInfo
-) : PageData<AgentInfo>
 
-data class AgentInfo(
-    val name: String,
-    val type: String,
-    val creationDate: String,
-    val lastIndexDate: String,
-    val writable: Boolean,
-    val agentConfig: Map<String, String>,
-    val indexState: String?
-)
 
 

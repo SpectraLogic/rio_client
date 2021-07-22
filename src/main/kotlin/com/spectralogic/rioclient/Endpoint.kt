@@ -7,7 +7,7 @@ package com.spectralogic.rioclient
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-data class ListEndpointDevicesResponse(
+data class EndpointDevicesListResponse(
     val devices: List<EndpointGenericDeviceResponse>,
     val page: PageInfo
 )
