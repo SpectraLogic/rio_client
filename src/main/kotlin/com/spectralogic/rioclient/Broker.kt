@@ -6,12 +6,7 @@
 package com.spectralogic.rioclient
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.common.collect.ImmutableMap
-import java.util.*
-
-data class Broker(
-    val name: String
-)
+import java.util.UUID
 
 data class BrokerCreateRequest(
     val name: String,
@@ -37,15 +32,17 @@ data class BpAgentConfig(
     val https: Boolean = false
 ) : AgentConfig()
 
-fun BpAgentConfig.toImmutableMap(): ImmutableMap<String, String> {
-    val builder = ImmutableMap.builder<String, String>()
-    builder.put("bucket", this.bucket)
-    builder.put("blackPearlName", this.blackPearlName)
-    builder.put("username", this.username)
-    builder.put("createBucket", this.createBucket.toString())
-    builder.put("https", this.https.toString())
-    this.dataPolicyUUID?.let { builder.put("dataPolicyUUID", it.toString()) }
-    return builder.build()
+fun BpAgentConfig.toMap(): Map<String,String> {
+    val map = mapOf(
+        Pair("bucket", this.bucket),
+        Pair("blackPearlName", this.blackPearlName),
+        Pair("username", this.username),
+        Pair("createBucket", this.createBucket.toString()),
+        Pair("https", this.https.toString()),
+        Pair("bucket", this.bucket)
+    )
+    return this.dataPolicyUUID?.let { map.plus(Pair("dataPolicyUUID", it.toString())) }
+        ?: map
 }
 
 data class Vs3AgentConfig(
@@ -75,7 +72,7 @@ data class SglLtfsAgentConfig(
 data class AgentCreateRequest(
     val name: String,
     val type: String,
-    val agentConfig: ImmutableMap<String, String>
+    val agentConfig: Map<String, String>
 ): RioRequest
 
 data class AgentResponse(
@@ -98,8 +95,8 @@ data class ObjectResponse(
     val size: Long,
     val creationDate: String,
     val broker: String,
-    val metadata: ImmutableMap<String, String>,
-    val internalMetadata: ImmutableMap<String, String>? = null
+    val metadata: Map<String, String>,
+    val internalMetadata: Map<String, String>? = null
 )
 
 

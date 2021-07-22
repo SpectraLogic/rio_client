@@ -5,31 +5,87 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.common.collect.ImmutableList
 import java.net.URI
-import java.util.*
+import java.util.UUID
+
+data class JobStatus(
+    val message: String,
+    val status: String,
+    val reason: String? = null
+)
+
+class DetailedJobResponse(
+    name: String?,
+    id: UUID,
+    creationDate: String,
+    lastUpdated: String,
+    status: JobStatus,
+    jobType: String,
+    numberOfFiles: Long,
+    filesTransferred: Long,
+    totalSizeInBytes: Long,
+    progress: Float,
+    val files: List<FileStatus>,
+    foreignJobs: Map<UUID, ForeignJobDetails> = mapOf()
+) : JobResponse(
+    name,
+    id,
+    creationDate,
+    lastUpdated,
+    status,
+    jobType,
+    numberOfFiles,
+    filesTransferred,
+    totalSizeInBytes,
+    progress,
+    foreignJobs
+)
+
+open class JobResponse(
+    val name: String?,
+    val id: UUID,
+    val creationDate: String,
+    val lastUpdated: String,
+    val status: JobStatus,
+    val jobType: String,
+    val numberOfFiles: Long,
+    val filesTransferred: Long,
+    val totalSizeInBytes: Long,
+    val progress: Float,
+    val foreignJobs: Map<UUID, ForeignJobDetails> = mapOf()
+)
+
+data class ForeignJobDetails(
+    val id: String,
+    val type: String
+)
+
+data class JobListResponse(
+    val jobs: List<JobResponse>,
+    val page: PageInfo
+)
+
+data class FileStatus(
+    val name: String,
+    val status: String,
+    val statusMessage: String,
+    val foreignJob: UUID? = null,
+    val uri: URI,
+    val sizeInBytes: Long,
+    val lastUpdated: String
+)
 
 data class FileStatusLogResponse(
     val page: PageInfo,
-    val fileStatus: ImmutableList<FileStatusResponse>
+    val fileStatus: List<FileStatusResponse>
 )
 
-data class FileStatusResponse
-@JsonCreator constructor(
-    @JsonProperty("name")
+data class FileStatusResponse(
     val name: String,
-    @JsonProperty("uri")
     val uri: URI,
-    @JsonProperty("sizeInBytes")
     val sizeInBytes: Long,
-    @JsonProperty("status")
     val status: String,
-    @JsonProperty("statusMessage")
     val statusMessage: String,
-    @JsonProperty("lastUpdated")
     val lastUpdated: String,
-    @JsonProperty("foreignJob")
     val foreignJob: UUID?
 )

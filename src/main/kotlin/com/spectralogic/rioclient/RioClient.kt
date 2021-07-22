@@ -205,8 +205,8 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun deleteAgent(brokerName: String, agentName: String, force: Boolean?): HttpResponse =
         client.myDelete("$api/brokers/$brokerName/agents/$agentName", "force", force)
 
-    suspend fun getAgent(brokerName: String, agentName: String): AgentResponse =
-        client.myGet("$api/brokers/$brokerName/agents/$agentName")
+    suspend fun getAgent(brokerName: String, agentName: String, includeIndexState: Boolean? = null): AgentResponse =
+        client.myGet("$api/brokers/$brokerName/agents/$agentName", "includeIndexState", includeIndexState)
 
     suspend fun headAgent(brokerName: String, agentName: String): Boolean =
         client.myHead("$api/brokers/$brokerName/agents/$agentName")
@@ -259,7 +259,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun deleteObject(brokerName: String, objName: String): HttpResponse =
         client.myDelete("$api/brokers/$brokerName/objects/${objName.urlEncode()}")
 
-    suspend fun updateObject(brokerName: String, objName: String, metadata: Map<String, String>) {
+    suspend fun updateObject(brokerName: String, objName: String, metadata: Map<String, String>): ObjectResponse {
         return client.myPut("$api/brokers/$brokerName/objects/${objName.urlEncode()}", MyMetadata(metadata))
     }
     // DWL TODO:  ?internalData=true
@@ -267,24 +267,20 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     /**
      * Job
      */
-    suspend fun archiveFile(brokerName: String, archiveRequest: ArchiveRequest, uploadNewOnly: Boolean? = null): RioJobResponse =
+    suspend fun archiveFile(brokerName: String, archiveRequest: ArchiveRequest, uploadNewOnly: Boolean? = null): JobResponse =
         client.myPost("$api/brokers/$brokerName/archive", archiveRequest, "upload-new-files-only", uploadNewOnly)
 
-    suspend fun retryArchiveJob(brokerName: String, retry: UUID): RioJobResponse =
+    suspend fun retryArchiveJob(brokerName: String, retry: UUID): JobResponse =
         client.myPost("$api/brokers/$brokerName/archive?retry=$retry")
 
-    suspend fun restoreFile(brokerName: String, restoreRequest: RestoreRequest): RioJobResponse =
+    suspend fun restoreFile(brokerName: String, restoreRequest: RestoreRequest): JobResponse =
         client.myPost("$api/brokers/$brokerName/restore", restoreRequest)
 
-    suspend fun jobStatus(jobId: UUID): DetailedRioJobResponse =
-        client.myGet("$api/jobs/$jobId")
+    suspend fun jobStatus(jobId: UUID, withFileStatus: Boolean? = null): DetailedJobResponse =
+        client.myGet("$api/jobs/$jobId", "withFileStatus", withFileStatus)
 
-    suspend fun retryRestoreJob(brokerName: String, retry: UUID): RioJobResponse {
+    suspend fun retryRestoreJob(brokerName: String, retry: UUID): JobResponse {
         return client.myPost("$api/brokers/$brokerName/restore?retry=$retry")
-    }
-
-    suspend fun getJobStatus(jobId: UUID, withFileStatus: Boolean? = null): DetailedRioJobResponse {
-        return client.myGet("$api/jobs/$jobId", "withFileStatus", withFileStatus)
     }
 
     suspend fun listJobs(
@@ -314,6 +310,9 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         return client.myGet("$api/jobs", paramMap)
     }
 
+    suspend fun deleteJob(jobId: UUID): HttpResponse =
+        client.myDelete("$api/jobs?jobId=$jobId")
+
     suspend fun deleteAllJobs(): HttpResponse =
         client.myDelete("$api/jobs")
 
@@ -323,7 +322,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headJob(jobId: String): Boolean =
         client.myHead("$api/jobs/$jobId")
 
-    suspend fun updateJob(jobId: String, cancel: Boolean): DetailedRioJobResponse =
+    suspend fun updateJob(jobId: String, cancel: Boolean): DetailedJobResponse =
         client.myPut("$api/jobs/$jobId?cancel==$cancel")
 
     suspend fun fileStatus(jobId: UUID): FileStatusLogResponse =
@@ -367,16 +366,8 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun systemInfo(): SystemResponse =
         client.myGet("$api/system")
 
-    /*suspend fun metadataValues(brokerName: String, metadataKey: String, page: Long = 0, perPage: Long = 100, internal: Boolean): ListMetadataValuesDistinct {
-        return client.get("$api/brokers/$brokerName/metadata/$metadataKey?page=$page&per_page=$perPage&internalData=$internal") {
-            header("Authorization", "Bearer ${tokenContainer.token}")
-        }
-    }*/
 
     override fun close() {
-        /*runBlocking {
-            deleteApiToken()
-        }*/
         client.close()
     }
 
