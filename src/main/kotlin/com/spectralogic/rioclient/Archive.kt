@@ -7,7 +7,7 @@ package com.spectralogic.rioclient
 
 import java.net.URI
 
-data class ArchiveBody(
+data class ArchiveRequest(
     val name: String? = null,
     val files: List<FileToArchive>
 ): RioRequest

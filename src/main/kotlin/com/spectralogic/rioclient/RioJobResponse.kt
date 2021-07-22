@@ -9,13 +9,18 @@ import com.google.common.collect.ImmutableList
 import java.net.URI
 import java.util.UUID
 
-data class RioJobStatus(val message: String, val status: String, val reason: String? = null)
+data class RioJobStatus(
+    val message: String,
+    val status: String,
+    val reason: String? = null
+)
 
 enum class RioJobType {
-    ARCHIVE, RESTORE
+    ARCHIVE,
+    RESTORE
 }
 
-class DetailedRioJob(
+class DetailedRioJobResponse(
     name: String?,
     id: UUID,
     creationDate: String,
@@ -28,7 +33,7 @@ class DetailedRioJob(
     progress: Float,
     val files: List<FileStatus>,
     foreignJobs: Map<UUID, ForeignJobDetails> = mapOf()
-) : RioJob(
+) : RioJobResponse(
     name,
     id,
     creationDate,
@@ -42,7 +47,7 @@ class DetailedRioJob(
     foreignJobs
 )
 
-open class RioJob(
+open class RioJobResponse(
     val name: String?,
     val id: UUID,
     val creationDate: String,
@@ -61,10 +66,9 @@ data class ForeignJobDetails(
     val type: ForeignJobType
 )
 
-data class JobList(
-    val jobs: ImmutableList<RioJob>
+data class JobListResponse(
+    val jobs: ImmutableList<RioJobResponse>
 )
-
 
 data class FileStatus(
     val name: String,

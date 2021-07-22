@@ -53,6 +53,7 @@ dependencies {
     //Test
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:5.7.1")
+    implementation("org.assertj:assertj-core:3.16.1")
 }
 
 
