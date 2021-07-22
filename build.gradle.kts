@@ -1,7 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-
-
 plugins {
     kotlin("jvm") version "1.4.30"
     application
@@ -55,8 +53,6 @@ dependencies {
     testRuntime("org.junit.jupiter:junit-jupiter-engine:5.7.1")
     implementation("org.assertj:assertj-core:3.16.1")
 }
-
-
 
 tasks.distZip {
     into("${project.name}-${project.version}/bin") {

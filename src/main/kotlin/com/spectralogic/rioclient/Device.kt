@@ -5,6 +5,7 @@
  */
 package com.spectralogic.rioclient
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class SpectraDeviceCreateRequest(
@@ -12,6 +13,7 @@ data class SpectraDeviceCreateRequest(
     val mgmtInterface: String,
     val username: String,
     val password: String,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     val dataPath: String? = null
 ): RioRequest
 
