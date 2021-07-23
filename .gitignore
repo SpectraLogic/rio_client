@@ -26,3 +26,5 @@ out/
 venv/
 
 *.log
+
+!gradle/wrapper/gradle-wrapper.jar
