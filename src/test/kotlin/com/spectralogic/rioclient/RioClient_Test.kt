@@ -28,6 +28,11 @@ class RioClient_Test {
         private lateinit var testBroker: String
         private lateinit var testAgent: String
 
+        private lateinit var divaEndpoint: String
+        private lateinit var divaUsername: String
+        private lateinit var divaPassword: String
+        private lateinit var divaCategory: String
+
         private const val testBucket = "testBucket-rioclient"
         private const val username = "spectra"
         private const val password = "spectra"
@@ -41,10 +46,14 @@ class RioClient_Test {
                 getenvValue("MGMT_INTERFACE_URL", "https://sm25-2-mgmt.eng.sldomain.com"),
                 "Administrator",
                 "spectra"
-                // getenvValue("DATA_PATH", "").ifBlank { null }
             )
             testBroker = getenvValue("DEFAULT_BROKER", "rioclient-broker")
             testAgent = getenvValue("DEFAULT_AGENT", "rioclient-agent")
+
+            divaEndpoint = getenvValue("DIVA_ENDPOINT", "http://10.85.41.92:9763/services/DIVArchiveWS_SOAP_2.1?wsdl")
+            divaUsername = getenvValue("DIVA_USERNAME", "user")
+            divaPassword = getenvValue("DIVA_PASSWORD", "pass")
+            divaCategory = getenvValue("DIVA_CATEGORY", "DVT-10")
         }
     }
 
@@ -55,7 +64,6 @@ class RioClient_Test {
 
     @Test
     fun spectraDeviceTest() = blockingTest {
-
         val newDeviceName = "bp-${uuid()}"
         val newDeviceRequest = spectraDeviceCreateRequest.copy(name = newDeviceName)
         val spectraDeviceResponse = rioClient.createSpectraDevice(newDeviceRequest)
@@ -82,7 +90,67 @@ class RioClient_Test {
         assertThat(rioClient.headSpectraDevice(newDeviceName)).isFalse
     }
 
-    // TODO: Flashnet, TBPFR
+    // TODO: flashnetDeviceTest
+    // TODO: tbpfrDeviceTest
+
+    @Test
+    fun divaTest() = blockingTest {
+        ensureBrokerExists()
+        val divaDeviceName = "diva-device-${uuid()}"
+        val divaAgentName = "diva-agent-${uuid()}"
+        try {
+            var divaDeviceList = rioClient.listDivaDevices()
+            val totalDivaDevices = divaDeviceList.page.totalItems
+
+            val divaDeviceRequest = DivaDeviceCreateRequest(divaDeviceName, divaEndpoint, divaUsername, divaPassword)
+            val divaDeviceResponse = rioClient.createDivaDevice(divaDeviceRequest)
+            assertThat(divaDeviceResponse.name).isEqualTo(divaDeviceName)
+            assertThat(divaDeviceResponse.endpoint).isEqualTo(divaEndpoint)
+            assertThat(divaDeviceResponse.username).isEqualTo(divaUsername)
+
+            assertThat(rioClient.headDivaDevice(divaDeviceName)).isTrue
+
+            divaDeviceList = rioClient.listDivaDevices()
+            assertThat(divaDeviceList.page.totalItems).isEqualTo(totalDivaDevices + 1)
+
+            val divaAgentConfig = DivaAgentConfig(divaDeviceName, divaCategory, null, null)
+            val divaAgentRequest = AgentCreateRequest(divaAgentName, "diva_agent", divaAgentConfig.toMap())
+            val divaAgentCreate = rioClient.createAgent(testBroker, divaAgentRequest)
+            assertThat(divaAgentCreate.name).isEqualTo(divaAgentRequest.name)
+            assertThat(divaAgentCreate.writable).isFalse
+            assertThat(divaAgentCreate.agentConfig).isEqualTo(divaAgentConfig.toMap())
+
+            assertThat(rioClient.headAgent(testBroker, divaAgentName)).isTrue
+
+            var divaAgent = rioClient.getAgent(testBroker, divaAgentName)
+            assertThat(divaAgent).isEqualTo(divaAgentCreate)
+            assertThat(divaAgent.lastIndexDate).isNull()
+
+            var i = 25
+            while (divaAgent.indexState != "COMPLETE" && --i > 0) {
+                delay(3000)
+                divaAgent = rioClient.getAgent(testBroker, divaAgentName, true)
+            }
+            assertThat(divaAgent.indexState).isEqualTo("COMPLETE")
+            assertThat(divaAgent.lastIndexDate).isNotNull
+
+            rioClient.deleteAgent(testBroker, divaAgentName, true)
+            assertThat(rioClient.headAgent(testBroker, divaAgentName)).isFalse
+
+            rioClient.deleteDivaDevice(divaDeviceName)
+            assertThat(rioClient.headDivaDevice(divaDeviceName)).isFalse
+
+            divaDeviceList = rioClient.listDivaDevices()
+            assertThat(divaDeviceList.page.totalItems).isEqualTo(totalDivaDevices)
+        } finally {
+            if (rioClient.headAgent(testBroker, divaAgentName)) {
+                rioClient.deleteAgent(testBroker, divaAgentName, true)
+            }
+            if (rioClient.headDivaDevice(divaDeviceName)) {
+                rioClient.deleteDivaDevice(divaDeviceName)
+            }
+        }
+    }
 
     @Test
     fun endPointTest(@TempDir uriDir: Path) = blockingTest {
