@@ -345,7 +345,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     }
 
     suspend fun deleteJob(jobId: UUID): HttpResponse =
-        client.myDelete("$api/jobs?jobId=$jobId")
+        client.myDelete("$api/jobs/$jobId")
 
     suspend fun deleteAllJobs(): HttpResponse =
         client.myDelete("$api/jobs")

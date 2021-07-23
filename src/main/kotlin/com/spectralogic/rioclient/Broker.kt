@@ -33,7 +33,7 @@ data class BpAgentConfig(
     val https: Boolean = false
 ) : AgentConfig()
 
-fun BpAgentConfig.toMap(): Map<String, String> {
+fun BpAgentConfig.toConfigMap(): Map<String, String> {
     val builder = ImmutableMap.builder<String, String>()
     builder.put("bucket", bucket)
     builder.put("blackPearlName", blackPearlName)
@@ -49,7 +49,7 @@ data class Vs3AgentConfig(
     val bucket: String
 ) : AgentConfig()
 
-fun Vs3AgentConfig.toMap(): Map<String, String> {
+fun Vs3AgentConfig.toConfigMap(): Map<String, String> {
     val builder = ImmutableMap.builder<String, String>()
     builder.put("vs3DeviceName", vs3DeviceName)
     builder.put("bucket", bucket)
@@ -63,7 +63,7 @@ data class DivaAgentConfig(
     val priority: Int?
 )
 
-fun DivaAgentConfig.toMap(): Map<String, String> {
+fun DivaAgentConfig.toConfigMap(): Map<String, String> {
     val builder = ImmutableMap.builder<String, String>()
     builder.put("divaDeviceName", divaDeviceName)
     builder.put("category", category)
@@ -78,7 +78,7 @@ data class FlashnetAgentConfig(
     val storageGroupName: String
 )
 
-fun FlashnetAgentConfig.toMap(): Map<String, String> {
+fun FlashnetAgentConfig.toConfigMap(): Map<String, String> {
     val builder = ImmutableMap.builder<String, String>()
     builder.put("flashnetDeviceName", flashnetDeviceName)
     builder.put("applicationName", applicationName)
@@ -92,7 +92,7 @@ data class SglLtfsAgentConfig(
     val username: String
 )
 
-fun SglLtfsAgentConfig.toMap(): Map<String, String> {
+fun SglLtfsAgentConfig.toConfigMap(): Map<String, String> {
     val builder = ImmutableMap.builder<String, String>()
     builder.put("bucket", bucket)
     builder.put("blackPearlName", blackPearlName)

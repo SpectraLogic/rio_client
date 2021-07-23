@@ -114,11 +114,11 @@ class RioClient_Test {
             assertThat(divaDeviceList.page.totalItems).isEqualTo(totalDivaDevices + 1)
 
             val divaAgentConfig = DivaAgentConfig(divaDeviceName, divaCategory, null, null)
-            val divaAgentRequest = AgentCreateRequest(divaAgentName, "diva_agent", divaAgentConfig.toMap())
+            val divaAgentRequest = AgentCreateRequest(divaAgentName, "diva_agent", divaAgentConfig.toConfigMap())
             val divaAgentCreate = rioClient.createAgent(testBroker, divaAgentRequest)
             assertThat(divaAgentCreate.name).isEqualTo(divaAgentRequest.name)
             assertThat(divaAgentCreate.writable).isFalse
-            assertThat(divaAgentCreate.agentConfig).isEqualTo(divaAgentConfig.toMap())
+            assertThat(divaAgentCreate.agentConfig).isEqualTo(divaAgentConfig.toConfigMap())
 
             assertThat(rioClient.headAgent(testBroker, divaAgentName)).isTrue
 
@@ -228,7 +228,7 @@ class RioClient_Test {
             assertThat(getWriteAgent.name).isEqualTo(testAgent)
             assertThat(getWriteAgent.type).isEqualTo("bp_agent")
             assertThat(getWriteAgent.writable).isEqualTo(true)
-            assertThat(getWriteAgent.agentConfig).isEqualTo(agentConfig.toMap())
+            assertThat(getWriteAgent.agentConfig).isEqualTo(agentConfig.toConfigMap())
 
             val listAgents = rioClient.listAgents(testBroker)
             assertThat(listAgents.agents).hasSize(1)
@@ -237,12 +237,12 @@ class RioClient_Test {
             val readAgentName = "test-read-agent"
             assertThat(rioClient.headAgent(testBroker, readAgentName)).isFalse
 
-            val agentCreateRequest = AgentCreateRequest(readAgentName, "bp_agent", agentConfig.toMap())
+            val agentCreateRequest = AgentCreateRequest(readAgentName, "bp_agent", agentConfig.toConfigMap())
             val createAgent = rioClient.createAgent(testBroker, agentCreateRequest)
             assertThat(createAgent.name).isEqualTo(readAgentName)
             assertThat(createAgent.type).isEqualTo("bp_agent")
             assertThat(createAgent.writable).isEqualTo(false)
-            assertThat(createAgent.agentConfig).isEqualTo(agentConfig.toMap())
+            assertThat(createAgent.agentConfig).isEqualTo(agentConfig.toConfigMap())
 
             var getReadAgent = rioClient.getAgent(testBroker, readAgentName)
             assertThat(getReadAgent).isEqualTo(createAgent)
