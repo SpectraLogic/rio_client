@@ -23,6 +23,7 @@ repositories {
 }
 
 apply(plugin = "maven-publish")
+apply(plugin = "java-library")
 
 dependencies {
     val jacksonVersion = "2.12.3"
