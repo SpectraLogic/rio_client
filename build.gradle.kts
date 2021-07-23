@@ -22,6 +22,8 @@ repositories {
     mavenCentral()
 }
 
+apply(plugin = "maven-publish")
+
 dependencies {
     val jacksonVersion = "2.12.3"
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
