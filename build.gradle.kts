@@ -14,10 +14,40 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "15"
     }
+
+
+    val sourcesJar by creating(Jar::class) {
+        dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+        classifier = "sources"
+        from(java.sourceSets["main"].allSource)
+    }
+
+    val javadocJar by creating(Jar::class) {
+        dependsOn(JavaPlugin.JAVADOC_TASK_NAME)
+        classifier = "javadoc"
+        from(java.docsDir)
+    }
+
+    artifacts {
+        add("archives", sourcesJar)
+        add("archives", javadocJar)
+    }
+
 }
 
-//application {
-//    mainClass.set("com.spectralogic.rioClient.MainKt")
+//task( "sourcesJar", Jar::class) {
+//    classifier = "sources"
+//    from(sourceSets.main.allSource)
+//}
+//
+//task("javadocJar", Jar::class) {
+//    classifier = "javadoc"
+//    from(javadoc.destinationDir)
+//}
+//
+//artifacts {
+//    archives("sourcesJar")
+//    archives("javadocJar")
 //}
 
 repositories {
