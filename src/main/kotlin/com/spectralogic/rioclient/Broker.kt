@@ -6,6 +6,7 @@
 package com.spectralogic.rioclient
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.google.common.collect.ImmutableMap
 import java.util.UUID
 
 data class BrokerCreateRequest(
@@ -33,22 +34,27 @@ data class BpAgentConfig(
 ) : AgentConfig()
 
 fun BpAgentConfig.toMap(): Map<String, String> {
-    val map = mapOf(
-        Pair("bucket", this.bucket),
-        Pair("blackPearlName", this.blackPearlName),
-        Pair("username", this.username),
-        Pair("createBucket", this.createBucket.toString()),
-        Pair("https", this.https.toString()),
-        Pair("bucket", this.bucket)
-    )
-    return this.dataPolicyUUID?.let { map.plus(Pair("dataPolicyUUID", it.toString())) }
-        ?: map
+    val builder = ImmutableMap.builder<String, String>()
+    builder.put("bucket", bucket)
+    builder.put("blackPearlName", blackPearlName)
+    builder.put("username", username)
+    builder.put("createBucket", createBucket.toString())
+    builder.put("https", https.toString())
+    dataPolicyUUID?.let { builder.put("dataPolicyUUID", it.toString()) }
+    return builder.build()
 }
 
 data class Vs3AgentConfig(
     val vs3DeviceName: String,
     val bucket: String
 ) : AgentConfig()
+
+fun Vs3AgentConfig.toMap(): Map<String, String> {
+    val builder = ImmutableMap.builder<String, String>()
+    builder.put("vs3DeviceName", vs3DeviceName)
+    builder.put("bucket", bucket)
+    return builder.build()
+}
 
 data class DivaAgentConfig(
     val divaDeviceName: String,
@@ -57,17 +63,42 @@ data class DivaAgentConfig(
     val priority: Int?
 )
 
+fun DivaAgentConfig.toMap(): Map<String, String> {
+    val builder = ImmutableMap.builder<String, String>()
+    builder.put("divaDeviceName", divaDeviceName)
+    builder.put("category", category)
+    qos?.let { builder.put("qos", it.toString()) }
+    priority?.let { builder.put("priority", it.toString()) }
+    return builder.build()
+}
+
 data class FlashnetAgentConfig(
     val flashnetDeviceName: String,
     val applicationName: String,
     val storageGroupName: String
 )
 
+fun FlashnetAgentConfig.toMap(): Map<String, String> {
+    val builder = ImmutableMap.builder<String, String>()
+    builder.put("flashnetDeviceName", flashnetDeviceName)
+    builder.put("applicationName", applicationName)
+    builder.put("storageGroupName", storageGroupName)
+    return builder.build()
+}
+
 data class SglLtfsAgentConfig(
     val bucket: String,
     val blackPearlName: String,
     val username: String
 )
+
+fun SglLtfsAgentConfig.toMap(): Map<String, String> {
+    val builder = ImmutableMap.builder<String, String>()
+    builder.put("bucket", bucket)
+    builder.put("blackPearlName", blackPearlName)
+    builder.put("username", username)
+    return builder.build()
+}
 
 data class AgentCreateRequest(
     val name: String,
