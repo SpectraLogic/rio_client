@@ -8,15 +8,13 @@ package com.spectralogic.rioclient
 import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.AfterAll
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.io.TempDir
 import java.net.URI
-
 import java.net.URL
 import java.nio.file.Path
 import java.util.UUID
@@ -41,7 +39,7 @@ class RioClient_Test {
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
-            rioClient = RioClient(URL(getenvValue("ESCAPEPOD_URL","https://localhost:5050")))
+            rioClient = RioClient(URL(getenvValue("ESCAPEPOD_URL", "https://localhost:5050")))
             spectraDeviceCreateRequest = SpectraDeviceCreateRequest(
                 "rioclient_bp",
                 getenvValue("MGMT_INTERFACE_URL", "https://sm25-2-mgmt.eng.sldomain.com"),
@@ -74,8 +72,8 @@ class RioClient_Test {
 
         var spectraDeviceList = rioClient.listSpectraDevices()
         val spectraDeviceTotal = spectraDeviceList.page.totalItems
-        assertThat(spectraDeviceList.devices.map{ it.name }).contains(spectraDeviceCreateRequest.name)
-        assertThat(spectraDeviceList.devices.map{ it.name }).contains(newDeviceName)
+        assertThat(spectraDeviceList.devices.map { it.name }).contains(spectraDeviceCreateRequest.name)
+        assertThat(spectraDeviceList.devices.map { it.name }).contains(newDeviceName)
         assertThat(spectraDeviceTotal).isGreaterThanOrEqualTo(2)
 
         assertThat(rioClient.headSpectraDevice(newDeviceName)).isTrue
@@ -89,7 +87,7 @@ class RioClient_Test {
         assertThat(rioClient.headSpectraDevice(newDeviceName)).isFalse
 
         spectraDeviceList = rioClient.listSpectraDevices()
-        assertThat(spectraDeviceList.devices.map{ it.name }).doesNotContain(newDeviceName)
+        assertThat(spectraDeviceList.devices.map { it.name }).doesNotContain(newDeviceName)
         assertThat(rioClient.headSpectraDevice(newDeviceName)).isFalse
     }
 
@@ -129,8 +127,8 @@ class RioClient_Test {
 
         var endpointList = rioClient.listEndpointDevices()
         val endpointCount = endpointList.page.totalItems
-        assertThat(endpointList.devices.map{ it.name }).contains(ftpName)
-        assertThat(endpointList.devices.map{ it.name }).contains(uriName)
+        assertThat(endpointList.devices.map { it.name }).contains(ftpName)
+        assertThat(endpointList.devices.map { it.name }).contains(uriName)
         assertThat(endpointCount).isGreaterThanOrEqualTo(2)
 
         assertThat(rioClient.headEndpointDevice(ftpName)).isTrue
@@ -143,7 +141,7 @@ class RioClient_Test {
         assertThat(rioClient.headEndpointDevice(uriName)).isFalse
 
         endpointList = rioClient.listEndpointDevices()
-        assertThat(endpointList.page.totalItems).isEqualTo(endpointCount-2)
+        assertThat(endpointList.page.totalItems).isEqualTo(endpointCount - 2)
     }
 
     @Test
@@ -204,7 +202,6 @@ class RioClient_Test {
             assertThat(rioClient.headAgent(testBroker, readAgentName)).isTrue
             rioClient.deleteAgent(testBroker, readAgentName, true)
             assertThat(rioClient.headAgent(testBroker, readAgentName)).isFalse
-
         } finally {
             removeBroker()
         }
@@ -216,7 +213,7 @@ class RioClient_Test {
             ensureBrokerExists()
 
             val archiveJobName = "archive-job-${uuid()}"
-            val metadata = mapOf(Pair("key1", "val1"), Pair("key2","val2"))
+            val metadata = mapOf(Pair("key1", "val1"), Pair("key2", "val2"))
             val archiveRequest = ArchiveRequest(
                 archiveJobName,
                 listOf(
@@ -279,8 +276,8 @@ class RioClient_Test {
 
             var jobList = rioClient.listJobs(broker = testBroker, jobStatus = "COMPLETED")
             assertThat(jobList.jobs).isNotEmpty
-            assertThat(jobList.jobs.map{ it.id }).contains(archiveJob.id)
-            assertThat(jobList.jobs.map{ it.id }).contains(restoreJob.id)
+            assertThat(jobList.jobs.map { it.id }).contains(archiveJob.id)
+            assertThat(jobList.jobs.map { it.id }).contains(restoreJob.id)
 
             val totalJobs = jobList.page.totalItems
             rioClient.deleteJob(archiveJob.id)
@@ -290,8 +287,7 @@ class RioClient_Test {
             assertThat(rioClient.headJob(restoreJob.id.toString())).isFalse
 
             jobList = rioClient.listJobs(broker = testBroker, jobStatus = "COMPLETED")
-            assertThat(jobList.page.totalItems).isEqualTo(totalJobs-2)
-
+            assertThat(jobList.page.totalItems).isEqualTo(totalJobs - 2)
         } finally {
             removeBroker()
         }
@@ -324,7 +320,7 @@ class RioClient_Test {
             assertThat(archiveJobStatus.status.status).isEqualTo("COMPLETED")
 
             listObjects = rioClient.listObjects(testBroker)
-            assertThat(listObjects.page.totalItems).isEqualTo(totalObjects+1)
+            assertThat(listObjects.page.totalItems).isEqualTo(totalObjects + 1)
 
             val getObject = rioClient.getObject(testBroker, objectName)
             assertThat(getObject.broker).isEqualTo(testBroker)
@@ -336,7 +332,6 @@ class RioClient_Test {
             val updateObject = rioClient.updateObject(testBroker, objectName, newMetadata)
             assertThat(updateObject).isEqualTo(getObject.copy(metadata = newMetadata))
 
-
             assertThat(rioClient.objectExists(testBroker, objectName)).isTrue
 
             rioClient.deleteObject(testBroker, objectName)
@@ -344,7 +339,6 @@ class RioClient_Test {
 
             listObjects = rioClient.listObjects(testBroker)
             assertThat(listObjects.page.totalItems).isEqualTo(totalObjects)
-
         } finally {
             removeBroker()
         }
@@ -370,7 +364,7 @@ class RioClient_Test {
         assertThat(rioClient.headLogset(UUID.fromString(newLog.id))).isTrue
 
         listLogs = rioClient.listLogs()
-        assertThat(listLogs.page.totalItems).isEqualTo(totalLogs+1)
+        assertThat(listLogs.page.totalItems).isEqualTo(totalLogs + 1)
         assertThat(listLogs.logs.map { it.id }).contains(newLog.id)
 
         rioClient.deleteLogset(UUID.fromString(newLog.id))
@@ -378,7 +372,6 @@ class RioClient_Test {
 
         listLogs = rioClient.listLogs()
         assertThat(listLogs.page.totalItems).isEqualTo(totalLogs)
-
     }
 
     @Test
@@ -402,7 +395,6 @@ class RioClient_Test {
 
     private fun uuid(): String = UUID.randomUUID().toString()
 
-
     fun blockingTest(test: suspend () -> Unit) {
         runBlocking { test() }
     }
@@ -410,5 +402,3 @@ class RioClient_Test {
 
 private fun getenvValue(key: String, default: String): String =
     System.getenv(key) ?: default
-
-

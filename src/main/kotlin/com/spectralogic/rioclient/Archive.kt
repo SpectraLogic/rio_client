@@ -10,7 +10,7 @@ import java.net.URI
 data class ArchiveRequest(
     val name: String? = null,
     val files: List<FileToArchive>
-): RioRequest
+) : RioRequest
 
 data class FileToArchive(
     val name: String,
