@@ -36,10 +36,10 @@ interface RioRequest
 class RioClient(rioUrl: URL, val username: String = "spectra", val password: String = "spectra") : Closeable {
 
     private data class EmptyRequest(val blank: String) : RioRequest
-    private data class MyMetadata (val metadata: Map<String, String>): RioRequest
+    private data class MyMetadata(val metadata: Map<String, String>) : RioRequest
 
     private val myEmptyRequest = EmptyRequest("")
-    private val api by lazy { "${rioUrl}/api" }
+    private val api by lazy { "$rioUrl/api" }
 
     private val tokenContainer: TokenResponse by lazy {
         runBlocking {
@@ -143,7 +143,6 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
 
     // DWL TODO: tbpfr create, delete, get, head
 
-
     /**
      * Endpoint
      */
@@ -241,7 +240,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
             Pair("per_page", perPage),
             Pair("page", page),
             Pair("includeInternalMetadata", includeInternalMetadata),
-            Pair("internalMetadata", internalMetadataKey?.let { "$it,$internalMetadataValue" } )
+            Pair("internalMetadata", internalMetadataKey?.let { "$it,$internalMetadataValue" })
         )
         return client.myGet("$api/brokers/$brokerName/objects", paramMap)
     }
@@ -295,7 +294,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         page: Int? = null,
         per_page: Int? = null
     ): JobListResponse {
-        val paramMap = mapOf<String,Any?>(
+        val paramMap = mapOf<String, Any?>(
             Pair("job_type", job_type),
             Pair("status", jobStatus),
             Pair("broker", broker),
@@ -331,7 +330,6 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun fileStatus(jobId: UUID, objectName: String): FileStatusLogResponse =
         client.myGet("$api/jobs/$jobId/filestatus/${objectName.urlEncode()}")
 
-
     /**
      * Log
      */
@@ -344,7 +342,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         @Query("per_page") perPage: Int? = null,
         @Query("page") page: Int? = null
     ): LogsetListResponse {
-        val paramMap = mapOf<String,Any?>(
+        val paramMap = mapOf<String, Any?>(
             Pair("per_page", perPage),
             Pair("page", page)
         )
@@ -366,7 +364,6 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun systemInfo(): SystemResponse =
         client.myGet("$api/system")
 
-
     override fun close() {
         client.close()
     }
@@ -378,14 +375,14 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
             }.joinToString("&")
         } ?: ""
 
-    private fun paramMap(key: String, value: Any? = null): Map<String,Any?>? =
-        value?.let { mapOf<String,Any?>(Pair(key, value)) }
+    private fun paramMap(key: String, value: Any? = null): Map<String, Any?>? =
+        value?.let { mapOf<String, Any?>(Pair(key, value)) }
 
     private suspend inline fun HttpClient.myDelete(url: String, key: String, value: Any? = null): HttpResponse {
         return myDelete(url, paramMap(key, value))
     }
 
-    private suspend inline fun HttpClient.myDelete(url: String, paramMap: Map<String,Any?>? = null): HttpResponse {
+    private suspend inline fun HttpClient.myDelete(url: String, paramMap: Map<String, Any?>? = null): HttpResponse {
         return delete("$url${paramMap.queryString()}") {
             header("Authorization", "Bearer ${tokenContainer.token}")
         }
@@ -395,7 +392,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         return myGet(url, paramMap(key, value))
     }
 
-    private suspend inline fun <reified T> HttpClient.myGet(url: String, paramMap: Map<String,Any?>? = null): T {
+    private suspend inline fun <reified T> HttpClient.myGet(url: String, paramMap: Map<String, Any?>? = null): T {
         return get("$url${paramMap.queryString()}") {
             header("Authorization", "Bearer ${tokenContainer.token}")
         }
@@ -416,7 +413,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         return myPost(url, request, paramMap(key, value))
     }
 
-    private suspend inline fun <reified T> HttpClient.myPost(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String,Any?>? = null): T {
+    private suspend inline fun <reified T> HttpClient.myPost(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
         return post("$url${paramMap.queryString()}") {
             contentType(ContentType.Application.Json)
             header("Authorization", "Bearer ${tokenContainer.token}")
@@ -424,12 +421,11 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         }
     }
 
-    private suspend inline fun <reified T> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String,Any?>? = null ): T {
+    private suspend inline fun <reified T> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
         return put(url) {
             contentType(ContentType.Application.Json)
             header("Authorization", "Bearer ${tokenContainer.token}")
             body = request
         }
     }
-
 }

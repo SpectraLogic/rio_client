@@ -28,4 +28,4 @@ data class TokenResponse(val token: String)
 data class UserLoginCredentials(
     val username: String,
     val password: String
-): RioRequest
+) : RioRequest

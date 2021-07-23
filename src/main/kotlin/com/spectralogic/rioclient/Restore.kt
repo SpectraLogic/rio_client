@@ -15,7 +15,7 @@ data class ByteRange(
 data class RestoreRequest(
     val name: String? = null,
     val files: List<FileToRestore>
-): RioRequest
+) : RioRequest
 
 data class FileToRestore(
     val name: String,

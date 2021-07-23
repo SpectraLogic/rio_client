@@ -13,7 +13,7 @@ data class BrokerCreateRequest(
     val agentName: String,
     val agentConfig: AgentConfig,
     val agentType: String? = "bp_agent"
-): RioRequest
+) : RioRequest
 
 data class BrokerResponse(
     val name: String,
@@ -32,7 +32,7 @@ data class BpAgentConfig(
     val https: Boolean = false
 ) : AgentConfig()
 
-fun BpAgentConfig.toMap(): Map<String,String> {
+fun BpAgentConfig.toMap(): Map<String, String> {
     val map = mapOf(
         Pair("bucket", this.bucket),
         Pair("blackPearlName", this.blackPearlName),
@@ -73,7 +73,7 @@ data class AgentCreateRequest(
     val name: String,
     val type: String,
     val agentConfig: Map<String, String>
-): RioRequest
+) : RioRequest
 
 data class AgentResponse(
     val name: String,
@@ -99,7 +99,6 @@ data class ObjectResponse(
     val internalMetadata: Map<String, String>? = null
 )
 
-
 data class ObjectListResponse(
     override val objects: List<ObjectResponse>,
     override val page: PageInfo
@@ -114,7 +113,3 @@ data class AgentsListResponse(
     val agents: List<AgentResponse>,
     val page: PageInfo
 )
-
-
-
-

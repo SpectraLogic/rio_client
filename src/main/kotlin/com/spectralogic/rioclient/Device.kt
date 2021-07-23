@@ -15,7 +15,7 @@ data class SpectraDeviceCreateRequest(
     val password: String,
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val dataPath: String? = null
-): RioRequest
+) : RioRequest
 
 data class SpectraDeviceResponse(
     val name: String,
@@ -28,7 +28,6 @@ data class SpectraDevicesListResponse(
     val devices: List<SpectraDeviceResponse>,
     val page: PageInfo
 )
-
 
 data class FlashnetDeviceCreateRequest(
     val name: String,
@@ -45,7 +44,7 @@ data class FlashnetDeviceCreateRequest(
     val databasePassword: String? = null,
     @JsonProperty("database_name")
     val databaseName: String? = null
-): RioRequest
+) : RioRequest
 
 data class FlashnetDeviceResponse(
     val name: String,
@@ -63,7 +62,7 @@ data class FlashnetDeviceResponse(
 data class FlashnetDevicesListResponse(
     val devices: List<FlashnetDeviceResponse>,
     val page: PageInfo
-    )
+)
 
 data class TbpfrDeviceResponse(
     val name: String,
@@ -79,7 +78,7 @@ data class TbpfrDevicesListResponse(
 sealed class EndpointDeviceCreateRequest(
     open val name: String,
     val type: String
-): RioRequest
+) : RioRequest
 
 data class FtpEndpointDeviceCreateRequest(
     override val name: String,
@@ -103,5 +102,3 @@ data class UriEndpointDeviceCreateRequest(
     override val name: String,
     val endpoint: String
 ) : EndpointDeviceCreateRequest(name, "uri")
-
-
