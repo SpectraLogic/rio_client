@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm") version "1.4.30"
 //    application
     id("org.jmailen.kotlinter") version "3.2.0"
+    id("java")
     id("maven-publish")
 }
 
