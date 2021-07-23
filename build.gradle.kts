@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.4.30"
+    kotlin("jvm") version "1.5.20"
 //    application
     id("org.jmailen.kotlinter") version "3.2.0"
     id("java")
@@ -55,7 +55,7 @@ repositories {
 }
 
 dependencies {
-    val jacksonVersion = "2.12.3"
+    val jacksonVersion = "2.13.+"
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
@@ -63,10 +63,10 @@ dependencies {
     val guavaVersion="30.1-jre"
     implementation("com.google.guava:guava:$guavaVersion")
 
-    val kotlinVersion = "1.5.0"
+    val kotlinVersion = "1.5.1"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinVersion")
 
-    val ktorVersion = "1.5.4"
+    val ktorVersion = "1.6.1"
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
@@ -82,8 +82,8 @@ dependencies {
 
     //Test
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:5.7.1")
-    implementation("org.assertj:assertj-core:3.16.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
+    testImplementation("org.assertj:assertj-core:3.16.1")
 }
 
 //tasks.distZip {
