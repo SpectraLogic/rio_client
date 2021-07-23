@@ -5,25 +5,37 @@
  */
 package com.spectralogic.rioclient
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.ZonedDateTime
 import java.util.UUID
 
-class CreateTokenResponse(
-    val token: String,
-    expirationDate: ZonedDateTime?,
-    creationDate: ZonedDateTime,
-    userName: String,
-    id: UUID
-) : ApiKeyResponse(expirationDate, creationDate, userName, id)
+data class TokenCreateRequest(
+    val expirationDate: ZonedDateTime? = null
+) : RioRequest
 
-open class ApiKeyResponse(
+data class TokenResponse(
+    val token: String,
+    val expirationDate: ZonedDateTime?,
+    val creationDate: ZonedDateTime,
+    val userName: String,
+    val id: UUID
+)
+
+open class TokenKeyResponse(
     val expirationDate: ZonedDateTime? = null,
     val creationDate: ZonedDateTime,
     val userName: String,
     val id: UUID
 )
 
-data class TokenResponse(val token: String)
+open class ShortTokenResponse(
+    val token: String
+)
+
+data class TokensListResponse(
+    @JsonProperty("data") override val objects: List<TokenKeyResponse>,
+    override val page: PageInfo
+) : PageData<TokenKeyResponse>
 
 data class UserLoginCredentials(
     val username: String,

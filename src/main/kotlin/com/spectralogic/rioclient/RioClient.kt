@@ -31,7 +31,6 @@ import java.net.URL
 import java.util.UUID
 
 interface RioRequest
-// interface RioResponse
 
 class RioClient(rioUrl: URL, val username: String = "spectra", val password: String = "spectra") : Closeable {
 
@@ -41,7 +40,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     private val myEmptyRequest = EmptyRequest("")
     private val api by lazy { "$rioUrl/api" }
 
-    private val tokenContainer: TokenResponse by lazy {
+    private val tokenCreateContainer: ShortTokenResponse by lazy {
         runBlocking {
             getShortToken()
         }
@@ -66,32 +65,36 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     }
 
     /**
-     * Token (do not use myPost, will cause infinite loop)
+     * Token & Keys (do not use myPost, will cause infinite loop)
      */
-    private suspend fun getShortToken(): TokenResponse {
+    private suspend fun getShortToken(): ShortTokenResponse {
         return client.post("$api/tokens") {
             contentType(ContentType.Application.Json)
             body = UserLoginCredentials(username, password)
         }
     }
 
-    private suspend fun createNewToken(shortToken: String): CreateTokenResponse {
+    private suspend fun createNewToken(shortToken: String): TokenResponse {
         return client.post("$api/keys") {
             contentType(ContentType.Application.Json)
             header("Authorization", "Bearer $shortToken")
         }
     }
 
-    // DWL TODO:     suspend fun createApiTokenWithExpiration(@Body request: CreateLongLivedToken): CreateTokenResponse
+    suspend fun createApiToken(tokenCreateRequest: TokenCreateRequest): TokenResponse =
+        client.myPost("$api/keys", tokenCreateRequest)
 
-    suspend fun getApiToken(id: UUID): ApiKeyResponse =
-        client.myGet("$api/keys/$id")
-
-    private suspend fun deleteApiToken(id: UUID): HttpResponse =
+    suspend fun deleteApiToken(id: UUID): HttpResponse =
         client.myDelete("$api/keys/$id")
 
-    private suspend fun headApiToken(id: UUID): Boolean =
+    suspend fun getApiToken(id: UUID): TokenKeyResponse =
+        client.myGet("$api/keys/$id")
+
+    suspend fun headApiToken(id: UUID): Boolean =
         client.myHead("$api/keys/$id")
+
+    suspend fun listTokenKeys(): TokensListResponse =
+        client.myGet("$api/keys")
 
     /**
      * Cluster
@@ -384,7 +387,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
 
     private suspend inline fun HttpClient.myDelete(url: String, paramMap: Map<String, Any?>? = null): HttpResponse {
         return delete("$url${paramMap.queryString()}") {
-            header("Authorization", "Bearer ${tokenContainer.token}")
+            header("Authorization", "Bearer ${tokenCreateContainer.token}")
         }
     }
 
@@ -394,14 +397,14 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
 
     private suspend inline fun <reified T> HttpClient.myGet(url: String, paramMap: Map<String, Any?>? = null): T {
         return get("$url${paramMap.queryString()}") {
-            header("Authorization", "Bearer ${tokenContainer.token}")
+            header("Authorization", "Bearer ${tokenCreateContainer.token}")
         }
     }
 
     private suspend inline fun HttpClient.myHead(url: String): Boolean {
         return try {
             val response: HttpResponse = head(url) {
-                header("Authorization", "Bearer ${tokenContainer.token}")
+                header("Authorization", "Bearer ${tokenCreateContainer.token}")
             }
             true
         } catch (t: ClientRequestException) {
@@ -416,7 +419,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     private suspend inline fun <reified T> HttpClient.myPost(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
         return post("$url${paramMap.queryString()}") {
             contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer ${tokenContainer.token}")
+            header("Authorization", "Bearer ${tokenCreateContainer.token}")
             body = request
         }
     }
@@ -424,7 +427,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     private suspend inline fun <reified T> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
         return put(url) {
             contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer ${tokenContainer.token}")
+            header("Authorization", "Bearer ${tokenCreateContainer.token}")
             body = request
         }
     }

@@ -5,7 +5,6 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -24,22 +23,19 @@ class RioClient_Test {
 
     private companion object {
 
-        // TODO: private lateinit var bpClient: Ds3Client
-
         private lateinit var rioClient: RioClient
         private lateinit var spectraDeviceCreateRequest: SpectraDeviceCreateRequest
         private lateinit var testBroker: String
         private lateinit var testAgent: String
 
-        private val testUuid = UUID.randomUUID().toString()
-        // TODO: private var testBucket = "testBucket-$testUuid"
         private const val testBucket = "testBucket-rioclient"
-        private val mapper = ObjectMapper()
+        private const val username = "spectra"
+        private const val password = "spectra"
 
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
-            rioClient = RioClient(URL(getenvValue("ESCAPEPOD_URL", "https://localhost:5050")))
+            rioClient = RioClient(URL(getenvValue("ESCAPEPOD_URL", "https://localhost:5050")), username, password)
             spectraDeviceCreateRequest = SpectraDeviceCreateRequest(
                 "rioclient_bp",
                 getenvValue("MGMT_INTERFACE_URL", "https://sm25-2-mgmt.eng.sldomain.com"),
@@ -50,11 +46,6 @@ class RioClient_Test {
             testBroker = getenvValue("DEFAULT_BROKER", "rioclient-broker")
             testAgent = getenvValue("DEFAULT_AGENT", "rioclient-agent")
         }
-
-        /*@JvmStatic
-        @AfterAll
-        fun afterAll() =  {
-        }*/
     }
 
     @BeforeEach
@@ -356,7 +347,6 @@ class RioClient_Test {
         var getLog = rioClient.getLogset(newLog.id)
         while (getLog.status != "COMPLETE" && --i > 0) {
             delay(250)
-            println("DWL: ${getLog.status}")
             getLog = rioClient.getLogset(newLog.id)
         }
         assertThat(getLog.status).isEqualTo("COMPLETE")
@@ -377,6 +367,32 @@ class RioClient_Test {
     @Test
     fun systemTest() = blockingTest {
         rioClient.systemInfo()
+    }
+
+    @Test
+    fun keysTest() = blockingTest {
+        var listTokens = rioClient.listTokenKeys()
+        val totalTokens = listTokens.page.totalItems
+
+        val createToken = rioClient.createApiToken(TokenCreateRequest())
+        assertThat(createToken.userName).isEqualTo(username)
+
+        val getToken = rioClient.getApiToken(createToken.id)
+        assertThat(getToken.id).isEqualTo(createToken.id)
+        assertThat(getToken.userName).isEqualTo(createToken.userName)
+        assertThat(getToken.creationDate).isEqualTo(createToken.creationDate)
+        assertThat(getToken.expirationDate).isEqualTo(createToken.expirationDate)
+
+        listTokens = rioClient.listTokenKeys()
+        assertThat(listTokens.page.totalItems).isEqualTo(totalTokens + 1)
+        assertThat(listTokens.objects.map { it.id }).contains(createToken.id)
+
+        assertThat(rioClient.headApiToken(createToken.id)).isTrue
+        rioClient.deleteApiToken(createToken.id)
+        assertThat(rioClient.headApiToken(createToken.id)).isFalse
+
+        listTokens = rioClient.listTokenKeys()
+        assertThat(listTokens.page.totalItems).isEqualTo(totalTokens)
     }
 
     private suspend fun ensureBrokerExists() {
