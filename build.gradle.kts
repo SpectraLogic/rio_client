@@ -13,10 +13,6 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "15"
     }
-
-    artifacts {
-        archives(jar)
-    }
 }
 
 //application {
