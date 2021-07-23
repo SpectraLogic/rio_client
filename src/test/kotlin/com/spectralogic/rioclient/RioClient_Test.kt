@@ -5,7 +5,6 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -24,37 +23,38 @@ class RioClient_Test {
 
     private companion object {
 
-        // TODO: private lateinit var bpClient: Ds3Client
-
         private lateinit var rioClient: RioClient
         private lateinit var spectraDeviceCreateRequest: SpectraDeviceCreateRequest
         private lateinit var testBroker: String
         private lateinit var testAgent: String
 
-        private val testUuid = UUID.randomUUID().toString()
-        // TODO: private var testBucket = "testBucket-$testUuid"
+        private lateinit var divaEndpoint: String
+        private lateinit var divaUsername: String
+        private lateinit var divaPassword: String
+        private lateinit var divaCategory: String
+
         private const val testBucket = "testBucket-rioclient"
-        private val mapper = ObjectMapper()
+        private const val username = "spectra"
+        private const val password = "spectra"
 
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
-            rioClient = RioClient(URL(getenvValue("ESCAPEPOD_URL", "https://localhost:5050")))
+            rioClient = RioClient(URL(getenvValue("ESCAPEPOD_URL", "https://localhost:5050")), username, password)
             spectraDeviceCreateRequest = SpectraDeviceCreateRequest(
                 "rioclient_bp",
                 getenvValue("MGMT_INTERFACE_URL", "https://sm25-2-mgmt.eng.sldomain.com"),
                 "Administrator",
                 "spectra"
-                // getenvValue("DATA_PATH", "").ifBlank { null }
             )
             testBroker = getenvValue("DEFAULT_BROKER", "rioclient-broker")
             testAgent = getenvValue("DEFAULT_AGENT", "rioclient-agent")
-        }
 
-        /*@JvmStatic
-        @AfterAll
-        fun afterAll() =  {
-        }*/
+            divaEndpoint = getenvValue("DIVA_ENDPOINT", "http://10.85.41.92:9763/services/DIVArchiveWS_SOAP_2.1?wsdl")
+            divaUsername = getenvValue("DIVA_USERNAME", "user")
+            divaPassword = getenvValue("DIVA_PASSWORD", "pass")
+            divaCategory = getenvValue("DIVA_CATEGORY", "DVT-10")
+        }
     }
 
     @BeforeEach
@@ -64,7 +64,6 @@ class RioClient_Test {
 
     @Test
     fun spectraDeviceTest() = blockingTest {
-
         val newDeviceName = "bp-${uuid()}"
         val newDeviceRequest = spectraDeviceCreateRequest.copy(name = newDeviceName)
         val spectraDeviceResponse = rioClient.createSpectraDevice(newDeviceRequest)
@@ -91,7 +90,67 @@ class RioClient_Test {
         assertThat(rioClient.headSpectraDevice(newDeviceName)).isFalse
     }
 
-    // TODO: Flashnet, TBPFR
+    // TODO: flashnetDeviceTest
+    // TODO: tbpfrDeviceTest
+
+    @Test
+    fun divaTest() = blockingTest {
+        ensureBrokerExists()
+        val divaDeviceName = "diva-device-${uuid()}"
+        val divaAgentName = "diva-agent-${uuid()}"
+        try {
+            var divaDeviceList = rioClient.listDivaDevices()
+            val totalDivaDevices = divaDeviceList.page.totalItems
+
+            val divaDeviceRequest = DivaDeviceCreateRequest(divaDeviceName, divaEndpoint, divaUsername, divaPassword)
+            val divaDeviceResponse = rioClient.createDivaDevice(divaDeviceRequest)
+            assertThat(divaDeviceResponse.name).isEqualTo(divaDeviceName)
+            assertThat(divaDeviceResponse.endpoint).isEqualTo(divaEndpoint)
+            assertThat(divaDeviceResponse.username).isEqualTo(divaUsername)
+
+            assertThat(rioClient.headDivaDevice(divaDeviceName)).isTrue
+
+            divaDeviceList = rioClient.listDivaDevices()
+            assertThat(divaDeviceList.page.totalItems).isEqualTo(totalDivaDevices + 1)
+
+            val divaAgentConfig = DivaAgentConfig(divaDeviceName, divaCategory, null, null)
+            val divaAgentRequest = AgentCreateRequest(divaAgentName, "diva_agent", divaAgentConfig.toMap())
+            val divaAgentCreate = rioClient.createAgent(testBroker, divaAgentRequest)
+            assertThat(divaAgentCreate.name).isEqualTo(divaAgentRequest.name)
+            assertThat(divaAgentCreate.writable).isFalse
+            assertThat(divaAgentCreate.agentConfig).isEqualTo(divaAgentConfig.toMap())
+
+            assertThat(rioClient.headAgent(testBroker, divaAgentName)).isTrue
+
+            var divaAgent = rioClient.getAgent(testBroker, divaAgentName)
+            assertThat(divaAgent).isEqualTo(divaAgentCreate)
+            assertThat(divaAgent.lastIndexDate).isNull()
+
+            var i = 25
+            while (divaAgent.indexState != "COMPLETE" && --i > 0) {
+                delay(3000)
+                divaAgent = rioClient.getAgent(testBroker, divaAgentName, true)
+            }
+            assertThat(divaAgent.indexState).isEqualTo("COMPLETE")
+            assertThat(divaAgent.lastIndexDate).isNotNull
+
+            rioClient.deleteAgent(testBroker, divaAgentName, true)
+            assertThat(rioClient.headAgent(testBroker, divaAgentName)).isFalse
+
+            rioClient.deleteDivaDevice(divaDeviceName)
+            assertThat(rioClient.headDivaDevice(divaDeviceName)).isFalse
+
+            divaDeviceList = rioClient.listDivaDevices()
+            assertThat(divaDeviceList.page.totalItems).isEqualTo(totalDivaDevices)
+        } finally {
+            if (rioClient.headAgent(testBroker, divaAgentName)) {
+                rioClient.deleteAgent(testBroker, divaAgentName, true)
+            }
+            if (rioClient.headDivaDevice(divaDeviceName)) {
+                rioClient.deleteDivaDevice(divaDeviceName)
+            }
+        }
+    }
 
     @Test
     fun endPointTest(@TempDir uriDir: Path) = blockingTest {
@@ -356,7 +415,6 @@ class RioClient_Test {
         var getLog = rioClient.getLogset(newLog.id)
         while (getLog.status != "COMPLETE" && --i > 0) {
             delay(250)
-            println("DWL: ${getLog.status}")
             getLog = rioClient.getLogset(newLog.id)
         }
         assertThat(getLog.status).isEqualTo("COMPLETE")
@@ -377,6 +435,32 @@ class RioClient_Test {
     @Test
     fun systemTest() = blockingTest {
         rioClient.systemInfo()
+    }
+
+    @Test
+    fun keysTest() = blockingTest {
+        var listTokens = rioClient.listTokenKeys()
+        val totalTokens = listTokens.page.totalItems
+
+        val createToken = rioClient.createApiToken(TokenCreateRequest())
+        assertThat(createToken.userName).isEqualTo(username)
+
+        val getToken = rioClient.getApiToken(createToken.id)
+        assertThat(getToken.id).isEqualTo(createToken.id)
+        assertThat(getToken.userName).isEqualTo(createToken.userName)
+        assertThat(getToken.creationDate).isEqualTo(createToken.creationDate)
+        assertThat(getToken.expirationDate).isEqualTo(createToken.expirationDate)
+
+        listTokens = rioClient.listTokenKeys()
+        assertThat(listTokens.page.totalItems).isEqualTo(totalTokens + 1)
+        assertThat(listTokens.objects.map { it.id }).contains(createToken.id)
+
+        assertThat(rioClient.headApiToken(createToken.id)).isTrue
+        rioClient.deleteApiToken(createToken.id)
+        assertThat(rioClient.headApiToken(createToken.id)).isFalse
+
+        listTokens = rioClient.listTokenKeys()
+        assertThat(listTokens.page.totalItems).isEqualTo(totalTokens)
     }
 
     private suspend fun ensureBrokerExists() {

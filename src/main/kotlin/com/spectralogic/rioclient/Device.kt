@@ -29,6 +29,24 @@ data class SpectraDevicesListResponse(
     val page: PageInfo
 )
 
+data class DivaDeviceCreateRequest(
+    val name: String,
+    val endpoint: String,
+    val username: String,
+    val password: String
+) : RioRequest
+
+data class DivaDeviceResponse(
+    val name: String,
+    val endpoint: String,
+    val username: String
+)
+
+data class DivaDevicesListResponse(
+    val devices: List<DivaDeviceResponse>,
+    val page: PageInfo
+)
+
 data class FlashnetDeviceCreateRequest(
     val name: String,
     val host: String,
@@ -63,6 +81,13 @@ data class FlashnetDevicesListResponse(
     val devices: List<FlashnetDeviceResponse>,
     val page: PageInfo
 )
+
+data class TbpfrDeviceCreateRequest(
+    val name: String,
+    val endpoint: String,
+    val tempStorage: String,
+    val allowLazyIndex: Boolean = false
+) : RioRequest
 
 data class TbpfrDeviceResponse(
     val name: String,

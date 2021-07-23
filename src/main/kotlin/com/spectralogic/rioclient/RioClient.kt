@@ -24,14 +24,12 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import nl.altindag.ssl.util.TrustManagerUtils
-import retrofit2.http.Path
 import retrofit2.http.Query
 import java.io.Closeable
 import java.net.URL
 import java.util.UUID
 
 interface RioRequest
-// interface RioResponse
 
 class RioClient(rioUrl: URL, val username: String = "spectra", val password: String = "spectra") : Closeable {
 
@@ -41,7 +39,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     private val myEmptyRequest = EmptyRequest("")
     private val api by lazy { "$rioUrl/api" }
 
-    private val tokenContainer: TokenResponse by lazy {
+    private val tokenCreateContainer: ShortTokenResponse by lazy {
         runBlocking {
             getShortToken()
         }
@@ -66,32 +64,36 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     }
 
     /**
-     * Token (do not use myPost, will cause infinite loop)
+     * Token & Keys (do not use myPost, will cause infinite loop)
      */
-    private suspend fun getShortToken(): TokenResponse {
+    private suspend fun getShortToken(): ShortTokenResponse {
         return client.post("$api/tokens") {
             contentType(ContentType.Application.Json)
             body = UserLoginCredentials(username, password)
         }
     }
 
-    private suspend fun createNewToken(shortToken: String): CreateTokenResponse {
+    private suspend fun createNewToken(shortToken: String): TokenResponse {
         return client.post("$api/keys") {
             contentType(ContentType.Application.Json)
             header("Authorization", "Bearer $shortToken")
         }
     }
 
-    // DWL TODO:     suspend fun createApiTokenWithExpiration(@Body request: CreateLongLivedToken): CreateTokenResponse
+    suspend fun createApiToken(tokenCreateRequest: TokenCreateRequest): TokenResponse =
+        client.myPost("$api/keys", tokenCreateRequest)
 
-    suspend fun getApiToken(id: UUID): ApiKeyResponse =
-        client.myGet("$api/keys/$id")
-
-    private suspend fun deleteApiToken(id: UUID): HttpResponse =
+    suspend fun deleteApiToken(id: UUID): HttpResponse =
         client.myDelete("$api/keys/$id")
 
-    private suspend fun headApiToken(id: UUID): Boolean =
+    suspend fun getApiToken(id: UUID): TokenKeyResponse =
+        client.myGet("$api/keys/$id")
+
+    suspend fun headApiToken(id: UUID): Boolean =
         client.myHead("$api/keys/$id")
+
+    suspend fun listTokenKeys(): TokensListResponse =
+        client.myGet("$api/keys")
 
     /**
      * Cluster
@@ -122,26 +124,59 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun getSpectraDevice(name: String): SpectraDeviceResponse =
         client.myGet("$api/devices/spectra/$name")
 
-    suspend fun headSpectraDevice(@Path("deviceName") name: String): Boolean =
+    suspend fun headSpectraDevice(name: String): Boolean =
         client.myHead("$api/devices/spectra/$name")
 
     suspend fun listSpectraDevices(): SpectraDevicesListResponse =
         client.myGet("$api/devices/spectra")
 
+    // Diva
+    suspend fun createDivaDevice(divaDeviceCreateRequest: DivaDeviceCreateRequest): DivaDeviceResponse =
+        client.myPost("$api/devices/diva", divaDeviceCreateRequest)
+
+    suspend fun deleteDivaDevice(name: String): HttpResponse =
+        client.myDelete("$api/devices/diva/$name")
+
+    suspend fun getDivaDevice(name: String): DivaDeviceResponse =
+        client.myGet("$api/devices/diva/$name")
+
+    suspend fun headDivaDevice(name: String): Boolean =
+        client.myHead("$api/devices/diva/$name")
+
+    suspend fun listDivaDevices(): DivaDevicesListResponse =
+        client.myGet("$api/devices/diva")
+
     // Flashnet
     suspend fun createFlashnetDevice(flashnetDeviceCreateRequest: FlashnetDeviceCreateRequest): FlashnetDeviceResponse =
         client.myPost("$api/devices/flashnet", flashnetDeviceCreateRequest)
 
-    // DWL TODO: flashnet delete, get, head
+    suspend fun deleteFlashnetDevice(name: String): HttpResponse =
+        client.myDelete("$api/devices/flashnet/$name")
 
-    suspend fun listFlashnetDevice(): FlashnetDevicesListResponse =
-        client.myGet("$api/devices/spectra")
+    suspend fun getFlashnetDevice(name: String): FlashnetDeviceResponse =
+        client.myGet("$api/devices/flashnet/$name")
+
+    suspend fun headFlashnetDevice(name: String): Boolean =
+        client.myHead("$api/devices/flashnet/$name")
+
+    suspend fun listFlashnetDevices(): FlashnetDevicesListResponse =
+        client.myGet("$api/devices/flashnet")
 
     // TBPFR
-    suspend fun listTbpfrDevice(): TbpfrDevicesListResponse =
-        client.myGet("$api/devices/spectra")
+    suspend fun createTbpfrDevice(tbpfrDeviceCreateRequest: TbpfrDeviceCreateRequest): TbpfrDeviceResponse =
+        client.myPost("$api/devices/tbpfr", tbpfrDeviceCreateRequest)
 
-    // DWL TODO: tbpfr create, delete, get, head
+    suspend fun deleteTbpfrDevice(name: String): HttpResponse =
+        client.myDelete("$api/devices/tbpfr/$name")
+
+    suspend fun getTbpfrDevice(name: String): TbpfrDeviceResponse =
+        client.myGet("$api/devices/tbpfr/$name")
+
+    suspend fun headTbpfrDevice(name: String): Boolean =
+        client.myHead("$api/devices/tbpfr/$name")
+
+    suspend fun listTbpfrDevices(): TbpfrDevicesListResponse =
+        client.myGet("$api/devices/tbpfr")
 
     /**
      * Endpoint
@@ -336,7 +371,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun newLog(): LogsetResponse =
         client.myPost("$api/logs")
 
-    // TODO: suspend fun downloadLogset(@Path("logsetId") logsetId: String)
+    // TODO: suspend fun downloadLogset(logsetId: String)
 
     suspend fun listLogs(
         @Query("per_page") perPage: Int? = null,
@@ -349,13 +384,13 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         return client.myGet("$api/logs", paramMap)
     }
 
-    suspend fun getLogset(@Path("logsetId") logsetId: String): LogsetResponse =
+    suspend fun getLogset(logsetId: String): LogsetResponse =
         client.myGet("$api/logs/$logsetId")
 
-    suspend fun deleteLogset(@Path("logsetId") logsetId: UUID): HttpResponse =
+    suspend fun deleteLogset(logsetId: UUID): HttpResponse =
         client.myDelete("$api/logs/$logsetId")
 
-    suspend fun headLogset(@Path("logsetId") logsetId: UUID): Boolean =
+    suspend fun headLogset(logsetId: UUID): Boolean =
         client.myHead("$api/logs/$logsetId")
 
     /**
@@ -384,7 +419,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
 
     private suspend inline fun HttpClient.myDelete(url: String, paramMap: Map<String, Any?>? = null): HttpResponse {
         return delete("$url${paramMap.queryString()}") {
-            header("Authorization", "Bearer ${tokenContainer.token}")
+            header("Authorization", "Bearer ${tokenCreateContainer.token}")
         }
     }
 
@@ -394,14 +429,14 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
 
     private suspend inline fun <reified T> HttpClient.myGet(url: String, paramMap: Map<String, Any?>? = null): T {
         return get("$url${paramMap.queryString()}") {
-            header("Authorization", "Bearer ${tokenContainer.token}")
+            header("Authorization", "Bearer ${tokenCreateContainer.token}")
         }
     }
 
     private suspend inline fun HttpClient.myHead(url: String): Boolean {
         return try {
             val response: HttpResponse = head(url) {
-                header("Authorization", "Bearer ${tokenContainer.token}")
+                header("Authorization", "Bearer ${tokenCreateContainer.token}")
             }
             true
         } catch (t: ClientRequestException) {
@@ -416,7 +451,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     private suspend inline fun <reified T> HttpClient.myPost(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
         return post("$url${paramMap.queryString()}") {
             contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer ${tokenContainer.token}")
+            header("Authorization", "Bearer ${tokenCreateContainer.token}")
             body = request
         }
     }
@@ -424,7 +459,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     private suspend inline fun <reified T> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
         return put(url) {
             contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer ${tokenContainer.token}")
+            header("Authorization", "Bearer ${tokenCreateContainer.token}")
             body = request
         }
     }
