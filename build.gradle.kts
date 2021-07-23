@@ -2,8 +2,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.4.30"
-    application
+//    application
     id("org.jmailen.kotlinter") version "3.2.0"
+    id("maven-publish")
 }
 
 group = "com.spectralogic"
@@ -12,18 +13,19 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "15"
     }
+
+    artifacts {
+        archives(jar)
+    }
 }
 
-application {
-    mainClass.set("com.spectralogic.rioClient.MainKt")
-}
+//application {
+//    mainClass.set("com.spectralogic.rioClient.MainKt")
+//}
 
 repositories {
     mavenCentral()
 }
-
-apply(plugin = "maven-publish")
-apply(plugin = "java-library")
 
 dependencies {
     val jacksonVersion = "2.12.3"
@@ -57,9 +59,9 @@ dependencies {
     implementation("org.assertj:assertj-core:3.16.1")
 }
 
-tasks.distZip {
-    into("${project.name}-${project.version}/bin") {
-        from(".")
-        include("log4j2.properties")
-    }
-}
+//tasks.distZip {
+//    into("${project.name}-${project.version}/bin") {
+//        from(".")
+//        include("log4j2.properties")
+//    }
+//}
