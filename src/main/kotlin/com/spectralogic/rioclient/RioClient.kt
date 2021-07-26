@@ -27,6 +27,7 @@ import kotlinx.coroutines.runBlocking
 import nl.altindag.ssl.util.TrustManagerUtils
 import java.io.Closeable
 import java.net.URL
+import java.nio.file.Path
 import java.util.UUID
 
 interface RioRequest
@@ -391,22 +392,23 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     /**
      * Log
      */
-    suspend fun newLog(): LogsetResponse =
+    suspend fun createLogset(): LogsetResponse =
         client.myPost("$api/logs")
-
-    // TODO: suspend fun downloadLogset(logsetId: String)
-
-    suspend fun listLogs(page: Int? = null, perPage: Int? = null): LogsetListResponse =
-        client.myGet("$api/logs", pageParamMap(page, perPage))
-
-    suspend fun getLogset(logsetId: String): LogsetResponse =
-        client.myGet("$api/logs/$logsetId")
 
     suspend fun deleteLogset(logsetId: UUID): Boolean =
         client.myDelete("$api/logs/$logsetId")
 
+    suspend fun downloadLogset(logsetId: String): Path =
+        client.myGet("$api/logs/$logsetId/download")
+
+    suspend fun getLogset(logsetId: String): LogsetResponse =
+        client.myGet("$api/logs/$logsetId")
+
     suspend fun headLogset(logsetId: UUID): Boolean =
         client.myHead("$api/logs/$logsetId")
+
+    suspend fun listLogsets(page: Int? = null, perPage: Int? = null): LogsetListResponse =
+        client.myGet("$api/logs", pageParamMap(page, perPage))
 
     /**
      * Messages
