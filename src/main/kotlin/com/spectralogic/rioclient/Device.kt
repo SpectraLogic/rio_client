@@ -25,9 +25,9 @@ data class SpectraDeviceResponse(
 )
 
 data class SpectraDevicesListResponse(
-    val devices: List<SpectraDeviceResponse>,
-    val page: PageInfo
-)
+    @JsonProperty("devices") override val objects: List<SpectraDeviceResponse>,
+    override val page: PageInfo
+) : PageData<SpectraDeviceResponse>
 
 data class DivaDeviceCreateRequest(
     val name: String,
@@ -43,9 +43,9 @@ data class DivaDeviceResponse(
 )
 
 data class DivaDevicesListResponse(
-    val devices: List<DivaDeviceResponse>,
-    val page: PageInfo
-)
+    @JsonProperty("devices") override val objects: List<DivaDeviceResponse>,
+    override val page: PageInfo
+) : PageData<DivaDeviceResponse>
 
 data class FlashnetDeviceCreateRequest(
     val name: String,
@@ -78,9 +78,9 @@ data class FlashnetDeviceResponse(
 )
 
 data class FlashnetDevicesListResponse(
-    val devices: List<FlashnetDeviceResponse>,
-    val page: PageInfo
-)
+    @JsonProperty("devices") override val objects: List<FlashnetDeviceResponse>,
+    override val page: PageInfo
+) : PageData<FlashnetDeviceResponse>
 
 data class TbpfrDeviceCreateRequest(
     val name: String,
@@ -96,9 +96,30 @@ data class TbpfrDeviceResponse(
 )
 
 data class TbpfrDevicesListResponse(
-    val devices: List<TbpfrDeviceResponse>,
-    val page: PageInfo
+    @JsonProperty("devices") override val objects: List<TbpfrDeviceResponse>,
+    override val page: PageInfo
+) : PageData<TbpfrDeviceResponse>
+
+data class Vs3DeviceCreateRequest(
+    val name: String,
+    val accessKey: String,
+    val secretKey: String,
+    val endpoint: String,
+    val port: String? = null,
+    val https: String
+) : RioRequest
+
+data class Vs3DeviceResponse(
+    val name: String,
+    val endpoint: String,
+    val port: Int? = null,
+    val https: Boolean,
 )
+
+data class Vs3DevicesListResponse(
+    @JsonProperty("devices") override val objects: List<Vs3DeviceResponse>,
+    override val page: PageInfo
+) : PageData<Vs3DeviceResponse>
 
 sealed class EndpointDeviceCreateRequest(
     open val name: String,

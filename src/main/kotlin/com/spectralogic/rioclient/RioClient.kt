@@ -17,6 +17,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.head
 import io.ktor.client.request.header
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.statement.HttpResponse
@@ -182,6 +183,22 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
 
     suspend fun listTbpfrDevices(page: Int? = null, perPage: Int? = null): TbpfrDevicesListResponse =
         client.myGet("$api/devices/tbpfr", pageParamMap(page, perPage))
+
+    // Vs3
+    suspend fun createVs3Device(vs3DeviceCreateRequest: Vs3DeviceCreateRequest): Vs3DeviceResponse =
+        client.myPost("$api/devices/vs3", vs3DeviceCreateRequest)
+
+    suspend fun deleteVs3Device(name: String): Boolean =
+        client.myDelete("$api/devices/vs3/$name")
+
+    suspend fun getVs3Device(name: String): Vs3DeviceResponse =
+        client.myGet("$api/devices/vs3/$name")
+
+    suspend fun headVs3Device(name: String): Boolean =
+        client.myHead("$api/devices/vs3/$name")
+
+    suspend fun listVs3Devices(page: Int? = null, perPage: Int? = null): Vs3DevicesListResponse =
+        client.myGet("$api/devices/vs3", pageParamMap(page, perPage))
 
     /**
      * Endpoint
@@ -392,6 +409,21 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         client.myHead("$api/logs/$logsetId")
 
     /**
+     * Messages
+     */
+    suspend fun getMessage(messageId: UUID): MessageResponse =
+        client.myGet("$api/messages/$messageId")
+
+    suspend fun listMessages(page: Int?, perPage: Int?): MessagesListResponse =
+        client.myGet("$api/messages", pageParamMap())
+
+    suspend fun updateMessage(messageId: UUID, read: Boolean) =
+        client.myPatch("$api/messages/$messageId", MessageUpdateRequest(read))
+
+    suspend fun updateAllMessage(read: Boolean) =
+        client.myPatch("$api/messages", MessageUpdateRequest(read))
+
+    /**
      * System
      */
     suspend fun systemInfo(): SystemResponse =
@@ -447,6 +479,19 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
             true
         } catch (t: ClientRequestException) {
             t.response.status.value == 200
+        }
+    }
+
+    private suspend inline fun HttpClient.myPatch(url: String, request: RioRequest = myEmptyRequest): Boolean {
+        return try {
+            val response: HttpResponse = patch(url) {
+                contentType(ContentType.Application.Json)
+                header("Authorization", "Bearer ${tokenCreateContainer.token}")
+                body = request
+            }
+            true
+        } catch (t: ClientRequestException) {
+            t.response.status.value == 200 || t.response.status.value == 202 // TODO: DWL
         }
     }
 
