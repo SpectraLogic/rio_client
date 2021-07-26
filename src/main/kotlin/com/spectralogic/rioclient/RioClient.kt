@@ -113,6 +113,12 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         }
     }
 
+    suspend fun deleteDevice(type: String, name: String) =
+        client.myDelete("$api/devices/$type/$name")
+
+    suspend fun headDevice(type: String, name: String) =
+        client.myHead("$api/devices/$type/$name")
+
     // Spectra
     suspend fun createSpectraDevice(spectraDeviceCreateRequest: SpectraDeviceCreateRequest): SpectraDeviceResponse =
         client.myPost("$api/devices/spectra", spectraDeviceCreateRequest)
