@@ -410,10 +410,10 @@ class RioClient_Test {
     @Test
     fun logTest() = blockingTest {
 
-        var listLogs = rioClient.listLogs()
+        var listLogs = rioClient.listLogsets()
         val totalLogs = listLogs.page.totalItems
 
-        val newLog = rioClient.newLog()
+        val newLog = rioClient.createLogset()
 
         var i = 25
         var getLog = rioClient.getLogset(newLog.id)
@@ -425,14 +425,14 @@ class RioClient_Test {
 
         assertThat(rioClient.headLogset(UUID.fromString(newLog.id))).isTrue
 
-        listLogs = rioClient.listLogs()
+        listLogs = rioClient.listLogsets()
         assertThat(listLogs.page.totalItems).isEqualTo(totalLogs + 1)
         assertThat(listLogs.logs.map { it.id }).contains(newLog.id)
 
         rioClient.deleteLogset(UUID.fromString(newLog.id))
         assertThat(rioClient.headLogset(UUID.fromString(newLog.id))).isFalse
 
-        listLogs = rioClient.listLogs()
+        listLogs = rioClient.listLogsets()
         assertThat(listLogs.page.totalItems).isEqualTo(totalLogs)
     }
 
