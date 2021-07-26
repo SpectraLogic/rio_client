@@ -64,30 +64,32 @@ class RioClient_Test {
 
     @Test
     fun spectraDeviceTest() = blockingTest {
-        val newDeviceName = "bp-${uuid()}"
-        val newDeviceRequest = spectraDeviceCreateRequest.copy(name = newDeviceName)
-        val spectraDeviceResponse = rioClient.createSpectraDevice(newDeviceRequest)
-        assertThat(spectraDeviceResponse.name).isEqualTo(newDeviceName)
+        val spectraDeviceName = "bp-${uuid()}"
+        val spectraDeviceRequest = spectraDeviceCreateRequest.copy(name = spectraDeviceName)
+        val spectraDeviceResponse = rioClient.createSpectraDevice(spectraDeviceRequest)
+        assertThat(spectraDeviceResponse.name).isEqualTo(spectraDeviceName)
 
         var spectraDeviceList = rioClient.listSpectraDevices()
         val spectraDeviceTotal = spectraDeviceList.page.totalItems
         assertThat(spectraDeviceList.devices.map { it.name }).contains(spectraDeviceCreateRequest.name)
-        assertThat(spectraDeviceList.devices.map { it.name }).contains(newDeviceName)
+        assertThat(spectraDeviceList.devices.map { it.name }).contains(spectraDeviceName)
         assertThat(spectraDeviceTotal).isGreaterThanOrEqualTo(2)
 
-        assertThat(rioClient.headSpectraDevice(newDeviceName)).isTrue
+        assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isTrue
+        assertThat(rioClient.headDevice("spectra", spectraDeviceName)).isTrue
 
-        val getSpectraDevice = rioClient.getSpectraDevice(newDeviceName)
-        assertThat(getSpectraDevice.name).isEqualTo(newDeviceRequest.name)
-        assertThat(getSpectraDevice.mgmtInterface).isEqualTo(newDeviceRequest.mgmtInterface)
-        assertThat(getSpectraDevice.username).isEqualTo(newDeviceRequest.username)
+        val getSpectraDevice = rioClient.getSpectraDevice(spectraDeviceName)
+        assertThat(getSpectraDevice.name).isEqualTo(spectraDeviceRequest.name)
+        assertThat(getSpectraDevice.mgmtInterface).isEqualTo(spectraDeviceRequest.mgmtInterface)
+        assertThat(getSpectraDevice.username).isEqualTo(spectraDeviceRequest.username)
 
-        rioClient.deleteSpectraDevice(newDeviceName)
-        assertThat(rioClient.headSpectraDevice(newDeviceName)).isFalse
+        rioClient.deleteDevice("spectra", spectraDeviceName)
+        assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
+        assertThat(rioClient.headDevice("spectra", spectraDeviceName)).isFalse
 
         spectraDeviceList = rioClient.listSpectraDevices()
-        assertThat(spectraDeviceList.devices.map { it.name }).doesNotContain(newDeviceName)
-        assertThat(rioClient.headSpectraDevice(newDeviceName)).isFalse
+        assertThat(spectraDeviceList.devices.map { it.name }).doesNotContain(spectraDeviceName)
+        assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
     }
 
     // TODO: flashnetDeviceTest
@@ -109,6 +111,7 @@ class RioClient_Test {
             assertThat(divaDeviceResponse.username).isEqualTo(divaUsername)
 
             assertThat(rioClient.headDivaDevice(divaDeviceName)).isTrue
+            assertThat(rioClient.headDevice("diva", divaDeviceName)).isTrue
 
             divaDeviceList = rioClient.listDivaDevices()
             assertThat(divaDeviceList.page.totalItems).isEqualTo(totalDivaDevices + 1)
@@ -139,6 +142,7 @@ class RioClient_Test {
 
             rioClient.deleteDivaDevice(divaDeviceName)
             assertThat(rioClient.headDivaDevice(divaDeviceName)).isFalse
+            assertThat(rioClient.headDevice("diva", divaDeviceName)).isFalse
 
             divaDeviceList = rioClient.listDivaDevices()
             assertThat(divaDeviceList.page.totalItems).isEqualTo(totalDivaDevices)
