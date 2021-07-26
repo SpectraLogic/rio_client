@@ -446,7 +446,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         value?.let { mapOf<String, Any?>(Pair(key, value)) }
 
     private fun pageParamMap(page: Int? = null, perPage: Int? = null): Map<String, Any?> =
-        mapOf(Pair("page", page), Pair("per_page", page))
+        mapOf(Pair("page", page), Pair("per_page", perPage))
 
     private suspend inline fun HttpClient.myDelete(url: String, key: String, value: Any? = null): Boolean {
         return myDelete(url, paramMap(key, value))

@@ -71,8 +71,8 @@ class RioClient_Test {
 
         var spectraDeviceList = rioClient.listSpectraDevices()
         val spectraDeviceTotal = spectraDeviceList.page.totalItems
-        assertThat(spectraDeviceList.devices.map { it.name }).contains(spectraDeviceCreateRequest.name)
-        assertThat(spectraDeviceList.devices.map { it.name }).contains(spectraDeviceName)
+        assertThat(spectraDeviceList.objects.map { it.name }).contains(spectraDeviceCreateRequest.name)
+        assertThat(spectraDeviceList.objects.map { it.name }).contains(spectraDeviceName)
         assertThat(spectraDeviceTotal).isGreaterThanOrEqualTo(2)
 
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isTrue
@@ -88,7 +88,7 @@ class RioClient_Test {
         assertThat(rioClient.headDevice("spectra", spectraDeviceName)).isFalse
 
         spectraDeviceList = rioClient.listSpectraDevices()
-        assertThat(spectraDeviceList.devices.map { it.name }).doesNotContain(spectraDeviceName)
+        assertThat(spectraDeviceList.objects.map { it.name }).doesNotContain(spectraDeviceName)
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
     }
 

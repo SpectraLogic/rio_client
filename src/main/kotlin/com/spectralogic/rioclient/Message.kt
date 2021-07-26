@@ -1,3 +1,8 @@
+/**
+ * ***************************************************************************
+ *    Copyright 2014-2021 Spectra Logic Corporation. All Rights Reserved.
+ * ***************************************************************************
+ */
 package com.spectralogic.rioclient
 
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -30,6 +35,6 @@ data class MessageUpdateRequest(
 ) : RioRequest
 
 data class MessagesListResponse(
-    @JsonProperty("messaGES") override val objects: List<MessageResponse>,
+    @JsonProperty("messages") override val objects: List<MessageResponse>,
     override val page: PageInfo
 ) : PageData<MessageResponse>
