@@ -398,7 +398,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun deleteLogset(logsetId: UUID): Boolean =
         client.myDelete("$api/logs/$logsetId")
 
-    suspend fun downloadLogset(logsetId: String): Path =
+    suspend fun downloadLogset(logsetId: UUID): Path =
         client.myGet("$api/logs/$logsetId/download")
 
     suspend fun getLogset(logsetId: String): LogsetResponse =
