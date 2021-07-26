@@ -116,11 +116,6 @@ data class AgentResponse(
     val indexState: String?
 )
 
-data class ListAgents(
-    @JsonProperty("agents") override val objects: List<AgentResponse>,
-    override val page: PageInfo
-) : PageData<AgentResponse>
-
 data class ObjectResponse(
     val name: String,
     val size: Long,
