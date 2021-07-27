@@ -409,7 +409,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         client.myGet("$api/messages/$messageId")
 
     suspend fun listMessages(page: Int?, perPage: Int?): MessageListResponse =
-        client.myGet("$api/messages", pageParamMap())
+        client.myGet("$api/messages", pageParamMap(page, perPage))
 
     suspend fun updateMessage(messageId: UUID, read: Boolean) =
         client.myPatch("$api/messages/$messageId", MessageUpdateRequest(read))
