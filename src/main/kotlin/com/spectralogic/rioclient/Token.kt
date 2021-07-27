@@ -32,7 +32,7 @@ open class ShortTokenResponse(
     val token: String
 )
 
-data class TokensListResponse(
+data class TokenListResponse(
     @JsonProperty("data") override val objects: List<TokenKeyResponse>,
     override val page: PageInfo
 ) : PageData<TokenKeyResponse>

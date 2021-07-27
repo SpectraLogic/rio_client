@@ -24,7 +24,7 @@ data class SpectraDeviceResponse(
     val dataPath: String? = null
 )
 
-data class SpectraDevicesListResponse(
+data class SpectraDeviceListResponse(
     @JsonProperty("devices") override val objects: List<SpectraDeviceResponse>,
     override val page: PageInfo
 ) : PageData<SpectraDeviceResponse>
@@ -42,7 +42,7 @@ data class DivaDeviceResponse(
     val username: String
 )
 
-data class DivaDevicesListResponse(
+data class DivaDeviceListResponse(
     @JsonProperty("devices") override val objects: List<DivaDeviceResponse>,
     override val page: PageInfo
 ) : PageData<DivaDeviceResponse>
@@ -77,7 +77,7 @@ data class FlashnetDeviceResponse(
     val databaseUsername: String? = null
 )
 
-data class FlashnetDevicesListResponse(
+data class FlashnetDeviceListResponse(
     @JsonProperty("devices") override val objects: List<FlashnetDeviceResponse>,
     override val page: PageInfo
 ) : PageData<FlashnetDeviceResponse>
@@ -95,7 +95,7 @@ data class TbpfrDeviceResponse(
     val tempStorage: String
 )
 
-data class TbpfrDevicesListResponse(
+data class TbpfrDeviceListResponse(
     @JsonProperty("devices") override val objects: List<TbpfrDeviceResponse>,
     override val page: PageInfo
 ) : PageData<TbpfrDeviceResponse>
@@ -116,7 +116,7 @@ data class Vs3DeviceResponse(
     val https: Boolean,
 )
 
-data class Vs3DevicesListResponse(
+data class Vs3DeviceListResponse(
     @JsonProperty("devices") override val objects: List<Vs3DeviceResponse>,
     override val page: PageInfo
 ) : PageData<Vs3DeviceResponse>

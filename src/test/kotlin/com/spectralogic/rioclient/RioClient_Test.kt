@@ -113,6 +113,9 @@ class RioClient_Test {
             assertThat(rioClient.headDivaDevice(divaDeviceName)).isTrue
             assertThat(rioClient.headDevice("diva", divaDeviceName)).isTrue
 
+            val getDivaDevice = rioClient.getDivaDevice(divaDeviceName)
+            assertThat(getDivaDevice).isEqualTo(divaDeviceResponse)
+
             divaDeviceList = rioClient.listDivaDevices()
             assertThat(divaDeviceList.page.totalItems).isEqualTo(totalDivaDevices + 1)
 
@@ -190,8 +193,8 @@ class RioClient_Test {
 
         var endpointList = rioClient.listEndpointDevices()
         val endpointCount = endpointList.page.totalItems
-        assertThat(endpointList.devices.map { it.name }).contains(ftpName)
-        assertThat(endpointList.devices.map { it.name }).contains(uriName)
+        assertThat(endpointList.objects.map { it.name }).contains(ftpName)
+        assertThat(endpointList.objects.map { it.name }).contains(uriName)
         assertThat(endpointCount).isGreaterThanOrEqualTo(2)
 
         assertThat(rioClient.headEndpointDevice(ftpName)).isTrue
@@ -235,8 +238,8 @@ class RioClient_Test {
             assertThat(getWriteAgent.agentConfig).isEqualTo(agentConfig.toConfigMap())
 
             val listAgents = rioClient.listAgents(testBroker)
-            assertThat(listAgents.agents).hasSize(1)
-            assertThat(listAgents.agents.first().name).isEqualTo(getWriteAgent.name)
+            assertThat(listAgents.objects).hasSize(1)
+            assertThat(listAgents.objects.first().name).isEqualTo(getWriteAgent.name)
 
             val readAgentName = "test-read-agent"
             assertThat(rioClient.headAgent(testBroker, readAgentName)).isFalse
@@ -284,7 +287,7 @@ class RioClient_Test {
                     FileToArchive(uuid(), URI("aToZSequence://file"), 2048L, metadata),
                 )
             )
-            val archiveJob = rioClient.archiveFile(testBroker, archiveRequest)
+            val archiveJob = rioClient.createArchiveJob(testBroker, archiveRequest)
             assertThat(archiveJob.name).isEqualTo(archiveJobName)
             assertThat(archiveJob.numberOfFiles).isEqualTo(2)
             assertThat(archiveJob.totalSizeInBytes).isEqualTo(3072)
@@ -315,7 +318,7 @@ class RioClient_Test {
                     FileToRestore(archiveRequest.files[1].name, URI("null://name2"))
                 )
             )
-            val restoreJob = rioClient.restoreFile(testBroker, restoreRequest)
+            val restoreJob = rioClient.createRestoreJob(testBroker, restoreRequest)
             assertThat(restoreJob.name).isEqualTo(restoreJobName)
             assertThat(restoreJob.numberOfFiles).isEqualTo(2)
 
@@ -372,7 +375,7 @@ class RioClient_Test {
                     FileToArchive(objectName, URI("aToZSequence://file"), 1024L, metadata)
                 )
             )
-            val archiveJob = rioClient.archiveFile(testBroker, archiveRequest)
+            val archiveJob = rioClient.createArchiveJob(testBroker, archiveRequest)
 
             var i = 25
             var archiveJobStatus = rioClient.jobStatus(archiveJob.id)
@@ -427,7 +430,7 @@ class RioClient_Test {
 
         listLogs = rioClient.listLogsets()
         assertThat(listLogs.page.totalItems).isEqualTo(totalLogs + 1)
-        assertThat(listLogs.logs.map { it.id }).contains(newLog.id)
+        assertThat(listLogs.objects.map { it.id }).contains(newLog.id)
 
         rioClient.deleteLogset(UUID.fromString(newLog.id))
         assertThat(rioClient.headLogset(UUID.fromString(newLog.id))).isFalse
