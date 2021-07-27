@@ -15,15 +15,15 @@ data class TokenCreateRequest(
 
 data class TokenResponse(
     val token: String,
-    val expirationDate: ZonedDateTime?,
-    val creationDate: ZonedDateTime,
+    val expirationDate: String?,
+    val creationDate: String,
     val userName: String,
     val id: UUID
 )
 
 open class TokenKeyResponse(
-    val expirationDate: ZonedDateTime? = null,
-    val creationDate: ZonedDateTime,
+    val expirationDate: String? = null,
+    val creationDate: String,
     val userName: String,
     val id: UUID
 )
