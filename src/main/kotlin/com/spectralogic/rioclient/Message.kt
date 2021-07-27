@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.UUID
 
 data class MessageResponse(
-    val messageId: UUID,
+    @JsonProperty("id") val messageId: UUID,
     val creationDate: String,
     val lastUpdated: String,
     val read: Boolean,
