@@ -69,12 +69,14 @@ data class FlashnetDeviceResponse(
     val host: String,
     val port: Int,
     val username: String,
-    @JsonProperty("database_host")
-    val databaseHost: String,
-    @JsonProperty("database_port")
-    val databasePort: Int? = null,
-    @JsonProperty("database_username")
-    val databaseUsername: String? = null
+    val database: FlashnetDeviceDatabaseResponse
+)
+
+data class FlashnetDeviceDatabaseResponse(
+    val host: String,
+    val port: String? = null,
+    val username: String? = null,
+    val name: String? = null
 )
 
 data class FlashnetDeviceListResponse(

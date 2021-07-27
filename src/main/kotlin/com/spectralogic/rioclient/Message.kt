@@ -20,13 +20,13 @@ data class MessageResponse(
 
 data class MessageSubjectResponse(
     val key: String,
-    val parameters: Map<String, String>,
+    val parameters: Map<String, String>?,
     val text: String
 )
 
 data class MessageDetailsResponse(
     val key: String,
-    val parameters: Map<String, String>,
+    val parameters: Map<String, String>?,
     val text: String
 )
 
@@ -35,6 +35,6 @@ data class MessageUpdateRequest(
 ) : RioRequest
 
 data class MessageListResponse(
-    @JsonProperty("messages") override val objects: List<MessageResponse>,
+    @JsonProperty("data") override val objects: List<MessageResponse>,
     override val page: PageInfo
 ) : PageData<MessageResponse>
