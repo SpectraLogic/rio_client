@@ -284,12 +284,24 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         brokerName: String,
         page: Int? = null,
         perPage: Int? = null,
+        sortBy: String? = null,
+        sortOrder: String? = null,
+        dateStart: String? = null,
+        dateEnd: String? = null,
+        prefix: String? = null,
+        filename: String? = null,
         includeInternalMetadata: Boolean? = null,
         internalMetadataKey: String? = null,
         internalMetadataValue: String? = null
     ): ObjectListResponse {
         val paramMap = pageParamMap(page, perPage).plus(
             arrayOf(
+                Pair("sort_by", sortBy),
+                Pair("sort_order", sortOrder),
+                Pair("creation_date_start", dateStart),
+                Pair("creation_date_end", dateEnd),
+                Pair("prefix", prefix),
+                Pair("filename", filename),
                 Pair("includeInternalMetadata", includeInternalMetadata),
                 Pair("internalMetadata", internalMetadataKey?.let { "$it,$internalMetadataValue" })
             )
