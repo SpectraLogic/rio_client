@@ -22,6 +22,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import nl.altindag.ssl.util.TrustManagerUtils
@@ -74,13 +75,6 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         }
     }
 
-    private suspend fun createNewToken(shortToken: String): TokenResponse {
-        return client.post("$api/keys") {
-            contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer $shortToken")
-        }
-    }
-
     suspend fun createApiToken(tokenCreateRequest: TokenCreateRequest): TokenResponse =
         client.myPost("$api/keys", tokenCreateRequest)
 
@@ -93,7 +87,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headApiToken(id: UUID): Boolean =
         client.myHead("$api/keys/$id")
 
-    suspend fun listTokenKeys(page: Int? = null, perPage: Int? = null): TokensListResponse =
+    suspend fun listTokenKeys(page: Int? = null, perPage: Int? = null): TokenListResponse =
         client.myGet("$api/keys", pageParamMap(page, perPage))
 
     /**
@@ -134,7 +128,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headSpectraDevice(name: String): Boolean =
         client.myHead("$api/devices/spectra/$name")
 
-    suspend fun listSpectraDevices(page: Int? = null, perPage: Int? = null): SpectraDevicesListResponse =
+    suspend fun listSpectraDevices(page: Int? = null, perPage: Int? = null): SpectraDeviceListResponse =
         client.myGet("$api/devices/spectra", pageParamMap(page, perPage))
 
     // Diva
@@ -150,7 +144,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headDivaDevice(name: String): Boolean =
         client.myHead("$api/devices/diva/$name")
 
-    suspend fun listDivaDevices(page: Int? = null, perPage: Int? = null): DivaDevicesListResponse =
+    suspend fun listDivaDevices(page: Int? = null, perPage: Int? = null): DivaDeviceListResponse =
         client.myGet("$api/devices/diva", pageParamMap(page, perPage))
 
     // Flashnet
@@ -166,7 +160,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headFlashnetDevice(name: String): Boolean =
         client.myHead("$api/devices/flashnet/$name")
 
-    suspend fun listFlashnetDevices(page: Int? = null, perPage: Int? = null): FlashnetDevicesListResponse =
+    suspend fun listFlashnetDevices(page: Int? = null, perPage: Int? = null): FlashnetDeviceListResponse =
         client.myGet("$api/devices/flashnet", pageParamMap(page, perPage))
 
     // TBPFR
@@ -182,7 +176,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headTbpfrDevice(name: String): Boolean =
         client.myHead("$api/devices/tbpfr/$name")
 
-    suspend fun listTbpfrDevices(page: Int? = null, perPage: Int? = null): TbpfrDevicesListResponse =
+    suspend fun listTbpfrDevices(page: Int? = null, perPage: Int? = null): TbpfrDeviceListResponse =
         client.myGet("$api/devices/tbpfr", pageParamMap(page, perPage))
 
     // Vs3
@@ -198,7 +192,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headVs3Device(name: String): Boolean =
         client.myHead("$api/devices/vs3/$name")
 
-    suspend fun listVs3Devices(page: Int? = null, perPage: Int? = null): Vs3DevicesListResponse =
+    suspend fun listVs3Devices(page: Int? = null, perPage: Int? = null): Vs3DeviceListResponse =
         client.myGet("$api/devices/vs3", pageParamMap(page, perPage))
 
     /**
@@ -213,7 +207,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headEndpointDevice(name: String): Boolean =
         client.myHead("$api/devices/endpoint/$name")
 
-    suspend fun listEndpointDevices(page: Int? = null, perPage: Int? = null): EndpointDevicesListResponse =
+    suspend fun listEndpointDevices(page: Int? = null, perPage: Int? = null): EndpointDeviceListResponse =
         client.myGet("$api/devices/endpoint", pageParamMap(page, perPage))
 
     suspend fun createFtpEndpointDevice(ftpEndpointDeviceCreateRequest: FtpEndpointDeviceCreateRequest): EndpointFtpDeviceResponse =
@@ -249,11 +243,11 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headBroker(brokerName: String): Boolean =
         client.myHead("$api/brokers/$brokerName")
 
-    suspend fun listBrokers(page: Int? = null, perPage: Int? = null): BrokersListResponse {
+    suspend fun listBrokers(page: Int? = null, perPage: Int? = null): BrokerListResponse {
         return client.myGet("$api/brokers", pageParamMap(page, perPage))
     }
 
-    suspend fun listAgents(brokerName: String, page: Int? = null, perPage: Int? = null): AgentsListResponse =
+    suspend fun listAgents(brokerName: String, page: Int? = null, perPage: Int? = null): AgentListResponse =
         client.myGet("$api/brokers/$brokerName/agents", pageParamMap(page, perPage))
 
     suspend fun createAgent(brokerName: String, agentCreateRequest: AgentCreateRequest): AgentResponse =
@@ -316,29 +310,27 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun deleteObject(brokerName: String, objName: String): Boolean =
         client.myDelete("$api/brokers/$brokerName/objects/${objName.urlEncode()}")
 
-    suspend fun updateObject(brokerName: String, objName: String, metadata: Map<String, String>): ObjectResponse {
-        return client.myPut("$api/brokers/$brokerName/objects/${objName.urlEncode()}", MyMetadata(metadata))
-    }
-    // DWL TODO:  ?internalData=true
+    suspend fun updateObject(brokerName: String, objName: String, metadata: Map<String, String>, internalData: Boolean? = null): ObjectResponse =
+        client.myPut("$api/brokers/$brokerName/objects/${objName.urlEncode()}", MyMetadata(metadata), "internalData", internalData)
 
     /**
      * Job
      */
-    suspend fun archiveFile(brokerName: String, archiveRequest: ArchiveRequest, uploadNewOnly: Boolean? = null): JobResponse =
+    suspend fun createArchiveJob(brokerName: String, archiveRequest: ArchiveRequest, uploadNewOnly: Boolean? = null): JobResponse =
         client.myPost("$api/brokers/$brokerName/archive", archiveRequest, "upload-new-files-only", uploadNewOnly)
 
     suspend fun retryArchiveJob(brokerName: String, retry: UUID): JobResponse =
         client.myPost("$api/brokers/$brokerName/archive?retry=$retry")
 
-    suspend fun restoreFile(brokerName: String, restoreRequest: RestoreRequest): JobResponse =
+    suspend fun createRestoreJob(brokerName: String, restoreRequest: RestoreRequest): JobResponse =
         client.myPost("$api/brokers/$brokerName/restore", restoreRequest)
-
-    suspend fun jobStatus(jobId: UUID, withFileStatus: Boolean? = null): DetailedJobResponse =
-        client.myGet("$api/jobs/$jobId", "withFileStatus", withFileStatus)
 
     suspend fun retryRestoreJob(brokerName: String, retry: UUID): JobResponse {
         return client.myPost("$api/brokers/$brokerName/restore?retry=$retry")
     }
+
+    suspend fun jobStatus(jobId: UUID, withFileStatus: Boolean? = null): DetailedJobResponse =
+        client.myGet("$api/jobs/$jobId", "withFileStatus", withFileStatus)
 
     suspend fun listJobs(
         job_type: String? = null,
@@ -416,7 +408,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun getMessage(messageId: UUID): MessageResponse =
         client.myGet("$api/messages/$messageId")
 
-    suspend fun listMessages(page: Int?, perPage: Int?): MessagesListResponse =
+    suspend fun listMessages(page: Int?, perPage: Int?): MessageListResponse =
         client.myGet("$api/messages", pageParamMap())
 
     suspend fun updateMessage(messageId: UUID, read: Boolean) =
@@ -459,7 +451,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
             }
             true
         } catch (t: ClientRequestException) {
-            t.response.status.value == 200
+            t.response.status.value == HttpStatusCode.OK.value
         }
     }
 
@@ -480,7 +472,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
             }
             true
         } catch (t: ClientRequestException) {
-            t.response.status.value == 200
+            t.response.status.value == HttpStatusCode.OK.value
         }
     }
 
@@ -493,7 +485,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
             }
             true
         } catch (t: ClientRequestException) {
-            t.response.status.value == 200 || t.response.status.value == 202 // TODO: DWL
+            t.response.status.value == HttpStatusCode.OK.value || t.response.status.value == HttpStatusCode.NoContent.value
         }
     }
 
@@ -507,6 +499,10 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
             header("Authorization", "Bearer ${tokenCreateContainer.token}")
             body = request
         }
+    }
+
+    private suspend inline fun <reified T> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, key: String, value: Any? = null): T {
+        return myPut(url, request, paramMap(key, value))
     }
 
     private suspend inline fun <reified T> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
@@ -526,7 +522,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
             }
             true
         } catch (t: ClientRequestException) {
-            t.response.status.value == 200
+            t.response.status.value == HttpStatusCode.OK.value
         }
     }
 }

@@ -34,7 +34,7 @@ data class MessageUpdateRequest(
     val read: Boolean
 ) : RioRequest
 
-data class MessagesListResponse(
+data class MessageListResponse(
     @JsonProperty("messages") override val objects: List<MessageResponse>,
     override val page: PageInfo
 ) : PageData<MessageResponse>

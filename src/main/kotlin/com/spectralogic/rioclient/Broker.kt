@@ -130,12 +130,12 @@ data class ObjectListResponse(
     override val page: PageInfo
 ) : PageData<ObjectResponse>
 
-data class BrokersListResponse(
+data class BrokerListResponse(
     @JsonProperty("brokers") override val objects: List<BrokerResponse>,
     override val page: PageInfo
 ) : PageData<BrokerResponse>
 
-data class AgentsListResponse(
-    val agents: List<AgentResponse>,
-    val page: PageInfo
-)
+data class AgentListResponse(
+    @JsonProperty("agents") override val objects: List<AgentResponse>,
+    override val page: PageInfo
+) : PageData<AgentResponse>
