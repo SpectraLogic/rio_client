@@ -8,12 +8,12 @@ package com.spectralogic.rioclient
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class SpectraDeviceCreateRequest(
     val name: String,
     val mgmtInterface: String,
     val username: String,
     val password: String,
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     val dataPath: String? = null
 ) : RioRequest
 
@@ -47,6 +47,7 @@ data class DivaDeviceListResponse(
     override val page: PageInfo
 ) : PageData<DivaDeviceResponse>
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class FlashnetDeviceCreateRequest(
     val name: String,
     val host: String,
@@ -102,6 +103,7 @@ data class TbpfrDeviceListResponse(
     override val page: PageInfo
 ) : PageData<TbpfrDeviceResponse>
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class Vs3DeviceCreateRequest(
     val name: String,
     val accessKey: String,

@@ -5,6 +5,7 @@
  */
 package com.spectralogic.rioclient
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import java.net.URI
 
 data class ByteRange(
@@ -12,6 +13,7 @@ data class ByteRange(
     val endingIndex: Long
 )
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class RestoreRequest(
     val name: String? = null,
     val files: List<FileToRestore>
