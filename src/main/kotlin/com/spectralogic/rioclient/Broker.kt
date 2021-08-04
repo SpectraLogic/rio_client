@@ -5,6 +5,7 @@
  */
 package com.spectralogic.rioclient
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.common.collect.ImmutableMap
 import java.util.UUID
@@ -24,6 +25,7 @@ data class BrokerResponse(
 
 sealed class AgentConfig
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class BpAgentConfig(
     val bucket: String,
     val blackPearlName: String,

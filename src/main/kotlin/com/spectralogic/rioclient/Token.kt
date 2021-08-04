@@ -5,10 +5,12 @@
  */
 package com.spectralogic.rioclient
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.ZonedDateTime
 import java.util.UUID
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class TokenCreateRequest(
     val expirationDate: ZonedDateTime? = null
 ) : RioRequest
