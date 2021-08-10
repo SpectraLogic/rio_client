@@ -328,14 +328,19 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     /**
      * Job
      */
-    suspend fun createArchiveJob(brokerName: String, archiveRequest: ArchiveRequest, uploadNewOnly: Boolean? = null): JobResponse =
-        client.myPost("$api/brokers/$brokerName/archive", archiveRequest, "upload-new-files-only", uploadNewOnly)
+    suspend fun createArchiveJob(brokerName: String, archiveRequest: ArchiveRequest, uploadNewOnly: Boolean? = null, jobPriority: String? = null): JobResponse {
+        val paramMap = mapOf(
+            Pair("upload-new-files-only", uploadNewOnly),
+            Pair("priority", jobPriority)
+        )
+        return client.myPost("$api/brokers/$brokerName/archive", archiveRequest, paramMap)
+    }
 
     suspend fun retryArchiveJob(brokerName: String, retry: UUID): JobResponse =
         client.myPost("$api/brokers/$brokerName/archive?retry=$retry")
 
-    suspend fun createRestoreJob(brokerName: String, restoreRequest: RestoreRequest): JobResponse =
-        client.myPost("$api/brokers/$brokerName/restore", restoreRequest)
+    suspend fun createRestoreJob(brokerName: String, restoreRequest: RestoreRequest, jobPriority: String? = null): JobResponse =
+        client.myPost("$api/brokers/$brokerName/restore", restoreRequest, "priority", jobPriority)
 
     suspend fun retryRestoreJob(brokerName: String, retry: UUID): JobResponse {
         return client.myPost("$api/brokers/$brokerName/restore?retry=$retry")
@@ -384,8 +389,13 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headJob(jobId: String): Boolean =
         client.myHead("$api/jobs/$jobId")
 
-    suspend fun updateJob(jobId: String, cancel: Boolean): DetailedJobResponse =
-        client.myPut("$api/jobs/$jobId?cancel==$cancel")
+    suspend fun updateJob(jobId: String, cancel: Boolean?, jobPriority: String? = null): DetailedJobResponse {
+        val paramMap = mapOf(
+            Pair("cancel", cancel),
+            Pair("priority", jobPriority)
+        )
+        return client.myPut("$api/jobs/$jobId", paramMap = paramMap)
+    }
 
     suspend fun fileStatus(jobId: UUID): FileStatusLogResponse =
         client.myGet("$api/jobs/$jobId/filestatus")
