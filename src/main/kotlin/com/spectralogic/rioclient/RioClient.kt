@@ -389,7 +389,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headJob(jobId: String): Boolean =
         client.myHead("$api/jobs/$jobId")
 
-    suspend fun updateJob(jobId: String, cancel: Boolean?, jobPriority: String? = null): DetailedJobResponse {
+    suspend fun updateJob(jobId: String, cancel: Boolean?, jobPriority: String? = null): JobResponse {
         val paramMap = mapOf(
             Pair("cancel", cancel),
             Pair("priority", jobPriority)
