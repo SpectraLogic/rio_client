@@ -26,7 +26,8 @@ class DetailedJobResponse(
     totalSizeInBytes: Long,
     progress: Float,
     val files: List<FileStatus>,
-    foreignJobs: Map<UUID, ForeignJobDetails> = mapOf()
+    foreignJobs: Map<UUID, ForeignJobDetails> = mapOf(),
+    priority: String
 ) : JobResponse(
     name,
     id,
@@ -38,7 +39,8 @@ class DetailedJobResponse(
     filesTransferred,
     totalSizeInBytes,
     progress,
-    foreignJobs
+    foreignJobs,
+    priority
 )
 
 open class JobResponse(
@@ -52,7 +54,8 @@ open class JobResponse(
     val filesTransferred: Long,
     val totalSizeInBytes: Long,
     val progress: Float,
-    val foreignJobs: Map<UUID, ForeignJobDetails> = mapOf()
+    val foreignJobs: Map<UUID, ForeignJobDetails> = mapOf(),
+    val priority: String
 )
 
 data class ForeignJobDetails(
