@@ -40,7 +40,7 @@ fun BpAgentConfig.toConfigMap(): Map<String, String> {
         put("blackPearlName", blackPearlName)
         put("username", username)
         put("createBucket", createBucket.toString())
-        put("http", https.toString())
+        put("https", https.toString())
         if (dataPolicyUUID != null) put("dataPolicyUUID", dataPolicyUUID.toString())
     }
 }
