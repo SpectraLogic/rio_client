@@ -87,7 +87,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headApiToken(id: UUID): Boolean =
         client.myHead("$api/keys/$id")
 
-    suspend fun listTokenKeys(page: Int? = null, perPage: Int? = null): TokenListResponse =
+    suspend fun listTokenKeys(page: Long? = null, perPage: Long? = null): TokenListResponse =
         client.myGet("$api/keys", pageParamMap(page, perPage))
 
     /**
@@ -128,7 +128,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headSpectraDevice(name: String): Boolean =
         client.myHead("$api/devices/spectra/$name")
 
-    suspend fun listSpectraDevices(page: Int? = null, perPage: Int? = null): SpectraDeviceListResponse =
+    suspend fun listSpectraDevices(page: Long? = null, perPage: Long? = null): SpectraDeviceListResponse =
         client.myGet("$api/devices/spectra", pageParamMap(page, perPage))
 
     // Diva
@@ -144,7 +144,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headDivaDevice(name: String): Boolean =
         client.myHead("$api/devices/diva/$name")
 
-    suspend fun listDivaDevices(page: Int? = null, perPage: Int? = null): DivaDeviceListResponse =
+    suspend fun listDivaDevices(page: Long? = null, perPage: Long? = null): DivaDeviceListResponse =
         client.myGet("$api/devices/diva", pageParamMap(page, perPage))
 
     // Flashnet
@@ -160,7 +160,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headFlashnetDevice(name: String): Boolean =
         client.myHead("$api/devices/flashnet/$name")
 
-    suspend fun listFlashnetDevices(page: Int? = null, perPage: Int? = null): FlashnetDeviceListResponse =
+    suspend fun listFlashnetDevices(page: Long? = null, perPage: Long? = null): FlashnetDeviceListResponse =
         client.myGet("$api/devices/flashnet", pageParamMap(page, perPage))
 
     // TBPFR
@@ -176,7 +176,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headTbpfrDevice(name: String): Boolean =
         client.myHead("$api/devices/tbpfr/$name")
 
-    suspend fun listTbpfrDevices(page: Int? = null, perPage: Int? = null): TbpfrDeviceListResponse =
+    suspend fun listTbpfrDevices(page: Long? = null, perPage: Long? = null): TbpfrDeviceListResponse =
         client.myGet("$api/devices/tbpfr", pageParamMap(page, perPage))
 
     // Vs3
@@ -192,7 +192,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headVs3Device(name: String): Boolean =
         client.myHead("$api/devices/vs3/$name")
 
-    suspend fun listVs3Devices(page: Int? = null, perPage: Int? = null): Vs3DeviceListResponse =
+    suspend fun listVs3Devices(page: Long? = null, perPage: Long? = null): Vs3DeviceListResponse =
         client.myGet("$api/devices/vs3", pageParamMap(page, perPage))
 
     /**
@@ -207,7 +207,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headEndpointDevice(name: String): Boolean =
         client.myHead("$api/devices/endpoint/$name")
 
-    suspend fun listEndpointDevices(page: Int? = null, perPage: Int? = null): EndpointDeviceListResponse =
+    suspend fun listEndpointDevices(page: Long? = null, perPage: Long? = null): EndpointDeviceListResponse =
         client.myGet("$api/devices/endpoint", pageParamMap(page, perPage))
 
     suspend fun createFtpEndpointDevice(ftpEndpointDeviceCreateRequest: FtpEndpointDeviceCreateRequest): EndpointFtpDeviceResponse =
@@ -243,11 +243,11 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headBroker(brokerName: String): Boolean =
         client.myHead("$api/brokers/$brokerName")
 
-    suspend fun listBrokers(page: Int? = null, perPage: Int? = null): BrokerListResponse {
+    suspend fun listBrokers(page: Long? = null, perPage: Long? = null): BrokerListResponse {
         return client.myGet("$api/brokers", pageParamMap(page, perPage))
     }
 
-    suspend fun listAgents(brokerName: String, page: Int? = null, perPage: Int? = null): AgentListResponse =
+    suspend fun listAgents(brokerName: String, page: Long? = null, perPage: Long? = null): AgentListResponse =
         client.myGet("$api/brokers/$brokerName/agents", pageParamMap(page, perPage))
 
     suspend fun createAgent(brokerName: String, agentCreateRequest: AgentCreateRequest): AgentResponse =
@@ -282,8 +282,8 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
      */
     suspend fun listObjects(
         brokerName: String,
-        page: Int? = null,
-        perPage: Int? = null,
+        page: Long? = null,
+        perPage: Long? = null,
         sortBy: String? = null,
         sortOrder: String? = null,
         dateStart: String? = null,
@@ -358,8 +358,8 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         jobName: String? = null,
         sortBy: String? = null,
         sortOrder: String? = null,
-        page: Int? = null,
-        perPage: Int? = null
+        page: Long? = null,
+        perPage: Long? = null
     ): JobListResponse {
         val paramMap = pageParamMap(page, perPage)
             .plus(
@@ -421,7 +421,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun headLogset(logsetId: UUID): Boolean =
         client.myHead("$api/logs/$logsetId")
 
-    suspend fun listLogsets(page: Int? = null, perPage: Int? = null): LogsetListResponse =
+    suspend fun listLogsets(page: Long? = null, perPage: Long? = null): LogsetListResponse =
         client.myGet("$api/logs", pageParamMap(page, perPage))
 
     /**
@@ -430,7 +430,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun getMessage(messageId: UUID): MessageResponse =
         client.myGet("$api/messages/$messageId")
 
-    suspend fun listMessages(page: Int?, perPage: Int?): MessageListResponse =
+    suspend fun listMessages(page: Long?, perPage: Long?): MessageListResponse =
         client.myGet("$api/messages", pageParamMap(page, perPage))
 
     suspend fun updateMessage(messageId: UUID, read: Boolean) =
@@ -459,7 +459,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     private fun paramMap(key: String, value: Any? = null): Map<String, Any?>? =
         value?.let { mapOf<String, Any?>(Pair(key, value)) }
 
-    private fun pageParamMap(page: Int? = null, perPage: Int? = null): Map<String, Any?> =
+    private fun pageParamMap(page: Long? = null, perPage: Long? = null): Map<String, Any?> =
         mapOf(Pair("page", page), Pair("per_page", perPage))
 
     private suspend inline fun HttpClient.myDelete(url: String, key: String, value: Any? = null): Boolean {

@@ -5,11 +5,12 @@
  */
 package com.spectralogic.rioclient
 
-import com.google.common.net.UrlEscapers
 import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 fun String.urlEncode(): String {
-    return UrlEscapers.urlFragmentEscaper().escape(this)
+    return URLEncoder.encode(this, StandardCharsets.UTF_8.toString())
 }
 
 fun String.urlDecode(): String {
