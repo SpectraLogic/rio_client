@@ -36,9 +36,6 @@ dependencies {
     val kotlinVersion = "1.5.2"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinVersion")
 
-    val guavaVersion = "31.0.1-jre"
-//    implementation("com.google.guava:guava:$guavaVersion")
-
     val ktorVersion = "1.6.5"
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
