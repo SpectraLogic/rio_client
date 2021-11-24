@@ -547,4 +547,10 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
             t.response.status.value == HttpStatusCode.OK.value
         }
     }
+
+    suspend fun metadataValues(brokerName: String, metadataKey: String, page: Long = 0, perPage: Long = 100, internal: Boolean): ListMetadataValuesDistinct {
+        return client.get("$api/brokers/$brokerName/metadata/$metadataKey?page=$page&per_page=$perPage&internalData=$internal") {
+            header("Authorization", "Bearer ${tokenCreateContainer.token}")
+        }
+    }
 }
