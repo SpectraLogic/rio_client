@@ -43,8 +43,7 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
     implementation("io.github.hakky54:sslcontext-kickstart:6.2.0")
 
-
-//Test
+// Test
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
     testImplementation("org.assertj:assertj-core:3.16.1")
