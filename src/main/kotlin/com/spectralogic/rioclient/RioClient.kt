@@ -322,8 +322,17 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     suspend fun deleteObject(brokerName: String, objName: String): Boolean =
         client.myDelete("$api/brokers/$brokerName/objects/${objName.urlEncode()}")
 
-    suspend fun updateObject(brokerName: String, objName: String, metadata: Map<String, String>, internalData: Boolean? = null): ObjectResponse =
-        client.myPut("$api/brokers/$brokerName/objects/${objName.urlEncode()}", MyMetadata(metadata), "internalData", internalData)
+    suspend fun updateObject(brokerName: String, objName: String, metadata: Map<String, String>, internalData: Boolean? = null, merge: Boolean = false): ObjectResponse {
+        val paraMap: Map<String, Any?> = mapOf(
+            "internalData" to internalData,
+            "merge" to merge
+        )
+        return client.myPut(
+            "$api/brokers/$brokerName/objects/${objName.urlEncode()}",
+            MyMetadata(metadata),
+            paraMap
+        )
+    }
 
     /**
      * Job
