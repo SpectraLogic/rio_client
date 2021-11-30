@@ -328,7 +328,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
             "merge" to merge
         )
         return client.myPut(
-            "$api/brokers/$brokerName/objects/${objName.urlEncode()}?merge=$merge",
+            "$api/brokers/$brokerName/objects/${objName.urlEncode()}",
             MyMetadata(metadata),
             paraMap
         )
