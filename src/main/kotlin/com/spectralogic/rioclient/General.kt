@@ -6,8 +6,8 @@
 package com.spectralogic.rioclient
 
 data class PageInfo(
-    val number: Int,
-    val pageSize: Int,
+    val number: Long,
+    val pageSize: Long,
     val totalPages: Long,
     val totalItems: Long = 0L
 )
