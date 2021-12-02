@@ -122,6 +122,7 @@ data class ObjectResponse(
     val size: Long,
     val creationDate: String,
     val broker: String,
+    val checksum: String,
     val metadata: Map<String, String>,
     val internalMetadata: Map<String, String>? = null
 )
