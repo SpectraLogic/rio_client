@@ -122,9 +122,12 @@ data class ObjectResponse(
     val size: Long,
     val creationDate: String,
     val broker: String,
+    val checksum: Checksum,
     val metadata: Map<String, String>,
     val internalMetadata: Map<String, String>? = null
 )
+
+data class Checksum(val hash: String, val type: String)
 
 data class ObjectListResponse(
     override val objects: List<ObjectResponse>,
