@@ -5,6 +5,7 @@ plugins {
     id("org.jmailen.kotlinter") version "3.3.0"
     id("java")
     id("maven-publish")
+    id("org.owasp.dependencycheck") version "6.3.1"
 }
 
 group = "com.spectralogic"
@@ -47,4 +48,9 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
     testImplementation("org.assertj:assertj-core:3.16.1")
+}
+
+dependencyCheck {
+    // fail the build if any vulnerable dependencies are identified (CVSS score > 0)
+    failBuildOnCVSS = 0f
 }
