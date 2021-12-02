@@ -20,7 +20,7 @@ class DetailedJobResponse(
     creationDate: String,
     lastUpdated: String,
     status: JobStatus,
-    jobType: String,
+    jobType: JobType,
     numberOfFiles: Long,
     filesTransferred: Long,
     totalSizeInBytes: Long,
@@ -49,7 +49,7 @@ open class JobResponse(
     val creationDate: String,
     val lastUpdated: String,
     val status: JobStatus,
-    val jobType: String,
+    val jobType: JobType,
     val numberOfFiles: Long,
     val filesTransferred: Long,
     val totalSizeInBytes: Long,
@@ -57,6 +57,10 @@ open class JobResponse(
     val foreignJobs: Map<UUID, ForeignJobDetails> = mapOf(),
     val priority: String? = null
 )
+
+enum class JobType {
+    ARCHIVE, RESTORE
+}
 
 data class ForeignJobDetails(
     val id: String,
