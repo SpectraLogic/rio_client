@@ -302,10 +302,15 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
                 Pair("creation_date_end", dateEnd),
                 Pair("prefix", prefix),
                 Pair("filename", filename),
-                Pair("includeInternalMetadata", includeInternalMetadata),
-                Pair("internalMetadata", internalMetadataKey?.let { "$it,$internalMetadataValue" })
+                Pair("includeInternalMetadata", includeInternalMetadata)
             )
-        )
+        ).let {
+            if (!internalMetadataKey.isNullOrBlank() && !internalMetadataValue.isNullOrBlank()) {
+                it.plus(Pair("internalMetadata", "$internalMetadataKey,$internalMetadataValue"))
+            } else {
+                it
+            }
+        }
         return client.myGet("$api/brokers/$brokerName/objects", paramMap)
     }
 
