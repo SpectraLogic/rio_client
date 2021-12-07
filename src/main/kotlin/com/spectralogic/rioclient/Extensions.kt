@@ -10,7 +10,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 fun String.urlEncode(): String {
-    return URLEncoder.encode(this, StandardCharsets.UTF_8.toString())
+    return URLEncoder.encode(this, StandardCharsets.UTF_8.toString()).replace("+", "%20")
 }
 
 fun String.urlDecode(): String {
