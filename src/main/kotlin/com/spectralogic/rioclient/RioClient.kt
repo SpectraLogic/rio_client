@@ -40,12 +40,8 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
 
     private val myEmptyRequest = EmptyRequest("")
     private val api by lazy { "$rioUrl/api" }
+    private var shortToken: String = ""
 
-    private val tokenCreateContainer: ShortTokenResponse by lazy {
-        runBlocking {
-            getShortToken()
-        }
-    }
     private val client by lazy {
         HttpClient(CIO) {
             engine {
@@ -65,13 +61,20 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         }
     }
 
+    init {
+        authorize()
+    }
+
     /**
      * Token & Keys (do not use myPost, will cause infinite loop)
      */
-    private suspend fun getShortToken(): ShortTokenResponse {
-        return client.post("$api/tokens") {
-            contentType(ContentType.Application.Json)
-            body = UserLoginCredentials(username, password)
+    fun authorize() {
+        shortToken = runBlocking {
+            val shortTokenResponse: ShortTokenResponse = client.post("$api/tokens") {
+                contentType(ContentType.Application.Json)
+                body = UserLoginCredentials(username, password)
+            }
+            shortTokenResponse.token
         }
     }
 
@@ -483,7 +486,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     private suspend inline fun HttpClient.myDelete(url: String, paramMap: Map<String, Any?>? = null): Boolean {
         return try {
             val response: HttpResponse = delete("$url${paramMap.queryString()}") {
-                header("Authorization", "Bearer ${tokenCreateContainer.token}")
+                header("Authorization", "Bearer $shortToken")
             }
             true
         } catch (t: ClientRequestException) {
@@ -497,14 +500,14 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
 
     private suspend inline fun <reified T> HttpClient.myGet(url: String, paramMap: Map<String, Any?>? = null): T {
         return get("$url${paramMap.queryString()}") {
-            header("Authorization", "Bearer ${tokenCreateContainer.token}")
+            header("Authorization", "Bearer $shortToken")
         }
     }
 
     private suspend inline fun HttpClient.myHead(url: String): Boolean {
         return try {
             val response: HttpResponse = head(url) {
-                header("Authorization", "Bearer ${tokenCreateContainer.token}")
+                header("Authorization", "Bearer $shortToken")
             }
             true
         } catch (t: ClientRequestException) {
@@ -516,7 +519,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         return try {
             val response: HttpResponse = patch(url) {
                 contentType(ContentType.Application.Json)
-                header("Authorization", "Bearer ${tokenCreateContainer.token}")
+                header("Authorization", "Bearer $shortToken")
                 body = request
             }
             true
@@ -532,7 +535,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     private suspend inline fun <reified T> HttpClient.myPost(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
         return post("$url${paramMap.queryString()}") {
             contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer ${tokenCreateContainer.token}")
+            header("Authorization", "Bearer $shortToken")
             body = request
         }
     }
@@ -544,7 +547,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     private suspend inline fun <reified T> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
         return put("$url${paramMap.queryString()}") {
             contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer ${tokenCreateContainer.token}")
+            header("Authorization", "Bearer $shortToken")
             body = request
         }
     }
@@ -553,7 +556,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         return try {
             val response: HttpResponse = put("$url${paramMap.queryString()}") {
                 contentType(ContentType.Application.Json)
-                header("Authorization", "Bearer ${tokenCreateContainer.token}")
+                header("Authorization", "Bearer $shortToken")
                 body = request
             }
             true
@@ -564,7 +567,7 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
 
     suspend fun metadataValues(brokerName: String, metadataKey: String, page: Long = 0, perPage: Long = 100, internal: Boolean): ListMetadataValuesDistinct {
         return client.get("$api/brokers/$brokerName/metadata/$metadataKey?page=$page&per_page=$perPage&internalData=$internal") {
-            header("Authorization", "Bearer ${tokenCreateContainer.token}")
+            header("Authorization", "Bearer $shortToken")
         }
     }
 }
