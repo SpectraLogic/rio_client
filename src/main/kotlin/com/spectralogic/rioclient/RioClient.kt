@@ -33,14 +33,22 @@ import java.util.UUID
 
 interface RioRequest
 
-class RioClient(rioUrl: URL, val username: String = "spectra", val password: String = "spectra") : Closeable {
+class RioClient(
+    rioUrl: URL,
+    private val username: String = "spectra",
+    private val password: String = "spectra",
+    private val longLivedToken: String? = null,
+    private val reauthorizeDeltaSeconds: Long = 3_600L // TODO: ESCP-3450
+) : Closeable {
 
     private data class EmptyRequest(val blank: String) : RioRequest
     private data class MyMetadata(val metadata: Map<String, String>) : RioRequest
 
     private val myEmptyRequest = EmptyRequest("")
     private val api by lazy { "$rioUrl/api" }
-    private var shortToken: String = ""
+    private var authToken: String = ""
+    private var reauthorizeMs: Long = reauthorizeDeltaSeconds * 1_000L // TODO: ESCP-3450
+    private var reauthorizeAt: Long = -1L // TODO: ESCP-3450
 
     private val client by lazy {
         HttpClient(CIO) {
@@ -62,19 +70,28 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     }
 
     init {
-        authorize()
+        authToken = longLivedToken ?: getShortToken()
     }
 
     /**
      * Token & Keys (do not use myPost, will cause infinite loop)
      */
-    fun authorize() {
-        shortToken = runBlocking {
-            val shortTokenResponse: ShortTokenResponse = client.post("$api/tokens") {
+    private fun getShortToken(): String {
+        val token = runBlocking {
+            val response: ShortTokenResponse = client.post("$api/tokens") {
                 contentType(ContentType.Application.Json)
                 body = UserLoginCredentials(username, password)
             }
-            shortTokenResponse.token
+            response.token
+        }
+        reauthorizeAt = System.currentTimeMillis() + reauthorizeMs // TODO: ESCP-3450
+        return token
+    }
+
+    // TODO: ESCP-3450
+    private fun reauthorize() {
+        if (reauthorizeAt > 0 && System.currentTimeMillis() > reauthorizeAt) {
+            authToken = getShortToken()
         }
     }
 
@@ -484,9 +501,10 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     }
 
     private suspend inline fun HttpClient.myDelete(url: String, paramMap: Map<String, Any?>? = null): Boolean {
+        reauthorize() // TODO: ESCP-3450
         return try {
             val response: HttpResponse = delete("$url${paramMap.queryString()}") {
-                header("Authorization", "Bearer $shortToken")
+                header("Authorization", "Bearer $authToken")
             }
             true
         } catch (t: ClientRequestException) {
@@ -499,15 +517,17 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     }
 
     private suspend inline fun <reified T> HttpClient.myGet(url: String, paramMap: Map<String, Any?>? = null): T {
+        reauthorize() // TODO: ESCP-3450
         return get("$url${paramMap.queryString()}") {
-            header("Authorization", "Bearer $shortToken")
+            header("Authorization", "Bearer $authToken")
         }
     }
 
     private suspend inline fun HttpClient.myHead(url: String): Boolean {
+        reauthorize() // TODO: ESCP-3450
         return try {
             val response: HttpResponse = head(url) {
-                header("Authorization", "Bearer $shortToken")
+                header("Authorization", "Bearer $authToken")
             }
             true
         } catch (t: ClientRequestException) {
@@ -516,10 +536,11 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     }
 
     private suspend inline fun HttpClient.myPatch(url: String, request: RioRequest = myEmptyRequest): Boolean {
+        reauthorize() // TODO: ESCP-3450
         return try {
             val response: HttpResponse = patch(url) {
                 contentType(ContentType.Application.Json)
-                header("Authorization", "Bearer $shortToken")
+                header("Authorization", "Bearer $authToken")
                 body = request
             }
             true
@@ -533,9 +554,10 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     }
 
     private suspend inline fun <reified T> HttpClient.myPost(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
+        reauthorize() // TODO: ESCP-3450
         return post("$url${paramMap.queryString()}") {
             contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer $shortToken")
+            header("Authorization", "Bearer $authToken")
             body = request
         }
     }
@@ -545,18 +567,20 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
     }
 
     private suspend inline fun <reified T> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
+        reauthorize() // TODO: ESCP-3450
         return put("$url${paramMap.queryString()}") {
             contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer $shortToken")
+            header("Authorization", "Bearer $authToken")
             body = request
         }
     }
 
     private suspend inline fun HttpClient.myPutBoolean(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): Boolean {
+        reauthorize() // TODO: ESCP-3450
         return try {
             val response: HttpResponse = put("$url${paramMap.queryString()}") {
                 contentType(ContentType.Application.Json)
-                header("Authorization", "Bearer $shortToken")
+                header("Authorization", "Bearer $authToken")
                 body = request
             }
             true
@@ -565,9 +589,11 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
         }
     }
 
+    // TODO: why is this RioCruise specific method here?
     suspend fun metadataValues(brokerName: String, metadataKey: String, page: Long = 0, perPage: Long = 100, internal: Boolean): ListMetadataValuesDistinct {
+        reauthorize() // TODO: ESCP-3450
         return client.get("$api/brokers/$brokerName/metadata/$metadataKey?page=$page&per_page=$perPage&internalData=$internal") {
-            header("Authorization", "Bearer $shortToken")
+            header("Authorization", "Bearer $authToken")
         }
     }
 }
