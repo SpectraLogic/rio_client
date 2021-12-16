@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.spectralogic"
-version = "1.0.0"
+version = "1.1.0"
 tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "15"
@@ -33,28 +33,18 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
 
-    val guavaVersion = "30.1-jre"
-    implementation("com.google.guava:guava:$guavaVersion")
-
-    val kotlinVersion = "1.5.1"
+    val kotlinVersion = "1.5.2"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinVersion")
 
-    val ktorVersion = "1.6.1"
+    val ktorVersion = "1.6.7"
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
-    implementation("io.github.hakky54:sslcontext-kickstart:6.2.0")
+    implementation("io.github.hakky54:sslcontext-kickstart:7.0.3")
 
-
-    val retrofitVersion = "2.9.0"
-    implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
-    implementation("com.squareup.retrofit2:converter-simplexml:$retrofitVersion")
-    implementation("com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion")
-    implementation("com.squareup.retrofit2:converter-jackson:$retrofitVersion")
-
-//Test
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
-    testImplementation("org.assertj:assertj-core:3.16.1")
+// Test
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation("org.assertj:assertj-core:3.21.0")
 }

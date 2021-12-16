@@ -11,6 +11,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.features.ClientRequestException
+import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.request.delete
@@ -33,7 +34,12 @@ import java.util.UUID
 
 interface RioRequest
 
-class RioClient(rioUrl: URL, val username: String = "spectra", val password: String = "spectra") : Closeable {
+class RioClient(
+    rioUrl: URL,
+    private val username: String = "spectra",
+    private val password: String = "spectra",
+    private val requestTimeout: Long = 60L * 1000L, // 60 seconds
+) : Closeable {
 
     private data class EmptyRequest(val blank: String) : RioRequest
     private data class MyMetadata(val metadata: Map<String, String>) : RioRequest
@@ -52,6 +58,9 @@ class RioClient(rioUrl: URL, val username: String = "spectra", val password: Str
                 https {
                     this.trustManager = TrustManagerUtils.createUnsafeTrustManager()
                 }
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = requestTimeout
             }
             install(JsonFeature) {
                 serializer = JacksonSerializer {
