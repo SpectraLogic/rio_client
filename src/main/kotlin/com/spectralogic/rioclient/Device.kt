@@ -104,7 +104,7 @@ data class TbpfrDeviceListResponse(
 ) : PageData<TbpfrDeviceResponse>
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class Vs3DeviceCreateRequest(
+data class VailDeviceCreateRequest(
     val name: String,
     val accessKey: String,
     val secretKey: String,
@@ -113,17 +113,17 @@ data class Vs3DeviceCreateRequest(
     val https: String
 ) : RioRequest
 
-data class Vs3DeviceResponse(
+data class VailDeviceResponse(
     val name: String,
     val endpoint: String,
     val port: Int? = null,
     val https: Boolean,
 )
 
-data class Vs3DeviceListResponse(
-    @JsonProperty("devices") override val objects: List<Vs3DeviceResponse>,
+data class VailDeviceListResponse(
+    @JsonProperty("devices") override val objects: List<VailDeviceResponse>,
     override val page: PageInfo
-) : PageData<Vs3DeviceResponse>
+) : PageData<VailDeviceResponse>
 
 sealed class EndpointDeviceCreateRequest(
     open val name: String,
