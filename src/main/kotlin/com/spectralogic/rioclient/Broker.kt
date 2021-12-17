@@ -45,14 +45,14 @@ fun BpAgentConfig.toConfigMap(): Map<String, String> {
     }
 }
 
-data class Vs3AgentConfig(
-    val vs3DeviceName: String,
+data class VailAgentConfig(
+    val vailDeviceName: String,
     val bucket: String
 ) : AgentConfig()
 
-fun Vs3AgentConfig.toConfigMap(): Map<String, String> {
+fun VailAgentConfig.toConfigMap(): Map<String, String> {
     return buildMap {
-        put("vs3DeviceName", vs3DeviceName)
+        put("vailDeviceName", vailDeviceName)
         put("bucket", bucket)
     }
 }

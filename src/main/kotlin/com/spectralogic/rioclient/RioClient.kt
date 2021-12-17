@@ -204,21 +204,21 @@ class RioClient(
     suspend fun listTbpfrDevices(page: Long? = null, perPage: Long? = null): TbpfrDeviceListResponse =
         client.myGet("$api/devices/tbpfr", pageParamMap(page, perPage))
 
-    // Vs3
-    suspend fun createVs3Device(vs3DeviceCreateRequest: Vs3DeviceCreateRequest): Vs3DeviceResponse =
-        client.myPost("$api/devices/vs3", vs3DeviceCreateRequest)
+    // Vail
+    suspend fun createVailDevice(vailDeviceCreateRequest: VailDeviceCreateRequest): VailDeviceResponse =
+        client.myPost("$api/devices/vail", vailDeviceCreateRequest)
 
-    suspend fun deleteVs3Device(name: String): Boolean =
-        client.myDelete("$api/devices/vs3/$name")
+    suspend fun deleteVailDevice(name: String): Boolean =
+        client.myDelete("$api/devices/vail/$name")
 
-    suspend fun getVs3Device(name: String): Vs3DeviceResponse =
-        client.myGet("$api/devices/vs3/$name")
+    suspend fun getVailDevice(name: String): VailDeviceResponse =
+        client.myGet("$api/devices/vail/$name")
 
-    suspend fun headVs3Device(name: String): Boolean =
-        client.myHead("$api/devices/vs3/$name")
+    suspend fun headVailDevice(name: String): Boolean =
+        client.myHead("$api/devices/vail/$name")
 
-    suspend fun listVs3Devices(page: Long? = null, perPage: Long? = null): Vs3DeviceListResponse =
-        client.myGet("$api/devices/vs3", pageParamMap(page, perPage))
+    suspend fun listVailDevices(page: Long? = null, perPage: Long? = null): VailDeviceListResponse =
+        client.myGet("$api/devices/vail", pageParamMap(page, perPage))
 
     /**
      * Endpoint
