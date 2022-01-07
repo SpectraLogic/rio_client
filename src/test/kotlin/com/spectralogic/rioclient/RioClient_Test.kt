@@ -8,6 +8,7 @@ package com.spectralogic.rioclient
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.catchThrowableOfType
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -36,6 +37,8 @@ class RioClient_Test {
         private const val testBucket = "testBucket-rioclient"
         private const val username = "spectra"
         private const val password = "spectra"
+
+        private const val invalidNameMsg = "names can only contain the characters: [a-z], [0-9], '-' and '_'"
 
         @JvmStatic
         @BeforeAll
@@ -90,6 +93,24 @@ class RioClient_Test {
         spectraDeviceList = rioClient.listSpectraDevices()
         assertThat(spectraDeviceList.objects.map { it.name }).doesNotContain(spectraDeviceName)
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
+
+        // device unhappy path testing
+        listOf(
+            Pair(spectraDeviceCreateRequest.copy(name = "Bad&Name"), invalidNameMsg),
+            Pair(spectraDeviceCreateRequest.copy(mgmtInterface = "https://badhost.eng.sldomain.com"), "unknown_host"),
+            Pair(spectraDeviceCreateRequest.copy(username = "bad-username"), "invalid_credentials"),
+            Pair(spectraDeviceCreateRequest.copy(password = "bad-password"), "invalid_credentials")
+        ).forEach { (request, message) ->
+            val error = catchThrowableOfType(
+                {
+                    runBlocking {
+                        rioClient.createSpectraDevice(request)
+                    }
+                },
+                RioHttpException::class.java
+            )
+            assertThat(error.parse()).isEqualTo(message)
+        }
     }
 
     // TODO: flashnetDeviceTest
@@ -143,12 +164,31 @@ class RioClient_Test {
             rioClient.deleteAgent(testBroker, divaAgentName, true)
             assertThat(rioClient.headAgent(testBroker, divaAgentName)).isFalse
 
+            // TODO agent unhappy path testing
+
             rioClient.deleteDivaDevice(divaDeviceName)
             assertThat(rioClient.headDivaDevice(divaDeviceName)).isFalse
             assertThat(rioClient.headDevice("diva", divaDeviceName)).isFalse
 
             divaDeviceList = rioClient.listDivaDevices()
             assertThat(divaDeviceList.page.totalItems).isEqualTo(totalDivaDevices)
+
+            // device unhappy path testing
+            listOf(
+                Pair(divaDeviceRequest.copy(name = "bad&name"), invalidNameMsg),
+                Pair(divaDeviceRequest.copy(endpoint = "https://badhost.eng.sldomain.com"), "Downstream service is unavailable")
+            ).forEach { (request, message) ->
+                val error = catchThrowableOfType(
+                    {
+                        runBlocking {
+                            rioClient.createDivaDevice(request)
+                        }
+                    },
+                    RioHttpException::class.java
+                )
+                assertThat(error).isNotNull
+                assertThat(error.parse()).isEqualTo(message)
+            }
         } finally {
             if (rioClient.headAgent(testBroker, divaAgentName)) {
                 rioClient.deleteAgent(testBroker, divaAgentName, true)
@@ -208,6 +248,8 @@ class RioClient_Test {
 
         endpointList = rioClient.listEndpointDevices()
         assertThat(endpointList.page.totalItems).isEqualTo(endpointCount - 2)
+
+        // TODO: endpoint unhappy path testing
     }
 
     @Test
@@ -268,6 +310,9 @@ class RioClient_Test {
             assertThat(rioClient.headAgent(testBroker, readAgentName)).isTrue
             rioClient.deleteAgent(testBroker, readAgentName, true)
             assertThat(rioClient.headAgent(testBroker, readAgentName)).isFalse
+
+            // TODO broker unhappy path testing
+            // TODO agent unhappy path testing
         } finally {
             removeBroker()
         }
@@ -354,6 +399,8 @@ class RioClient_Test {
 
             jobList = rioClient.listJobs(broker = testBroker, jobStatus = "COMPLETED")
             assertThat(jobList.page.totalItems).isEqualTo(totalJobs - 2)
+
+            // TODO job unhappy path testing
         } finally {
             removeBroker()
         }
@@ -405,6 +452,8 @@ class RioClient_Test {
 
             listObjects = rioClient.listObjects(testBroker)
             assertThat(listObjects.page.totalItems).isEqualTo(totalObjects)
+
+            // TODO: object unhappy path testing
         } finally {
             removeBroker()
         }
@@ -437,6 +486,8 @@ class RioClient_Test {
 
         listLogs = rioClient.listLogsets()
         assertThat(listLogs.page.totalItems).isEqualTo(totalLogs)
+
+        // TODO: log unhappy path testing
     }
 
     @Test
@@ -468,6 +519,8 @@ class RioClient_Test {
 
         listTokens = rioClient.listTokenKeys()
         assertThat(listTokens.page.totalItems).isEqualTo(totalTokens)
+
+        // TODO: keys unhappy path testing
     }
 
     private suspend fun ensureBrokerExists() {

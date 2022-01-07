@@ -513,7 +513,14 @@ class RioClient(
             }
             true
         } catch (t: ClientRequestException) {
-            t.response.status.value == HttpStatusCode.OK.value
+            when (t.response.status.value) {
+                HttpStatusCode.OK.value -> true
+                HttpStatusCode.NoContent.value -> true
+                HttpStatusCode.NotFound.value -> false
+                else -> throw RioHttpException(t)
+            }
+        } catch (t: Throwable) {
+            throw RioHttpException(t)
         }
     }
 
@@ -523,8 +530,12 @@ class RioClient(
 
     private suspend inline fun <reified T> HttpClient.myGet(url: String, paramMap: Map<String, Any?>? = null): T {
         reauthorize() // TODO: ESCP-3450
-        return get("$url${paramMap.queryString()}") {
-            header("Authorization", "Bearer $authToken")
+        return try {
+            get("$url${paramMap.queryString()}") {
+                header("Authorization", "Bearer $authToken")
+            }
+        } catch (t: Throwable) {
+            throw RioHttpException(t)
         }
     }
 
@@ -536,7 +547,14 @@ class RioClient(
             }
             true
         } catch (t: ClientRequestException) {
-            t.response.status.value == HttpStatusCode.OK.value
+            when (t.response.status.value) {
+                HttpStatusCode.OK.value -> true
+                HttpStatusCode.NoContent.value -> true
+                HttpStatusCode.NotFound.value -> false
+                else -> throw RioHttpException(t)
+            }
+        } catch (t: Throwable) {
+            throw RioHttpException(t)
         }
     }
 
@@ -550,7 +568,14 @@ class RioClient(
             }
             true
         } catch (t: ClientRequestException) {
-            t.response.status.value == HttpStatusCode.OK.value || t.response.status.value == HttpStatusCode.NoContent.value
+            when (t.response.status.value) {
+                HttpStatusCode.OK.value -> true
+                HttpStatusCode.NoContent.value -> true
+                HttpStatusCode.NotFound.value -> false
+                else -> throw RioHttpException(t)
+            }
+        } catch (t: Throwable) {
+            throw RioHttpException(t)
         }
     }
 
@@ -560,10 +585,14 @@ class RioClient(
 
     private suspend inline fun <reified T> HttpClient.myPost(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
         reauthorize() // TODO: ESCP-3450
-        return post("$url${paramMap.queryString()}") {
-            contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer $authToken")
-            body = request
+        return try {
+            post("$url${paramMap.queryString()}") {
+                contentType(ContentType.Application.Json)
+                header("Authorization", "Bearer $authToken")
+                body = request
+            }
+        } catch (t: Throwable) {
+            throw RioHttpException(t)
         }
     }
 
@@ -573,10 +602,14 @@ class RioClient(
 
     private suspend inline fun <reified T> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
         reauthorize() // TODO: ESCP-3450
-        return put("$url${paramMap.queryString()}") {
-            contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer $authToken")
-            body = request
+        return try {
+            put("$url${paramMap.queryString()}") {
+                contentType(ContentType.Application.Json)
+                header("Authorization", "Bearer $authToken")
+                body = request
+            }
+        } catch (t: Throwable) {
+            throw RioHttpException(t)
         }
     }
 
@@ -590,15 +623,25 @@ class RioClient(
             }
             true
         } catch (t: ClientRequestException) {
-            t.response.status.value == HttpStatusCode.OK.value
+            when (t.response.status.value) {
+                HttpStatusCode.OK.value -> true
+                HttpStatusCode.NoContent.value -> true
+                else -> throw RioHttpException(t)
+            }
+        } catch (t: Throwable) {
+            throw RioHttpException(t)
         }
     }
 
     // TODO: why is this RioCruise specific method here?
     suspend fun metadataValues(brokerName: String, metadataKey: String, page: Long = 0, perPage: Long = 100, internal: Boolean): ListMetadataValuesDistinct {
         reauthorize() // TODO: ESCP-3450
-        return client.get("$api/brokers/$brokerName/metadata/$metadataKey?page=$page&per_page=$perPage&internalData=$internal") {
-            header("Authorization", "Bearer $authToken")
+        return try {
+            client.get("$api/brokers/$brokerName/metadata/$metadataKey?page=$page&per_page=$perPage&internalData=$internal") {
+                header("Authorization", "Bearer $authToken")
+            }
+        } catch (t: Throwable) {
+            throw RioHttpException(t)
         }
     }
 }
