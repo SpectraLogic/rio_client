@@ -79,7 +79,9 @@ data class FileStatus(
     val foreignJob: UUID? = null,
     val uri: URI,
     val sizeInBytes: Long,
-    val lastUpdated: String
+    val lastUpdated: String,
+    val broker: String?,
+    val agentName: String?
 )
 
 data class FileStatusLogResponse(
