@@ -317,7 +317,8 @@ class RioClient(
         filename: String? = null,
         includeInternalMetadata: Boolean? = null,
         internalMetadataKey: String? = null,
-        internalMetadataValue: String? = null
+        internalMetadataValue: String? = null,
+        migration: Boolean? = null
     ): ObjectListResponse {
         val paramMap = pageParamMap(page, perPage).plus(
             arrayOf(
@@ -327,7 +328,8 @@ class RioClient(
                 Pair("creation_date_end", dateEnd),
                 Pair("prefix", prefix),
                 Pair("filename", filename),
-                Pair("includeInternalMetadata", includeInternalMetadata)
+                Pair("includeInternalMetadata", includeInternalMetadata),
+                Pair("migration", migration)
             )
         ).let {
             if (!internalMetadataKey.isNullOrBlank() && !internalMetadataValue.isNullOrBlank()) {
