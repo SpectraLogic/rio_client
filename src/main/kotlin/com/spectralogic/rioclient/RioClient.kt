@@ -48,9 +48,7 @@ class RioClient(
 
     private val myEmptyRequest = EmptyRequest("")
     private val api by lazy { "$rioUrl/api" }
-    private var authToken: String = ""
-    private var reauthorizeMs: Long = reauthorizeDeltaSeconds * 1_000L // TODO: ESCP-3450
-    private var reauthorizeAt: Long = -1L // TODO: ESCP-3450
+    private val tokenContainer: TokenContainer = TokenContainer(reauthorizeDeltaSeconds) { runBlocking { getShortToken() } }
 
     private val client by lazy {
         HttpClient(CIO) {
@@ -74,10 +72,6 @@ class RioClient(
         }
     }
 
-    init {
-        authToken = longLivedToken ?: getShortToken()
-    }
-
     /**
      * Token & Keys (do not use myPost, will cause infinite loop)
      */
@@ -89,15 +83,7 @@ class RioClient(
             }
             response.token
         }
-        reauthorizeAt = System.currentTimeMillis() + reauthorizeMs // TODO: ESCP-3450
         return token
-    }
-
-    // TODO: ESCP-3450
-    private fun reauthorize() {
-        if (reauthorizeAt > 0 && System.currentTimeMillis() > reauthorizeAt) {
-            authToken = getShortToken()
-        }
     }
 
     suspend fun createApiToken(tokenCreateRequest: TokenCreateRequest): TokenResponse =
@@ -508,10 +494,9 @@ class RioClient(
     }
 
     private suspend inline fun HttpClient.myDelete(url: String, paramMap: Map<String, Any?>? = null): Boolean {
-        reauthorize() // TODO: ESCP-3450
         return try {
             val response: HttpResponse = delete("$url${paramMap.queryString()}") {
-                header("Authorization", "Bearer $authToken")
+                header("Authorization", "Bearer ${tokenContainer.token}")
             }
             true
         } catch (t: ClientRequestException) {
@@ -531,10 +516,9 @@ class RioClient(
     }
 
     private suspend inline fun <reified T> HttpClient.myGet(url: String, paramMap: Map<String, Any?>? = null): T {
-        reauthorize() // TODO: ESCP-3450
         return try {
             get("$url${paramMap.queryString()}") {
-                header("Authorization", "Bearer $authToken")
+                header("Authorization", "Bearer ${tokenContainer.token}")
             }
         } catch (t: Throwable) {
             throw RioHttpException(t)
@@ -542,10 +526,9 @@ class RioClient(
     }
 
     private suspend inline fun HttpClient.myHead(url: String): Boolean {
-        reauthorize() // TODO: ESCP-3450
         return try {
             val response: HttpResponse = head(url) {
-                header("Authorization", "Bearer $authToken")
+                header("Authorization", "Bearer ${tokenContainer.token}")
             }
             true
         } catch (t: ClientRequestException) {
@@ -561,11 +544,10 @@ class RioClient(
     }
 
     private suspend inline fun HttpClient.myPatch(url: String, request: RioRequest = myEmptyRequest): Boolean {
-        reauthorize() // TODO: ESCP-3450
         return try {
             val response: HttpResponse = patch(url) {
                 contentType(ContentType.Application.Json)
-                header("Authorization", "Bearer $authToken")
+                header("Authorization", "Bearer ${tokenContainer.token}")
                 body = request
             }
             true
@@ -586,11 +568,10 @@ class RioClient(
     }
 
     private suspend inline fun <reified T> HttpClient.myPost(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
-        reauthorize() // TODO: ESCP-3450
         return try {
             post("$url${paramMap.queryString()}") {
                 contentType(ContentType.Application.Json)
-                header("Authorization", "Bearer $authToken")
+                header("Authorization", "Bearer ${tokenContainer.token}")
                 body = request
             }
         } catch (t: Throwable) {
@@ -603,11 +584,10 @@ class RioClient(
     }
 
     private suspend inline fun <reified T> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
-        reauthorize() // TODO: ESCP-3450
         return try {
             put("$url${paramMap.queryString()}") {
                 contentType(ContentType.Application.Json)
-                header("Authorization", "Bearer $authToken")
+                header("Authorization", "Bearer ${tokenContainer.token}")
                 body = request
             }
         } catch (t: Throwable) {
@@ -616,11 +596,10 @@ class RioClient(
     }
 
     private suspend inline fun HttpClient.myPutBoolean(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): Boolean {
-        reauthorize() // TODO: ESCP-3450
         return try {
             val response: HttpResponse = put("$url${paramMap.queryString()}") {
                 contentType(ContentType.Application.Json)
-                header("Authorization", "Bearer $authToken")
+                header("Authorization", "Bearer ${tokenContainer.token}")
                 body = request
             }
             true
@@ -637,10 +616,9 @@ class RioClient(
 
     // TODO: why is this RioCruise specific method here?
     suspend fun metadataValues(brokerName: String, metadataKey: String, page: Long = 0, perPage: Long = 100, internal: Boolean): ListMetadataValuesDistinct {
-        reauthorize() // TODO: ESCP-3450
         return try {
             client.get("$api/brokers/$brokerName/metadata/$metadataKey?page=$page&per_page=$perPage&internalData=$internal") {
-                header("Authorization", "Bearer $authToken")
+                header("Authorization", "Bearer ${tokenContainer.token}")
             }
         } catch (t: Throwable) {
             throw RioHttpException(t)
