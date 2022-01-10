@@ -5,8 +5,11 @@ import java.time.ZonedDateTime
 class TokenContainer(
     private val reAuthSeconds: Long,
     private val longLivedToken: String? = null,
-    private val tokenGenerator: () -> String) {
+    private val tokenGenerator: () -> String
+) {
     private var internalToken: String = ""
+
+    // TODO: ESCP-3450
     val token: String
         get() {
             if (longLivedToken != null) return longLivedToken
