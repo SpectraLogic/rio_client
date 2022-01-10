@@ -2,7 +2,7 @@ package com.spectralogic.rioclient
 
 import java.time.ZonedDateTime
 
-class TokenContainer(
+internal class TokenContainer(
     private val reAuthSeconds: Long,
     private val longLivedToken: String? = null,
     private val tokenGenerator: () -> String

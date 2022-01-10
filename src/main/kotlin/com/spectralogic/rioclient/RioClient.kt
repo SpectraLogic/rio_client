@@ -7,6 +7,7 @@ package com.spectralogic.rioclient
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -39,8 +40,8 @@ class RioClient(
     private val username: String = "spectra",
     private val password: String = "spectra",
     private val requestTimeout: Long = 60L * 1000L, // 60 seconds
-    private val longLivedToken: String? = null,
-    private val reauthorizeDeltaSeconds: Long = 3_600L // TODO: ESCP-3450
+    longLivedToken: String? = null,
+    reauthorizeDeltaSeconds: Long = 3_600L // TODO: ESCP-3450
 ) : Closeable {
 
     private data class EmptyRequest(val blank: String) : RioRequest
@@ -48,7 +49,9 @@ class RioClient(
 
     private val myEmptyRequest = EmptyRequest("")
     private val api by lazy { "$rioUrl/api" }
-    private val tokenContainer: TokenContainer = TokenContainer(reauthorizeDeltaSeconds) { runBlocking { getShortToken() } }
+    private val tokenContainer: TokenContainer = TokenContainer(reauthorizeDeltaSeconds, longLivedToken) {
+        runBlocking { getShortToken() }
+    }
 
     private val client by lazy {
         HttpClient(CIO) {
@@ -62,7 +65,16 @@ class RioClient(
             }
             install(JsonFeature) {
                 serializer = JacksonSerializer {
-                    registerModule(KotlinModule())
+                    registerModule(
+                        KotlinModule.Builder()
+                            .withReflectionCacheSize(512)
+                            .configure(KotlinFeature.NullToEmptyCollection, false)
+                            .configure(KotlinFeature.NullToEmptyMap, false)
+                            .configure(KotlinFeature.NullIsSameAsDefault, false)
+                            .configure(KotlinFeature.SingletonSupport, false)
+                            .configure(KotlinFeature.StrictNullChecks, false)
+                            .build()
+                    )
                     registerModule(JavaTimeModule())
                     configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                     configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
