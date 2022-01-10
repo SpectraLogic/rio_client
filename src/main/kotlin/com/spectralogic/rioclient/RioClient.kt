@@ -65,16 +65,6 @@ class RioClient(
             }
             install(JsonFeature) {
                 serializer = JacksonSerializer {
-                    registerModule(
-                        KotlinModule.Builder()
-                            .withReflectionCacheSize(512)
-                            .configure(KotlinFeature.NullToEmptyCollection, false)
-                            .configure(KotlinFeature.NullToEmptyMap, false)
-                            .configure(KotlinFeature.NullIsSameAsDefault, false)
-                            .configure(KotlinFeature.SingletonSupport, false)
-                            .configure(KotlinFeature.StrictNullChecks, false)
-                            .build()
-                    )
                     registerModule(JavaTimeModule())
                     configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                     configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
