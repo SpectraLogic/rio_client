@@ -39,7 +39,7 @@ class RioClient(
     private val username: String = "spectra",
     private val password: String = "spectra",
     private val requestTimeout: Long = 60L * 1000L, // 60 seconds
-    private val longLivedToken: String? = null
+    longLivedToken: String? = null
 ) : Closeable {
 
     private data class EmptyRequest(val blank: String) : RioRequest
@@ -72,11 +72,6 @@ class RioClient(
             }
         }
     }
-
-    /*
-     * RioClient methods
-     */
-    suspend fun getLongLivedToken(): String? = longLivedToken
 
     /**
      * Token (do not use myPost, will cause infinite loop)
