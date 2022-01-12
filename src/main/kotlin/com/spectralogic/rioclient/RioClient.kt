@@ -39,8 +39,7 @@ class RioClient(
     private val username: String = "spectra",
     private val password: String = "spectra",
     private val requestTimeout: Long = 60L * 1000L, // 60 seconds
-    longLivedToken: String? = null,
-    reauthorizeDeltaSeconds: Long = 3_600L // TODO: ESCP-3450
+    longLivedToken: String? = null
 ) : Closeable {
 
     private data class EmptyRequest(val blank: String) : RioRequest
@@ -48,7 +47,7 @@ class RioClient(
 
     private val myEmptyRequest = EmptyRequest("")
     private val api by lazy { "$rioUrl/api" }
-    private val tokenContainer: TokenContainer = TokenContainer(reauthorizeDeltaSeconds, longLivedToken) {
+    private val tokenContainer: TokenContainer = TokenContainer(longLivedToken) {
         runBlocking { getShortToken() }
     }
 
@@ -75,7 +74,7 @@ class RioClient(
     }
 
     /**
-     * Token & Keys (do not use myPost, will cause infinite loop)
+     * Token (do not use myPost, will cause infinite loop)
      */
     private fun getShortToken(): String {
         val token = runBlocking {
@@ -88,6 +87,9 @@ class RioClient(
         return token
     }
 
+    /**
+     * Keys
+     */
     suspend fun createApiToken(tokenCreateRequest: TokenCreateRequest): TokenResponse =
         client.myPost("$api/keys", tokenCreateRequest)
 
