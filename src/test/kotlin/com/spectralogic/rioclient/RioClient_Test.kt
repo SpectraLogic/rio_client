@@ -17,6 +17,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.net.URI
 import java.net.URL
 import java.nio.file.Path
+import java.time.ZonedDateTime
 import java.util.UUID
 
 @Tag("test")
@@ -502,6 +503,17 @@ class RioClient_Test {
 
         val createToken = rioClient.createApiToken(TokenCreateRequest())
         assertThat(createToken.userName).isEqualTo(username)
+        assertThat(createToken.creationDate).isNotNull
+        assertThat(createToken.id).isNotNull
+        assertThat(createToken.expirationDate).isNull()
+
+        val expireZdt = ZonedDateTime.now().plusDays(2)
+        val longToken = rioClient.createApiToken(TokenCreateRequest(expireZdt.toString()))
+        assertThat(longToken.userName).isEqualTo(username)
+        assertThat(longToken.expirationDate).isNotNull
+        val expirationDate = ZonedDateTime.parse(longToken.expirationDate)
+        assertThat(expirationDate).isBefore(expireZdt.plusMinutes(1))
+        assertThat(expirationDate).isAfter(expireZdt.plusMinutes(-1))
 
         val getToken = rioClient.getApiToken(createToken.id)
         assertThat(getToken.id).isEqualTo(createToken.id)
@@ -510,12 +522,16 @@ class RioClient_Test {
         assertThat(getToken.expirationDate).isEqualTo(createToken.expirationDate)
 
         listTokens = rioClient.listTokenKeys()
-        assertThat(listTokens.page.totalItems).isEqualTo(totalTokens + 1)
-        assertThat(listTokens.objects.map { it.id }).contains(createToken.id)
+        assertThat(listTokens.page.totalItems).isEqualTo(totalTokens + 2)
+        assertThat(listTokens.objects.map { it.id }).containsAll(listOf(createToken.id, longToken.id))
 
         assertThat(rioClient.headApiToken(createToken.id)).isTrue
         rioClient.deleteApiToken(createToken.id)
         assertThat(rioClient.headApiToken(createToken.id)).isFalse
+
+        assertThat(rioClient.headApiToken(longToken.id)).isTrue
+        rioClient.deleteApiToken(longToken.id)
+        assertThat(rioClient.headApiToken(longToken.id)).isFalse
 
         listTokens = rioClient.listTokenKeys()
         assertThat(listTokens.page.totalItems).isEqualTo(totalTokens)
