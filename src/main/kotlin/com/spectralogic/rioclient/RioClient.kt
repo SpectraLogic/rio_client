@@ -117,7 +117,6 @@ class RioClient(
     /**
      * Device
      */
-
     suspend fun ensureSpectraDeviceExists(spectraDeviceCreateRequest: SpectraDeviceCreateRequest) {
         if (!headSpectraDevice(spectraDeviceCreateRequest.name)) {
             createSpectraDevice(spectraDeviceCreateRequest)
