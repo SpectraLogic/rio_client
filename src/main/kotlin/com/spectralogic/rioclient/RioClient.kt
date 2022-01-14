@@ -23,6 +23,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
@@ -497,8 +498,9 @@ class RioClient(
     }
 
     private suspend inline fun HttpClient.myDelete(url: String, paramMap: Map<String, Any?>? = null): Boolean {
+        val urlStr = "$url${paramMap.queryString()}"
         return try {
-            val response: HttpResponse = delete("$url${paramMap.queryString()}") {
+            val response: HttpResponse = delete(urlStr) {
                 header("Authorization", "Bearer ${tokenContainer.token}")
             }
             true
@@ -507,10 +509,10 @@ class RioClient(
                 HttpStatusCode.OK.value -> true
                 HttpStatusCode.NoContent.value -> true
                 HttpStatusCode.NotFound.value -> false
-                else -> throw RioHttpException(t)
+                else -> throw RioHttpException(HttpMethod.Companion.Head, urlStr, t, t.response.status)
             }
         } catch (t: Throwable) {
-            throw RioHttpException(t)
+            throw RioHttpException(HttpMethod.Companion.Head, urlStr, t)
         }
     }
 
@@ -519,12 +521,13 @@ class RioClient(
     }
 
     private suspend inline fun <reified T> HttpClient.myGet(url: String, paramMap: Map<String, Any?>? = null): T {
+        val urlStr = "$url${paramMap.queryString()}"
         return try {
-            get("$url${paramMap.queryString()}") {
+            get(urlStr) {
                 header("Authorization", "Bearer ${tokenContainer.token}")
             }
         } catch (t: Throwable) {
-            throw RioHttpException(t)
+            throw RioHttpException(HttpMethod.Get, urlStr, t)
         }
     }
 
@@ -539,10 +542,10 @@ class RioClient(
                 HttpStatusCode.OK.value -> true
                 HttpStatusCode.NoContent.value -> true
                 HttpStatusCode.NotFound.value -> false
-                else -> throw RioHttpException(t)
+                else -> throw RioHttpException(HttpMethod.Head, url, t, t.response.status)
             }
         } catch (t: Throwable) {
-            throw RioHttpException(t)
+            throw RioHttpException(HttpMethod.Head, url, t)
         }
     }
 
@@ -559,10 +562,10 @@ class RioClient(
                 HttpStatusCode.OK.value -> true
                 HttpStatusCode.NoContent.value -> true
                 HttpStatusCode.NotFound.value -> false
-                else -> throw RioHttpException(t)
+                else -> throw RioHttpException(HttpMethod.Patch, url, t)
             }
         } catch (t: Throwable) {
-            throw RioHttpException(t)
+            throw RioHttpException(HttpMethod.Patch, url, t)
         }
     }
 
@@ -571,14 +574,15 @@ class RioClient(
     }
 
     private suspend inline fun <reified T> HttpClient.myPost(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
+        val urlStr = "$url${paramMap.queryString()}"
         return try {
-            post("$url${paramMap.queryString()}") {
+            post(urlStr) {
                 contentType(ContentType.Application.Json)
                 header("Authorization", "Bearer ${tokenContainer.token}")
                 body = request
             }
         } catch (t: Throwable) {
-            throw RioHttpException(t)
+            throw RioHttpException(HttpMethod.Post, urlStr, t)
         }
     }
 
@@ -587,20 +591,22 @@ class RioClient(
     }
 
     private suspend inline fun <reified T> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
+        val urlStr = "$url${paramMap.queryString()}"
         return try {
-            put("$url${paramMap.queryString()}") {
+            put(urlStr) {
                 contentType(ContentType.Application.Json)
                 header("Authorization", "Bearer ${tokenContainer.token}")
                 body = request
             }
         } catch (t: Throwable) {
-            throw RioHttpException(t)
+            throw RioHttpException(HttpMethod.Put, urlStr, t)
         }
     }
 
     private suspend inline fun HttpClient.myPutBoolean(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): Boolean {
+        val urlStr = "$url${paramMap.queryString()}"
         return try {
-            val response: HttpResponse = put("$url${paramMap.queryString()}") {
+            val response: HttpResponse = put(urlStr) {
                 contentType(ContentType.Application.Json)
                 header("Authorization", "Bearer ${tokenContainer.token}")
                 body = request
@@ -610,21 +616,22 @@ class RioClient(
             when (t.response.status.value) {
                 HttpStatusCode.OK.value -> true
                 HttpStatusCode.NoContent.value -> true
-                else -> throw RioHttpException(t)
+                else -> throw RioHttpException(HttpMethod.Put, urlStr, t, t.response.status)
             }
         } catch (t: Throwable) {
-            throw RioHttpException(t)
+            throw RioHttpException(HttpMethod.Put, urlStr, t)
         }
     }
 
     // TODO: why is this RioCruise specific method here?
     suspend fun metadataValues(brokerName: String, metadataKey: String, page: Long = 0, perPage: Long = 100, internal: Boolean): ListMetadataValuesDistinct {
+        val urlStr = "$api/brokers/$brokerName/metadata/$metadataKey?page=$page&per_page=$perPage&internalData=$internal"
         return try {
-            client.get("$api/brokers/$brokerName/metadata/$metadataKey?page=$page&per_page=$perPage&internalData=$internal") {
+            client.get(urlStr) {
                 header("Authorization", "Bearer ${tokenContainer.token}")
             }
         } catch (t: Throwable) {
-            throw RioHttpException(t)
+            throw RioHttpException(HttpMethod.Head, urlStr, t)
         }
     }
 }

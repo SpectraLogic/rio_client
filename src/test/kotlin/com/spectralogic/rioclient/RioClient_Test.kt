@@ -110,7 +110,7 @@ class RioClient_Test {
                 },
                 RioHttpException::class.java
             )
-            assertThat(error.parse()).isEqualTo(message)
+            assertThat(error.payload()).contains(message)
         }
     }
 
@@ -176,7 +176,7 @@ class RioClient_Test {
 
             // device unhappy path testing
             listOf(
-                Pair(divaDeviceRequest.copy(name = "bad&name"), invalidNameMsg),
+                Pair(divaDeviceRequest.copy(name = "BAD&NAME"), invalidNameMsg),
                 Pair(divaDeviceRequest.copy(endpoint = "https://badhost.eng.sldomain.com"), "Downstream service is unavailable")
             ).forEach { (request, message) ->
                 val error = catchThrowableOfType(
@@ -188,7 +188,7 @@ class RioClient_Test {
                     RioHttpException::class.java
                 )
                 assertThat(error).isNotNull
-                assertThat(error.parse()).isEqualTo(message)
+                assertThat(error.payload()).contains(message)
             }
         } finally {
             if (rioClient.headAgent(testBroker, divaAgentName)) {
@@ -471,7 +471,7 @@ class RioClient_Test {
         var i = 25
         var getLog = rioClient.getLogset(newLog.id)
         while (getLog.status != "COMPLETE" && --i > 0) {
-            delay(250)
+            delay(1000)
             getLog = rioClient.getLogset(newLog.id)
         }
         assertThat(getLog.status).isEqualTo("COMPLETE")
