@@ -5,11 +5,15 @@
  */
 package com.spectralogic.rioclient
 
-data class ClusterMembersList(
-    val members: List<Member>
+data class ClusterResponse(
+    val clusterName: String
 )
 
-data class Member(
+data class ClusterMembersListResponse(
+    val clusterMembers: List<ClusterMemberResponse>
+)
+
+data class ClusterMemberResponse(
     val memberId: String,
     val ipAddress: String,
     val clusterPort: Int,

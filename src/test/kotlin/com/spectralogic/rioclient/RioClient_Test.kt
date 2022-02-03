@@ -27,15 +27,22 @@ class RioClient_Test {
 
         private lateinit var rioClient: RioClient
         private lateinit var spectraDeviceCreateRequest: SpectraDeviceCreateRequest
+        private lateinit var spectraDeviceName: String
+        private lateinit var spectraDeviceMgmtInterfaceUrl: String
+        private lateinit var spectraDeviceUsername: String
+        private lateinit var spectraDevicePassword: String
+        private lateinit var spectraDeviceMonitorUsername: String
+        private lateinit var spectraDeviceMonitorPassword: String
+
         private lateinit var testBroker: String
         private lateinit var testAgent: String
+        private lateinit var brokerBucket: String
 
         private lateinit var divaEndpoint: String
         private lateinit var divaUsername: String
         private lateinit var divaPassword: String
         private lateinit var divaCategory: String
 
-        private const val testBucket = "testBucket-rioclient"
         private const val username = "spectra"
         private const val password = "spectra"
 
@@ -45,14 +52,23 @@ class RioClient_Test {
         @BeforeAll
         fun beforeAll() {
             rioClient = RioClient(URL(getenvValue("ESCAPEPOD_URL", "https://localhost:5050")), username, password)
+
+            spectraDeviceName = getenvValue("BP_DEVICE_NAME", "rioclient_bp")
+            spectraDeviceMgmtInterfaceUrl = getenvValue("MGMT_INTERFACE_URL", "https://sm25-2-mgmt.eng.sldomain.com")
+            spectraDeviceUsername = getenvValue("BP_DEVICE_USERNAME", "Administrator")
+            spectraDevicePassword = getenvValue("BP_DEVICE_PASSWORD", "spectra")
+            spectraDeviceMonitorUsername = getenvValue("BP_DEVICE_MONITOR_USERNAME", "monitor")
+            spectraDeviceMonitorPassword = getenvValue("BP_DEVICE_MONITOR_PASSWORD", "monitor")
             spectraDeviceCreateRequest = SpectraDeviceCreateRequest(
-                "rioclient_bp",
-                getenvValue("MGMT_INTERFACE_URL", "https://sm25-2-mgmt.eng.sldomain.com"),
-                "Administrator",
-                "spectra"
+                spectraDeviceName,
+                spectraDeviceMgmtInterfaceUrl,
+                spectraDeviceUsername,
+                spectraDevicePassword
             )
+
             testBroker = getenvValue("DEFAULT_BROKER", "rioclient-broker")
             testAgent = getenvValue("DEFAULT_AGENT", "rioclient-agent")
+            brokerBucket = getenvValue("DEFAULT_BUCKET", "rioclient-testbucket")
 
             divaEndpoint = getenvValue("DIVA_ENDPOINT", "http://10.85.41.92:9763/services/DIVArchiveWS_SOAP_2.1?wsdl")
             divaUsername = getenvValue("DIVA_USERNAME", "user")
@@ -95,6 +111,8 @@ class RioClient_Test {
         assertThat(spectraDeviceList.objects.map { it.name }).doesNotContain(spectraDeviceName)
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
 
+        // TODO: spectra device update after ESCP-3519
+
         // device unhappy path testing
         listOf(
             Pair(spectraDeviceCreateRequest.copy(name = "Bad&Name"), invalidNameMsg),
@@ -114,6 +132,7 @@ class RioClient_Test {
         }
     }
 
+    // TODO: vailDeviceTest
     // TODO: flashnetDeviceTest
     // TODO: tbpfrDeviceTest
 
@@ -164,6 +183,8 @@ class RioClient_Test {
 
             rioClient.deleteAgent(testBroker, divaAgentName, true)
             assertThat(rioClient.headAgent(testBroker, divaAgentName)).isFalse
+
+            // TODO: diva device update after ESCP-3519
 
             // TODO agent unhappy path testing
 
@@ -261,7 +282,7 @@ class RioClient_Test {
             }
             assertThat(rioClient.headBroker(testBroker)).isFalse
 
-            val agentConfig = BpAgentConfig(testBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
+            val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
             val createRequest = BrokerCreateRequest(testBroker, testAgent, agentConfig)
 
             rioClient.createBroker(createRequest)
@@ -541,7 +562,7 @@ class RioClient_Test {
 
     private suspend fun ensureBrokerExists() {
         if (!rioClient.headBroker(testBroker)) {
-            val agentConfig = BpAgentConfig(testBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
+            val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
             val createRequest = BrokerCreateRequest(testBroker, testAgent, agentConfig)
             rioClient.createBroker(createRequest)
         }

@@ -17,6 +17,13 @@ data class SpectraDeviceCreateRequest(
     val dataPath: String? = null
 ) : RioRequest
 
+data class SpectraDeviceUpdateRequest(
+    val mgmtInterface: String,
+    val username: String,
+    val password: String,
+    val dataPath: String? = null
+) : RioRequest
+
 data class SpectraDeviceResponse(
     val name: String,
     val username: String,
@@ -36,6 +43,12 @@ data class DivaDeviceCreateRequest(
     val password: String
 ) : RioRequest
 
+data class DivaDeviceUpdateRequest(
+    val endpoint: String,
+    val username: String,
+    val password: String
+) : RioRequest
+
 data class DivaDeviceResponse(
     val name: String,
     val endpoint: String,
@@ -50,6 +63,23 @@ data class DivaDeviceListResponse(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class FlashnetDeviceCreateRequest(
     val name: String,
+    val host: String,
+    val port: Int?,
+    val username: String,
+    @JsonProperty("database_host")
+    val databaseHost: String,
+    @JsonProperty("database_port")
+    val databasePort: Int? = null,
+    @JsonProperty("database_username")
+    val databaseUsername: String? = null,
+    @JsonProperty("database_password")
+    val databasePassword: String? = null,
+    @JsonProperty("database_name")
+    val databaseName: String? = null
+) : RioRequest
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class FlashnetDeviceUpdateRequest(
     val host: String,
     val port: Int?,
     val username: String,
@@ -92,6 +122,12 @@ data class TbpfrDeviceCreateRequest(
     val allowLazyIndex: Boolean = false
 ) : RioRequest
 
+data class TbpfrDeviceUpdateRequest(
+    val endpoint: String,
+    val tempStorage: String,
+    val allowLazyIndex: Boolean = false
+) : RioRequest
+
 data class TbpfrDeviceResponse(
     val name: String,
     val endpoint: String,
@@ -106,6 +142,15 @@ data class TbpfrDeviceListResponse(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class VailDeviceCreateRequest(
     val name: String,
+    val accessKey: String,
+    val secretKey: String,
+    val endpoint: String,
+    val port: String? = null,
+    val https: String
+) : RioRequest
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class VailDeviceUpdateRequest(
     val accessKey: String,
     val secretKey: String,
     val endpoint: String,
