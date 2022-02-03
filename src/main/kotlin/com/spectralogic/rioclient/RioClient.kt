@@ -109,10 +109,19 @@ class RioClient(
     /**
      * Cluster
      */
+    suspend fun createCluster(name: String): ClusterResponse =
+        client.myPost("$api/cluster", paramMap = paramMap("name", name))
+
+    suspend fun joinCluster(url: String): ClusterResponse =
+        client.myPost("$api/cluster", paramMap = paramMap("cluster_url", url))
+
+    suspend fun getCluster(): ClusterResponse =
+        client.myPost("$api/cluster")
+
     suspend fun deleteCluster(): Boolean =
         client.myPost("$api/cluster")
 
-    suspend fun listClusterMembers(): ClusterMembersList =
+    suspend fun listClusterMembers(): ClusterMembersListResponse =
         client.myGet("$api/cluster/members/")
 
     /**
@@ -134,6 +143,9 @@ class RioClient(
     suspend fun createSpectraDevice(spectraDeviceCreateRequest: SpectraDeviceCreateRequest): SpectraDeviceResponse =
         client.myPost("$api/devices/spectra", spectraDeviceCreateRequest)
 
+    suspend fun updateSpectraDevice(name: String, spectraDeviceUpdateRequest: SpectraDeviceUpdateRequest): SpectraDeviceResponse =
+        client.myPut("$api/devices/spectra/$name", spectraDeviceUpdateRequest)
+
     suspend fun deleteSpectraDevice(name: String): Boolean =
         client.myDelete("$api/devices/spectra/$name")
 
@@ -149,6 +161,9 @@ class RioClient(
     // Diva
     suspend fun createDivaDevice(divaDeviceCreateRequest: DivaDeviceCreateRequest): DivaDeviceResponse =
         client.myPost("$api/devices/diva", divaDeviceCreateRequest)
+
+    suspend fun updateDivaDevice(name: String, divaDeviceUpdateRequest: DivaDeviceUpdateRequest): DivaDeviceResponse =
+        client.myPut("$api/devices/diva/$name", divaDeviceUpdateRequest)
 
     suspend fun deleteDivaDevice(name: String): Boolean =
         client.myDelete("$api/devices/diva/$name")
@@ -166,6 +181,9 @@ class RioClient(
     suspend fun createFlashnetDevice(flashnetDeviceCreateRequest: FlashnetDeviceCreateRequest): FlashnetDeviceResponse =
         client.myPost("$api/devices/flashnet", flashnetDeviceCreateRequest)
 
+    suspend fun updateFlashnetDevice(name: String, flashnetDeviceUpdateRequest: FlashnetDeviceUpdateRequest): FlashnetDeviceResponse =
+        client.myPut("$api/devices/flashnet/$name", flashnetDeviceUpdateRequest)
+
     suspend fun deleteFlashnetDevice(name: String): Boolean =
         client.myDelete("$api/devices/flashnet/$name")
 
@@ -182,6 +200,9 @@ class RioClient(
     suspend fun createTbpfrDevice(tbpfrDeviceCreateRequest: TbpfrDeviceCreateRequest): TbpfrDeviceResponse =
         client.myPost("$api/devices/tbpfr", tbpfrDeviceCreateRequest)
 
+    suspend fun updateTbpfrDevice(name: String, tbpfrDeviceUpdateRequest: TbpfrDeviceUpdateRequest): TbpfrDeviceResponse =
+        client.myPut("$api/devices/tbpfr/$name", tbpfrDeviceUpdateRequest)
+
     suspend fun deleteTbpfrDevice(name: String): Boolean =
         client.myDelete("$api/devices/tbpfr/$name")
 
@@ -197,6 +218,9 @@ class RioClient(
     // Vail
     suspend fun createVailDevice(vailDeviceCreateRequest: VailDeviceCreateRequest): VailDeviceResponse =
         client.myPost("$api/devices/vail", vailDeviceCreateRequest)
+
+    suspend fun updateVailDevice(name: String, vailDeviceUpdateRequest: VailDeviceUpdateRequest): VailDeviceResponse =
+        client.myPut("$api/devices/vail/$name", vailDeviceUpdateRequest)
 
     suspend fun deleteVailDevice(name: String): Boolean =
         client.myDelete("$api/devices/vail/$name")
@@ -246,6 +270,12 @@ class RioClient(
     /**
      * Broker
      */
+    suspend fun ensureBrokerExists(brokerCreateRequest: BrokerCreateRequest) {
+        if (!headBroker(brokerCreateRequest.name)) {
+            createBroker(brokerCreateRequest)
+        }
+    }
+
     suspend fun createBroker(brokerCreateRequest: BrokerCreateRequest): BrokerResponse =
         client.myPost("$api/brokers", brokerCreateRequest)
 
