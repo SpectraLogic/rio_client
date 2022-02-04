@@ -491,7 +491,7 @@ class RioClient(
     suspend fun getMessage(messageId: UUID): MessageResponse =
         client.myGet("$api/messages/$messageId")
 
-    suspend fun listMessages(page: Long?, perPage: Long?): MessageListResponse =
+    suspend fun listMessages(page: Long? = null, perPage: Long? = null): MessageListResponse =
         client.myGet("$api/messages", pageParamMap(page, perPage))
 
     suspend fun updateMessage(messageId: UUID, read: Boolean) =

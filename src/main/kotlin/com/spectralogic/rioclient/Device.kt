@@ -17,6 +17,7 @@ data class SpectraDeviceCreateRequest(
     val dataPath: String? = null
 ) : RioRequest
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class SpectraDeviceUpdateRequest(
     val mgmtInterface: String,
     val username: String,
