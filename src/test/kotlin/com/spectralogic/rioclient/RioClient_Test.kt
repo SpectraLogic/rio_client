@@ -112,24 +112,59 @@ class RioClient_Test {
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
 
         // TODO: spectra device update after ESCP-3519
+        val dwl = catchThrowableOfType(
+            {
+                runBlocking {
+                    rioClient.createSpectraDevice(spectraDeviceCreateRequest.copy(name = "Bad&Name"))
+                }
+            },
+            RioHttpException::class.java
+        )
+        assertThat(dwl).isNotNull
+        assertThat(dwl.errorMessage()).isNotNull.isInstanceOf(RioValidationErrorMessage::class.java)
 
-        // device unhappy path testing
-        listOf(
-            Pair(spectraDeviceCreateRequest.copy(name = "Bad&Name"), invalidNameMsg),
-            Pair(spectraDeviceCreateRequest.copy(mgmtInterface = "https://badhost.eng.sldomain.com"), "unknown_host"),
-            Pair(spectraDeviceCreateRequest.copy(username = "bad-username"), "invalid_credentials"),
-            Pair(spectraDeviceCreateRequest.copy(password = "bad-password"), "invalid_credentials")
-        ).forEach { (request, message) ->
-            val error = catchThrowableOfType(
-                {
-                    runBlocking {
-                        rioClient.createSpectraDevice(request)
-                    }
-                },
-                RioHttpException::class.java
+        val errorMessage = dwl.errorMessage() as RioValidationErrorMessage
+        assertThat(errorMessage.message).isEqualTo("Validation Failed")
+        assertThat(errorMessage.statusCode).isEqualTo(422)
+        assertThat(errorMessage.errors).hasSize(1).containsExactlyInAnyOrder(
+            RioValidationMessage(
+                "name",
+                "string",
+                "invalid_device_name",
+                "Bad&Name",
+                invalidNameMsg
             )
-            assertThat(error.payload()).contains(message)
-        }
+        )
+        /*assertValidationError(dwl, RioValidationMessage(
+            "name",
+            "string",
+            "invalid_device_name",
+            "Bad&Name",
+            invalidNameMsg
+        ))*/
+    }
+
+    // {"message":"Validation Failed","statusCode":422,"errors":[{"fieldName":"name","fieldType":"string","errorType":"invalid_device_name","value":"Bad&Name","reason":"names can only contain the characters: [a-z], [0-9], '-' and '_'"}]}
+
+    private fun assertValidationError(ex: RioHttpException, error: RioValidationMessage) {
+        // assertValidationError(ex, listOf(error))
+        assertThat(ex).isNotNull
+        assertThat(ex.errorMessage()).isNotNull.isInstanceOf(RioValidationErrorMessage::class.java)
+
+        val errorMessage = ex.errorMessage() as RioValidationErrorMessage
+        assertThat(errorMessage.message).isEqualTo("Validation Failed")
+        assertThat(errorMessage.statusCode).isEqualTo(422)
+        assertThat(errorMessage.errors.toTypedArray()).contains(error)
+    }
+
+    private fun assertValidationError(ex: RioHttpException, errors: List<RioValidationMessage>) {
+        assertThat(ex).isNotNull
+        assertThat(ex.errorMessage()).isNotNull.isInstanceOf(RioValidationErrorMessage::class.java)
+
+        val errorMessage = ex.errorMessage() as RioValidationErrorMessage
+        assertThat(errorMessage.message).isEqualTo("Validation Failed")
+        assertThat(errorMessage.statusCode).isEqualTo(422)
+        assertThat(errorMessage.errors).containsExactlyInAnyOrder(*errors.toTypedArray())
     }
 
     // TODO: vailDeviceTest
@@ -209,7 +244,7 @@ class RioClient_Test {
                     RioHttpException::class.java
                 )
                 assertThat(error).isNotNull
-                assertThat(error.payload()).contains(message)
+                // assertThat(error.payload()).contains(message)
             }
         } finally {
             if (rioClient.headAgent(testBroker, divaAgentName)) {
