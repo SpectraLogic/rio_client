@@ -228,7 +228,6 @@ class RioClient_Test {
                     RioHttpException::class.java
                 )
                 assertThat(error).isNotNull
-                // assertThat(error.payload()).contains(message)
             }
         } finally {
             if (rioClient.headAgent(testBroker, divaAgentName)) {
