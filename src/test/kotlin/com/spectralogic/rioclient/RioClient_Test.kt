@@ -86,85 +86,69 @@ class RioClient_Test {
     fun spectraDeviceTest() = blockingTest {
         val spectraDeviceName = "bp-${uuid()}"
         val spectraDeviceRequest = spectraDeviceCreateRequest.copy(name = spectraDeviceName)
-        val spectraDeviceResponse = rioClient.createSpectraDevice(spectraDeviceRequest)
-        assertThat(spectraDeviceResponse.name).isEqualTo(spectraDeviceName)
+        val createResponse = rioClient.createSpectraDevice(spectraDeviceRequest)
+        assertThat(createResponse.name).isEqualTo(spectraDeviceName)
 
-        var spectraDeviceList = rioClient.listSpectraDevices()
-        val spectraDeviceTotal = spectraDeviceList.page.totalItems
-        assertThat(spectraDeviceList.objects.map { it.name }).contains(spectraDeviceCreateRequest.name)
-        assertThat(spectraDeviceList.objects.map { it.name }).contains(spectraDeviceName)
+        var listResponse = rioClient.listSpectraDevices()
+        val spectraDeviceTotal = listResponse.page.totalItems
+        assertThat(listResponse.objects.map { it.name }).contains(spectraDeviceCreateRequest.name)
+        assertThat(listResponse.objects.map { it.name }).contains(spectraDeviceName)
         assertThat(spectraDeviceTotal).isGreaterThanOrEqualTo(2)
 
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isTrue
         assertThat(rioClient.headDevice("spectra", spectraDeviceName)).isTrue
 
-        val getSpectraDevice = rioClient.getSpectraDevice(spectraDeviceName)
-        assertThat(getSpectraDevice.name).isEqualTo(spectraDeviceRequest.name)
-        assertThat(getSpectraDevice.mgmtInterface).isEqualTo(spectraDeviceRequest.mgmtInterface)
-        assertThat(getSpectraDevice.username).isEqualTo(spectraDeviceRequest.username)
+        val getResponse = rioClient.getSpectraDevice(spectraDeviceName)
+        assertThat(getResponse.name).isEqualTo(spectraDeviceRequest.name)
+        assertThat(getResponse.mgmtInterface).isEqualTo(spectraDeviceRequest.mgmtInterface)
+        assertThat(getResponse.username).isEqualTo(spectraDeviceRequest.username)
+
+        val spectraDeviceUpdateRequest = SpectraDeviceUpdateRequest(
+            spectraDeviceCreateRequest.mgmtInterface,
+            spectraDeviceMonitorUsername,
+            spectraDeviceMonitorPassword,
+            spectraDeviceCreateRequest.dataPath
+        )
+        val updateResponse = rioClient.updateSpectraDevice(spectraDeviceName, spectraDeviceUpdateRequest)
+        assertThat(updateResponse.name).isEqualTo(spectraDeviceName)
+        assertThat(updateResponse.username).isEqualTo(spectraDeviceMonitorUsername)
+
+        val getResponse2 = rioClient.getSpectraDevice(spectraDeviceName)
+        assertThat(getResponse2.name).isEqualTo(spectraDeviceName)
+        assertThat(getResponse2.mgmtInterface).isEqualTo(spectraDeviceRequest.mgmtInterface)
+        assertThat(getResponse2.username).isEqualTo(spectraDeviceMonitorUsername)
 
         rioClient.deleteDevice("spectra", spectraDeviceName)
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
         assertThat(rioClient.headDevice("spectra", spectraDeviceName)).isFalse
 
-        spectraDeviceList = rioClient.listSpectraDevices()
-        assertThat(spectraDeviceList.objects.map { it.name }).doesNotContain(spectraDeviceName)
+        listResponse = rioClient.listSpectraDevices()
+        assertThat(listResponse.objects.map { it.name }).doesNotContain(spectraDeviceName)
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
 
-        // TODO: spectra device update after ESCP-3519
-        val dwl = catchThrowableOfType(
-            {
-                runBlocking {
-                    rioClient.createSpectraDevice(spectraDeviceCreateRequest.copy(name = "Bad&Name"))
-                }
-            },
-            RioHttpException::class.java
-        )
-        assertThat(dwl).isNotNull
-        assertThat(dwl.errorMessage()).isNotNull.isInstanceOf(RioValidationErrorMessage::class.java)
-
-        val errorMessage = dwl.errorMessage() as RioValidationErrorMessage
-        assertThat(errorMessage.message).isEqualTo("Validation Failed")
-        assertThat(errorMessage.statusCode).isEqualTo(422)
-        assertThat(errorMessage.errors).hasSize(1).containsExactlyInAnyOrder(
-            RioValidationMessage(
-                "name",
-                "string",
-                "invalid_device_name",
-                "Bad&Name",
-                invalidNameMsg
+        // device unhappy path testing
+        listOf(
+            spectraDeviceCreateRequest.copy(name = "Bad&Name"),
+            spectraDeviceCreateRequest.copy(mgmtInterface = "https://badhost.eng.sldomain.com"),
+            spectraDeviceCreateRequest.copy(username = "bad-username"),
+            spectraDeviceCreateRequest.copy(password = "bad-password")
+        ).forEach { request ->
+            val error = catchThrowableOfType(
+                {
+                    runBlocking {
+                        rioClient.createSpectraDevice(request)
+                    }
+                },
+                RioHttpException::class.java
             )
-        )
-        /*assertValidationError(dwl, RioValidationMessage(
-            "name",
-            "string",
-            "invalid_device_name",
-            "Bad&Name",
-            invalidNameMsg
-        ))*/
-    }
+            assertThat(error).isNotNull
+            assertThat(error.errorMessage()).isNotNull.isInstanceOf(RioValidationErrorMessage::class.java)
 
-    // {"message":"Validation Failed","statusCode":422,"errors":[{"fieldName":"name","fieldType":"string","errorType":"invalid_device_name","value":"Bad&Name","reason":"names can only contain the characters: [a-z], [0-9], '-' and '_'"}]}
-
-    private fun assertValidationError(ex: RioHttpException, error: RioValidationMessage) {
-        // assertValidationError(ex, listOf(error))
-        assertThat(ex).isNotNull
-        assertThat(ex.errorMessage()).isNotNull.isInstanceOf(RioValidationErrorMessage::class.java)
-
-        val errorMessage = ex.errorMessage() as RioValidationErrorMessage
-        assertThat(errorMessage.message).isEqualTo("Validation Failed")
-        assertThat(errorMessage.statusCode).isEqualTo(422)
-        assertThat(errorMessage.errors.toTypedArray()).contains(error)
-    }
-
-    private fun assertValidationError(ex: RioHttpException, errors: List<RioValidationMessage>) {
-        assertThat(ex).isNotNull
-        assertThat(ex.errorMessage()).isNotNull.isInstanceOf(RioValidationErrorMessage::class.java)
-
-        val errorMessage = ex.errorMessage() as RioValidationErrorMessage
-        assertThat(errorMessage.message).isEqualTo("Validation Failed")
-        assertThat(errorMessage.statusCode).isEqualTo(422)
-        assertThat(errorMessage.errors).containsExactlyInAnyOrder(*errors.toTypedArray())
+            val rioValidationErrorMessage = error.errorMessage() as RioValidationErrorMessage
+            assertThat(rioValidationErrorMessage.message).isEqualTo("Validation Failed")
+            assertThat(rioValidationErrorMessage.statusCode).isEqualTo(422)
+            assertThat(rioValidationErrorMessage.errors).hasSizeGreaterThanOrEqualTo(1)
+        }
     }
 
     // TODO: vailDeviceTest
