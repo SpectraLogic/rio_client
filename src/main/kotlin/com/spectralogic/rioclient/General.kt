@@ -35,13 +35,13 @@ class RioHttpException(
     fun url() = urlStr
     fun cause() = cause
     fun statusCode() = statusCode
-    fun errorMessage(): RioDefaultErrorMessage {
+    fun errorMessage(): RioErrorMessage {
         val payload = "{${cause.message?.substringAfter("{")?.substringBeforeLast("}") ?: "Unknown"}}"
-        return cram(payload, statusCode.value) ?: RioDefaultErrorMessage("${cause.message}", statusCode.value)
+        return cram(payload) ?: RioDefaultErrorMessage("${cause.message}", statusCode.value)
     }
 }
 
-private fun cram(payload: String, statusCode: Int): RioDefaultErrorMessage? {
+private fun cram(payload: String): RioErrorMessage? {
     listOf(
         RioResourceErrorMessage::class.java,
         RioValidationErrorMessage::class.java,
@@ -56,46 +56,39 @@ private fun cram(payload: String, statusCode: Int): RioDefaultErrorMessage? {
     return null
 }
 
-open class RioDefaultErrorMessage
-@JsonCreator constructor (
-    @JsonProperty("message")
-    open val message: String,
-    @JsonProperty("statusCode")
-    open val statusCode: Int
-) {
-    override fun toString(): String =
-        "message=${this.message} status=${this.statusCode}"
-}
+interface RioErrorMessage
 
-open class RioResourceErrorMessage
+data class RioDefaultErrorMessage
 @JsonCreator constructor (
     @JsonProperty("message")
-    override val message: String,
+    val message: String,
     @JsonProperty("statusCode")
-    override val statusCode: Int,
+    val statusCode: Int
+) : RioErrorMessage
+
+data class RioResourceErrorMessage
+@JsonCreator constructor (
+    @JsonProperty("message")
+    val message: String,
+    @JsonProperty("statusCode")
+    val statusCode: Int,
     @JsonProperty("resourceName")
     val resourceName: String,
     @JsonProperty("resourceType")
     val resourceType: String
-) : RioDefaultErrorMessage(message, statusCode) {
-    override fun toString(): String =
-        "message=$message status=$statusCode resourceName=$resourceName resourceType=$resourceType"
-}
+) : RioErrorMessage
 
-open class RioValidationErrorMessage
+data class RioValidationErrorMessage
 @JsonCreator constructor (
     @JsonProperty("message")
-    override val message: String,
+    val message: String,
     @JsonProperty("statusCode")
-    override val statusCode: Int,
+    val statusCode: Int,
     @JsonProperty("errors")
     val errors: List<RioValidationMessage>
-) : RioDefaultErrorMessage(message, statusCode) {
-    override fun toString(): String =
-        "message=$message status=$statusCode errors=${errors.map { it.toString() }.joinToString(";")}"
-}
+) : RioErrorMessage
 
-open class RioValidationMessage
+data class RioValidationMessage
 @JsonCreator constructor (
     @JsonProperty("fieldName")
     val fieldName: String,
@@ -107,39 +100,30 @@ open class RioValidationMessage
     val value: String? = null,
     @JsonProperty("reason")
     val reason: String? = null
-) {
-    override fun toString(): String =
-        "fieldName=$fieldName, fieldType=$fieldType, errorType=$errorType, value=$value, reason=$reason"
-}
+)
 
-open class RioUnsupportedMediaError
+data class RioUnsupportedMediaError
 @JsonCreator constructor (
     @JsonProperty("message")
-    override val message: String,
+    val message: String,
     @JsonProperty("statusCode")
-    override val statusCode: Int,
+    val statusCode: Int,
     @JsonProperty("suppliedMediaType")
     val suppliedMediaType: String,
     @JsonProperty("supportedMediaType")
     val supportedMediaType: String
-) : RioDefaultErrorMessage(message, statusCode) {
-    override fun toString(): String =
-        "message=$message status=$statusCode suppliedMediaType=$suppliedMediaType supportedMediaType=$supportedMediaType"
-}
+) : RioErrorMessage
 
-open class RioDownstreamErrorMessage
+data class RioDownstreamErrorMessage
 @JsonCreator constructor (
     @JsonProperty("message")
-    override val message: String,
+    val message: String,
     @JsonProperty("statusCode")
-    override val statusCode: Int,
+    val statusCode: Int,
     @JsonProperty("resourceName")
     val resourceName: String?,
     @JsonProperty("resourceType")
     val resourceType: String,
     @JsonProperty("cause")
     val cause: String
-) : RioDefaultErrorMessage(message, statusCode) {
-    override fun toString(): String =
-        "message=$message status=$statusCode resourceName=$resourceName resourceType=$resourceType cause=$cause"
-}
+) : RioErrorMessage
