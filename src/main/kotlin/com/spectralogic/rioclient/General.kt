@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.client.features.ClientRequestException
+import io.ktor.client.features.ServerResponseException
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 
@@ -32,12 +33,16 @@ class RioHttpException(
     override val cause: Throwable,
     val statusCode: HttpStatusCode = HttpStatusCode.BadRequest
 ) : RuntimeException(cause.message, cause) {
-    private val errorResponse =
-        if (cause is ClientRequestException) {
-            cause.message.substringAfter("Text: \"").substringBeforeLast("\"")
-        } else {
-            "{\"message\":\"${cause.message}\"}"
-        }
+    private val errorResponse: String =
+        when (cause) {
+            is ClientRequestException -> {
+                cause.message.substringAfter("Text: \"").substringBeforeLast("\"")
+            }
+            is ServerResponseException -> {
+                cause.message?.substringAfter("Text: \"")?.substringBeforeLast("\"")
+            }
+            else -> { null }
+        } ?: "{\"message\":\"${cause.message} (${cause::class.java})\"}"
 
     fun httpMethod() = httpMethod
     fun statusCode() = statusCode
