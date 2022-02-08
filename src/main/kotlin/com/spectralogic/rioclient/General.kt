@@ -39,7 +39,7 @@ class RioHttpException(
                 cause.message.substringAfter("Text: \"").substringBeforeLast("\"")
             }
             is ServerResponseException -> {
-                cause.message?.substringAfterLast("Text: \"")?.substringBeforeLast("\"")
+                cause.message?.substringAfter("Text: \"")?.substringBeforeLast("\"")
             }
             else -> { null }
         } ?: "{\"message\":\"${cause.message} (${cause::class.java})\"}"
