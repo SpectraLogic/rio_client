@@ -8,6 +8,7 @@ package com.spectralogic.rioclient
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.ktor.client.features.ClientRequestException
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 
@@ -31,29 +32,35 @@ class RioHttpException(
     override val cause: Throwable,
     val statusCode: HttpStatusCode = HttpStatusCode.BadRequest
 ) : RuntimeException(cause.message, cause) {
+    private val errorResponse =
+        if (cause is ClientRequestException) {
+            cause.message.substringAfter("Text: \"").substringBeforeLast("\"")
+        } else {
+            "{\"message\":\"${cause.message}\"}"
+        }
+
     fun httpMethod() = httpMethod
+    fun statusCode() = statusCode
     fun url() = urlStr
     fun cause() = cause
-    fun statusCode() = statusCode
+    fun errorResponse() = errorResponse
     fun errorMessage(): RioErrorMessage {
-        val payload = "{${cause.message?.substringAfter("{")?.substringBeforeLast("}") ?: "Unknown"}}"
-        return cram(payload) ?: RioDefaultErrorMessage("${cause.message}", statusCode.value)
+        if (errorResponse.isNotBlank()) {
+            listOf(
+                RioResourceErrorMessage::class.java,
+                RioValidationErrorMessage::class.java,
+                RioUnsupportedMediaError::class.java,
+                RioDownstreamErrorMessage::class.java,
+                RioResourceErrorMessage::class.java
+            ).forEach {
+                try {
+                    return mapper.readValue(errorResponse, it)
+                } catch (t: Throwable) {
+                }
+            }
+        }
+        return RioDefaultErrorMessage("${cause.message}", statusCode.value)
     }
-}
-
-private fun cram(payload: String): RioErrorMessage? {
-    listOf(
-        RioResourceErrorMessage::class.java,
-        RioValidationErrorMessage::class.java,
-        RioUnsupportedMediaError::class.java,
-        RioDownstreamErrorMessage::class.java,
-        RioResourceErrorMessage::class.java
-    ).forEach {
-        try {
-            return mapper.readValue(payload, it)
-        } catch (t: Throwable) { }
-    }
-    return null
 }
 
 interface RioErrorMessage
