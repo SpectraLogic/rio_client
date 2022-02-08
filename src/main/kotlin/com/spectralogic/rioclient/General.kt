@@ -56,7 +56,7 @@ class RioHttpException(
                 RioValidationErrorMessage::class.java,
                 RioUnsupportedMediaError::class.java,
                 RioDownstreamErrorMessage::class.java,
-                RioResourceErrorMessage::class.java
+                RioDefaultErrorMessage::class.java
             ).forEach {
                 try {
                     return mapper.readValue(errorResponse, it)
