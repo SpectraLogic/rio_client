@@ -127,6 +127,15 @@ data class ObjectResponse(
     val internalMetadata: Map<String, String>? = null
 )
 
+data class ObjectBatchUpdateRequest(
+    val objects: List<ObjectUpdateRequest>
+) : RioRequest
+
+data class ObjectUpdateRequest(
+    val name: String,
+    val metadata: Map<String, String>
+)
+
 data class Checksum(val hash: String, val type: String)
 
 data class ObjectListResponse(

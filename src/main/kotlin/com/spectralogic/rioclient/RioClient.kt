@@ -386,6 +386,14 @@ class RioClient(
         )
     }
 
+    suspend fun updateObjects(brokerName: String, updateRequest: ObjectBatchUpdateRequest, internalData: Boolean? = null, merge: Boolean = false) {
+        val paraMap: Map<String, Any?> = mapOf(
+            "internalData" to internalData,
+            "merge" to merge
+        )
+        return client.myPut("$api/brokers/$brokerName/objects", updateRequest, paraMap)
+    }
+
     /**
      * Job
      */
