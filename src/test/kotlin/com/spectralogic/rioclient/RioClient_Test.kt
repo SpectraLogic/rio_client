@@ -706,6 +706,103 @@ class RioClient_Test {
     }
 
     @Test
+    fun objectMetadataTest() = blockingTest {
+        val uuid = uuid()
+        val fileList: List<String> = (1..10).map { "metaObject-$uuid-$it" }
+
+        val metadata1 = mapOf(Pair("m1", "v1"), Pair("m2", "v2"), Pair("m3", "v3"))
+        val metadata2 = mapOf(Pair("m1-a", "v1-a"), Pair("m2-b", "v2-b"), Pair("m3-c", "v3-c"))
+        val internalMetadata1 = mapOf(Pair("i1", "y1"), Pair("i2", "y2"))
+        val internalMetadata2 = mapOf(Pair("i1-x", "y1-x"), Pair("i2-z", "y2-z"))
+
+        val metadata1UpdateRequest: List<ObjectUpdateRequest> = fileList.map {
+            ObjectUpdateRequest(it, metadata1)
+        }
+        val metadata2UpdateRequest: List<ObjectUpdateRequest> = fileList.map {
+            ObjectUpdateRequest(it, metadata2)
+        }
+        val internalMetadata1UpdateRequest: List<ObjectUpdateRequest> = fileList.map {
+            ObjectUpdateRequest(it, internalMetadata1)
+        }
+        val internalMetadata2UpdateRequest: List<ObjectUpdateRequest> = fileList.map {
+            ObjectUpdateRequest(it, internalMetadata2)
+        }
+
+        try {
+            ensureBrokerExists()
+
+            val filesToArchive: List<FileToArchive> = fileList.map {
+                FileToArchive(it, URI("aToZSequence://$it"), 1024L)
+            }
+            val archiveRequest = ArchiveRequest("archive-meta-${uuid()}", filesToArchive)
+            val archiveJob = rioClient.createArchiveJob(testBroker, archiveRequest)
+            var i = 25
+            var archiveJobStatus = rioClient.jobStatus(archiveJob.id)
+            while (archiveJobStatus.status.status == "ACTIVE" && --i > 0) {
+                delay(1000)
+                archiveJobStatus = rioClient.jobStatus(archiveJob.id)
+            }
+            assertThat(archiveJobStatus.status.status).isEqualTo("COMPLETED")
+
+            val metadata1Request = ObjectBatchUpdateRequest(metadata1UpdateRequest)
+            rioClient.updateObjects(testBroker, metadata1Request)
+
+            fileList.forEach { fileName ->
+                val getObject = rioClient.getObject(testBroker, fileName, includeInternalMetadata = true)
+                assertThat(getObject.metadata).isEqualTo(metadata1)
+                assertThat(getObject.internalMetadata).isNullOrEmpty()
+            }
+
+            val internalMetadata1Request = ObjectBatchUpdateRequest(internalMetadata1UpdateRequest)
+            rioClient.updateObjects(testBroker, internalMetadata1Request, internalData = true)
+
+            fileList.forEach { fileName ->
+                val getObject = rioClient.getObject(testBroker, fileName, includeInternalMetadata = true)
+                assertThat(getObject.metadata).isEqualTo(metadata1)
+                assertThat(getObject.internalMetadata).isEqualTo(internalMetadata1)
+            }
+
+            val metadata2Request = ObjectBatchUpdateRequest(metadata2UpdateRequest)
+            rioClient.updateObjects(testBroker, metadata2Request, merge = true)
+
+            val combinedMetadata = metadata1.plus(metadata2)
+            fileList.forEach { fileName ->
+                val getObject = rioClient.getObject(testBroker, fileName, includeInternalMetadata = true)
+                assertThat(getObject.metadata).isEqualTo(combinedMetadata)
+                assertThat(getObject.internalMetadata).isEqualTo(internalMetadata1)
+            }
+
+            val internalMetadata2Request = ObjectBatchUpdateRequest(internalMetadata2UpdateRequest)
+            rioClient.updateObjects(testBroker, internalMetadata2Request, internalData = true, merge = true)
+
+            val combinedInternalMetadata = internalMetadata1.plus(internalMetadata2)
+            fileList.forEach { fileName ->
+                val getObject = rioClient.getObject(testBroker, fileName, includeInternalMetadata = true)
+                assertThat(getObject.metadata).isEqualTo(combinedMetadata)
+                assertThat(getObject.internalMetadata).isEqualTo(combinedInternalMetadata)
+            }
+
+            rioClient.updateObjects(testBroker, metadata1Request)
+
+            fileList.forEach { fileName ->
+                val getObject = rioClient.getObject(testBroker, fileName, includeInternalMetadata = true)
+                assertThat(getObject.metadata).isEqualTo(metadata1)
+                assertThat(getObject.internalMetadata).isEqualTo(combinedInternalMetadata)
+            }
+
+            rioClient.updateObjects(testBroker, internalMetadata1Request, internalData = true)
+
+            fileList.forEach { fileName ->
+                val getObject = rioClient.getObject(testBroker, fileName, includeInternalMetadata = true)
+                assertThat(getObject.metadata).isEqualTo(metadata1)
+                assertThat(getObject.internalMetadata).isEqualTo(internalMetadata1)
+            }
+        } finally {
+            removeBroker()
+        }
+    }
+
+    @Test
     fun logTest() = blockingTest {
 
         var listLogs = rioClient.listLogsets()
