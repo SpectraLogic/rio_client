@@ -15,17 +15,20 @@ import io.ktor.http.HttpStatusCode
 
 val mapper = ObjectMapper()
 
+interface RioRequest
+
+open class RioResponse {
+    var statusCode = HttpStatusCode.Processing
+}
+
+class EmptyResponse : RioResponse()
+
 data class PageInfo(
     val number: Long,
     val pageSize: Long,
     val totalPages: Long,
     val totalItems: Long = 0L
 )
-
-interface PageData<T> {
-    val objects: List<T>
-    val page: PageInfo
-}
 
 class RioHttpException(
     val httpMethod: HttpMethod,

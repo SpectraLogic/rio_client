@@ -20,23 +20,23 @@ data class TokenResponse(
     val creationDate: String,
     val userName: String,
     val id: UUID
-)
+) : RioResponse()
 
 open class TokenKeyResponse(
     val expirationDate: String? = null,
     val creationDate: String,
     val userName: String,
     val id: UUID
-)
+) : RioResponse()
 
 open class ShortTokenResponse(
     val token: String
-)
+) : RioResponse()
 
 data class TokenListResponse(
-    @JsonProperty("data") override val objects: List<TokenKeyResponse>,
-    override val page: PageInfo
-) : PageData<TokenKeyResponse>
+    @JsonProperty("data") val objects: List<TokenKeyResponse>,
+    val page: PageInfo
+) : RioResponse()
 
 data class UserLoginCredentials(
     val username: String,

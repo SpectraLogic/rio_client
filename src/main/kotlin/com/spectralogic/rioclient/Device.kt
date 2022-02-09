@@ -30,12 +30,12 @@ data class SpectraDeviceResponse(
     val username: String,
     val mgmtInterface: String,
     val dataPath: String? = null
-)
+) : RioResponse()
 
 data class SpectraDeviceListResponse(
-    @JsonProperty("devices") override val objects: List<SpectraDeviceResponse>,
-    override val page: PageInfo
-) : PageData<SpectraDeviceResponse>
+    @JsonProperty("devices") val objects: List<SpectraDeviceResponse>,
+    val page: PageInfo
+) : RioResponse()
 
 data class DivaDeviceCreateRequest(
     val name: String,
@@ -54,12 +54,12 @@ data class DivaDeviceResponse(
     val name: String,
     val endpoint: String,
     val username: String
-)
+) : RioResponse()
 
 data class DivaDeviceListResponse(
-    @JsonProperty("devices") override val objects: List<DivaDeviceResponse>,
-    override val page: PageInfo
-) : PageData<DivaDeviceResponse>
+    @JsonProperty("devices") val objects: List<DivaDeviceResponse>,
+    val page: PageInfo
+) : RioResponse()
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class FlashnetDeviceCreateRequest(
@@ -102,19 +102,19 @@ data class FlashnetDeviceResponse(
     val port: Int,
     val username: String,
     val database: FlashnetDeviceDatabaseResponse
-)
+) : RioResponse()
 
 data class FlashnetDeviceDatabaseResponse(
     val host: String,
     val port: String? = null,
     val username: String? = null,
     val name: String? = null
-)
+) : RioResponse()
 
 data class FlashnetDeviceListResponse(
-    @JsonProperty("devices") override val objects: List<FlashnetDeviceResponse>,
-    override val page: PageInfo
-) : PageData<FlashnetDeviceResponse>
+    @JsonProperty("devices") val objects: List<FlashnetDeviceResponse>,
+    val page: PageInfo
+) : RioResponse()
 
 data class TbpfrDeviceCreateRequest(
     val name: String,
@@ -133,12 +133,12 @@ data class TbpfrDeviceResponse(
     val name: String,
     val endpoint: String,
     val tempStorage: String
-)
+) : RioResponse()
 
 data class TbpfrDeviceListResponse(
-    @JsonProperty("devices") override val objects: List<TbpfrDeviceResponse>,
-    override val page: PageInfo
-) : PageData<TbpfrDeviceResponse>
+    @JsonProperty("devices") val objects: List<TbpfrDeviceResponse>,
+    val page: PageInfo
+) : RioResponse()
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class VailDeviceCreateRequest(
@@ -164,12 +164,12 @@ data class VailDeviceResponse(
     val endpoint: String,
     val port: Int? = null,
     val https: Boolean,
-)
+) : RioResponse()
 
 data class VailDeviceListResponse(
-    @JsonProperty("devices") override val objects: List<VailDeviceResponse>,
-    override val page: PageInfo
-) : PageData<VailDeviceResponse>
+    @JsonProperty("devices") val objects: List<VailDeviceResponse>,
+    val page: PageInfo
+) : RioResponse()
 
 sealed class EndpointDeviceCreateRequest(
     open val name: String,

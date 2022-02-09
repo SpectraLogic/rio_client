@@ -5,6 +5,7 @@
  */
 package com.spectralogic.rioclient
 
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -37,6 +38,7 @@ class RioClient_Test {
         private lateinit var testBroker: String
         private lateinit var testAgent: String
         private lateinit var brokerBucket: String
+        private lateinit var brokerObjectBucket: String
 
         private lateinit var divaEndpoint: String
         private lateinit var divaUsername: String
@@ -73,6 +75,7 @@ class RioClient_Test {
             testBroker = getenvValue("DEFAULT_BROKER", "rioclient-broker")
             testAgent = getenvValue("DEFAULT_AGENT", "rioclient-agent")
             brokerBucket = getenvValue("DEFAULT_BUCKET", "rioclient-testbucket")
+            brokerObjectBucket = getenvValue("DEFAULT_OBJECT_BUCKET", "rioclient-objectbucket")
 
             divaEndpoint = getenvValue("DIVA_ENDPOINT", "http://10.85.41.92:9763/services/DIVArchiveWS_SOAP_2.1?wsdl")
             divaUsername = getenvValue("DIVA_USERNAME", "user")
@@ -102,9 +105,11 @@ class RioClient_Test {
         val spectraDeviceName = "bp-${uuid()}"
         val createRequest = spectraDeviceCreateRequest.copy(name = spectraDeviceName)
         val createResponse = rioClient.createSpectraDevice(createRequest)
+        assertThat(createResponse.statusCode).isEqualTo(HttpStatusCode.Created)
         assertThat(createResponse.name).isEqualTo(spectraDeviceName)
 
         var listResponse = rioClient.listSpectraDevices()
+        assertThat(listResponse.statusCode).isEqualTo(HttpStatusCode.OK)
         val spectraDeviceTotal = listResponse.page.totalItems
         assertThat(listResponse.objects.map { it.name }).contains(spectraDeviceName)
         assertThat(spectraDeviceTotal).isGreaterThanOrEqualTo(2)
@@ -113,6 +118,7 @@ class RioClient_Test {
         assertThat(rioClient.headDevice("spectra", spectraDeviceName)).isTrue
 
         var getResponse = rioClient.getSpectraDevice(spectraDeviceName)
+        assertThat(getResponse.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(getResponse.name).isEqualTo(createRequest.name)
         assertThat(getResponse.mgmtInterface).isEqualTo(createRequest.mgmtInterface)
         assertThat(getResponse.username).isEqualTo(createRequest.username)
@@ -124,10 +130,12 @@ class RioClient_Test {
             createRequest.dataPath
         )
         val updateResponse = rioClient.updateSpectraDevice(spectraDeviceName, updateRequest)
+        assertThat(updateResponse.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(updateResponse.name).isEqualTo(spectraDeviceName)
         assertThat(updateResponse.username).isEqualTo(spectraDeviceAltUsername)
 
         getResponse = rioClient.getSpectraDevice(spectraDeviceName)
+        assertThat(getResponse.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(getResponse.name).isEqualTo(spectraDeviceName)
         assertThat(getResponse.mgmtInterface).isEqualTo(createRequest.mgmtInterface)
         assertThat(getResponse.username).isEqualTo(spectraDeviceAltUsername)
@@ -171,6 +179,7 @@ class RioClient_Test {
         assertThat(rioClient.headDevice("spectra", spectraDeviceName)).isFalse
 
         listResponse = rioClient.listSpectraDevices()
+        assertThat(listResponse.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(listResponse.objects.map { it.name }).doesNotContain(spectraDeviceName)
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
 
@@ -286,10 +295,12 @@ class RioClient_Test {
         val divaAgentName = "diva-agent-${uuid()}"
         try {
             var listResponse = rioClient.listDivaDevices()
+            assertThat(listResponse.statusCode).isEqualTo(HttpStatusCode.OK)
             val totalDivaDevices = listResponse.page.totalItems
 
             val createRequest = DivaDeviceCreateRequest(divaDeviceName, divaEndpoint, divaUsername, divaPassword)
             val createResponse = rioClient.createDivaDevice(createRequest)
+            assertThat(createResponse.statusCode).isEqualTo(HttpStatusCode.Created)
             assertThat(createResponse.name).isEqualTo(divaDeviceName)
             assertThat(createResponse.endpoint).isEqualTo(divaEndpoint)
             assertThat(createResponse.username).isEqualTo(divaUsername)
@@ -298,14 +309,17 @@ class RioClient_Test {
             assertThat(rioClient.headDevice("diva", divaDeviceName)).isTrue
 
             var getResponse = rioClient.getDivaDevice(divaDeviceName)
+            assertThat(getResponse.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(getResponse).isEqualTo(createResponse)
 
             listResponse = rioClient.listDivaDevices()
+            assertThat(listResponse.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(listResponse.page.totalItems).isEqualTo(totalDivaDevices + 1)
 
             val divaAgentConfig = DivaAgentConfig(divaDeviceName, divaCategory, null, null)
             val createAgentRequest = AgentCreateRequest(divaAgentName, "diva_agent", divaAgentConfig.toConfigMap())
             val createAgentResponse = rioClient.createAgent(testBroker, createAgentRequest)
+            assertThat(createAgentResponse.statusCode).isEqualTo(HttpStatusCode.Created)
             assertThat(createAgentResponse.name).isEqualTo(createAgentRequest.name)
             assertThat(createAgentResponse.writable).isFalse
             assertThat(createAgentResponse.agentConfig).isEqualTo(divaAgentConfig.toConfigMap())
@@ -313,6 +327,7 @@ class RioClient_Test {
             assertThat(rioClient.headAgent(testBroker, divaAgentName)).isTrue
 
             var getAgentResponse = rioClient.getAgent(testBroker, divaAgentName)
+            assertThat(getAgentResponse.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(getAgentResponse).isEqualTo(createAgentResponse)
             assertThat(getAgentResponse.lastIndexDate).isNull()
 
@@ -321,6 +336,7 @@ class RioClient_Test {
                 delay(3000)
                 getAgentResponse = rioClient.getAgent(testBroker, divaAgentName, true)
             }
+            assertThat(getAgentResponse.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(getAgentResponse.indexState).isEqualTo("COMPLETE")
             assertThat(getAgentResponse.lastIndexDate).isNotNull
 
@@ -329,10 +345,12 @@ class RioClient_Test {
 
             val updateRequest = DivaDeviceUpdateRequest(divaEndpoint, divaUsername.uppercase(), divaPassword.uppercase())
             val updateResponse = rioClient.updateDivaDevice(divaDeviceName, updateRequest)
+            assertThat(updateResponse.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(updateResponse.name).isEqualTo(divaDeviceName)
             assertThat(updateResponse.username).isEqualTo(divaUsername.uppercase())
 
             getResponse = rioClient.getDivaDevice(divaDeviceName)
+            assertThat(getResponse.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(getResponse.name).isEqualTo(divaDeviceName)
             assertThat(getResponse.username).isEqualTo(divaUsername.uppercase())
 
@@ -365,6 +383,7 @@ class RioClient_Test {
             assertThat(rioClient.headDevice("diva", divaDeviceName)).isFalse
 
             listResponse = rioClient.listDivaDevices()
+            assertThat(listResponse.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(listResponse.page.totalItems).isEqualTo(totalDivaDevices)
 
             // create unhappy path
@@ -451,33 +470,40 @@ class RioClient_Test {
         val ftpName = "ftp-${uuid()}"
         val ftpRequest = FtpEndpointDeviceCreateRequest(ftpName, "ftp://ftp.test.com", "user", "pass")
         val ftpResponse = rioClient.createFtpEndpointDevice(ftpRequest)
+        assertThat(ftpResponse.statusCode).isEqualTo(HttpStatusCode.Created)
         assertThat(ftpResponse.name).isEqualTo(ftpName)
         assertThat(ftpResponse.endpoint).isEqualTo(ftpRequest.endpoint)
         assertThat(ftpResponse.username).isEqualTo(ftpRequest.username)
         assertThat(ftpResponse.type).isEqualTo(ftpRequest.type)
 
         val getFtp = rioClient.getFtpEndpointDevice(ftpName)
+        assertThat(getFtp.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(getFtp).isEqualTo(ftpResponse)
 
         val genericFtp = rioClient.getEndpointDevice(ftpName)
+        assertThat(genericFtp.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(genericFtp.name).isEqualTo(ftpName)
         assertThat(genericFtp.type).isEqualTo(ftpRequest.type)
 
         val uriName = "uri-${uuid()}"
         val uriRequest = UriEndpointDeviceCreateRequest(uriName, uriDir.toUri().toString())
         val uriResponse = rioClient.createUriEndpointDevice(uriRequest)
+        assertThat(uriResponse.statusCode).isEqualTo(HttpStatusCode.Created)
         assertThat(uriResponse.name).isEqualTo(uriName)
         assertThat(uriResponse.endpoint).isEqualTo(uriRequest.endpoint)
         assertThat(uriResponse.type).isEqualTo(uriRequest.type)
 
         val getUri = rioClient.getUriEndpointDevice(uriName)
+        assertThat(getUri.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(getUri).isEqualTo(uriResponse)
 
         val genericUri = rioClient.getEndpointDevice(uriName)
+        assertThat(genericFtp.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(genericUri.name).isEqualTo(uriName)
         assertThat(genericUri.type).isEqualTo(uriRequest.type)
 
         var endpointList = rioClient.listEndpointDevices()
+        assertThat(endpointList.statusCode).isEqualTo(HttpStatusCode.OK)
         val endpointCount = endpointList.page.totalItems
         assertThat(endpointList.objects.map { it.name }).contains(ftpName)
         assertThat(endpointList.objects.map { it.name }).contains(uriName)
@@ -509,23 +535,28 @@ class RioClient_Test {
             val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
             val createRequest = BrokerCreateRequest(testBroker, testAgent, agentConfig)
 
-            rioClient.createBroker(createRequest)
+            val createBroker = rioClient.createBroker(createRequest)
+            assertThat(createBroker.statusCode).isEqualTo(HttpStatusCode.Created)
             assertThat(rioClient.headBroker(testBroker)).isTrue
 
             val getBroker = rioClient.getBroker(testBroker)
+            assertThat(getBroker.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(getBroker.name).isEqualTo(testBroker)
 
             val listBrokers = rioClient.listBrokers()
+            assertThat(listBrokers.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(listBrokers.objects).isNotEmpty
             assertThat(listBrokers.objects.map { it.name }).contains(testBroker)
 
             val getWriteAgent = rioClient.getAgent(testBroker, testAgent)
+            assertThat(getWriteAgent.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(getWriteAgent.name).isEqualTo(testAgent)
             assertThat(getWriteAgent.type).isEqualTo("bp_agent")
             assertThat(getWriteAgent.writable).isEqualTo(true)
             assertThat(getWriteAgent.agentConfig).isEqualTo(agentConfig.toConfigMap())
 
             val listAgents = rioClient.listAgents(testBroker)
+            assertThat(listAgents.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(listAgents.objects).hasSize(1)
             assertThat(listAgents.objects.first().name).isEqualTo(getWriteAgent.name)
 
@@ -534,20 +565,23 @@ class RioClient_Test {
 
             val agentCreateRequest = AgentCreateRequest(readAgentName, "bp_agent", agentConfig.toConfigMap())
             val createAgent = rioClient.createAgent(testBroker, agentCreateRequest)
+            assertThat(createAgent.statusCode).isEqualTo(HttpStatusCode.Created)
             assertThat(createAgent.name).isEqualTo(readAgentName)
             assertThat(createAgent.type).isEqualTo("bp_agent")
             assertThat(createAgent.writable).isEqualTo(false)
             assertThat(createAgent.agentConfig).isEqualTo(agentConfig.toConfigMap())
 
             var getReadAgent = rioClient.getAgent(testBroker, readAgentName)
+            assertThat(getReadAgent.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(getReadAgent).isEqualTo(createAgent)
             assertThat(getReadAgent.lastIndexDate).isNull()
 
-            var i = 10
+            var i = 20
             while (getReadAgent.indexState != "COMPLETE" && --i > 0) {
                 delay(1000)
                 getReadAgent = rioClient.getAgent(testBroker, readAgentName, true)
             }
+            assertThat(getReadAgent.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(getReadAgent.indexState).isEqualTo("COMPLETE")
             assertThat(getReadAgent.lastIndexDate).isNotNull
 
@@ -579,6 +613,7 @@ class RioClient_Test {
                 )
             )
             val archiveJob = rioClient.createArchiveJob(testBroker, archiveRequest)
+            assertThat(archiveJob.statusCode).isEqualTo(HttpStatusCode.Created)
             assertThat(archiveJob.name).isEqualTo(archiveJobName)
             assertThat(archiveJob.numberOfFiles).isEqualTo(2)
             assertThat(archiveJob.totalSizeInBytes).isEqualTo(3072)
@@ -591,14 +626,17 @@ class RioClient_Test {
                 delay(100)
                 archiveJobStatus = rioClient.jobStatus(archiveJob.id)
             }
+            assertThat(archiveJobStatus.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(archiveJobStatus.status.status).isEqualTo("COMPLETED")
             assertThat(archiveJobStatus.filesTransferred).isEqualTo(2)
             assertThat(archiveJobStatus.progress).isEqualTo(1.0f)
 
             val archiveFilesStatus = rioClient.fileStatus(archiveJob.id)
+            assertThat(archiveFilesStatus.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(archiveFilesStatus.fileStatus).hasSize(6)
 
             val archiveFileStatus = rioClient.fileStatus(archiveJob.id, archiveRequest.files[0].name)
+            assertThat(archiveFileStatus.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(archiveFileStatus.fileStatus).hasSize(3)
 
             val restoreJobName = "restore-job-${uuid()}"
@@ -610,6 +648,7 @@ class RioClient_Test {
                 )
             )
             val restoreJob = rioClient.createRestoreJob(testBroker, restoreRequest)
+            assertThat(restoreJob.statusCode).isEqualTo(HttpStatusCode.Created)
             assertThat(restoreJob.name).isEqualTo(restoreJobName)
             assertThat(restoreJob.numberOfFiles).isEqualTo(2)
 
@@ -621,17 +660,21 @@ class RioClient_Test {
                 delay(100)
                 restoreJobStatus = rioClient.jobStatus(restoreJob.id)
             }
+            assertThat(restoreJobStatus.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(restoreJobStatus.status.status).isEqualTo("COMPLETED")
             assertThat(restoreJobStatus.filesTransferred).isEqualTo(2)
             assertThat(restoreJobStatus.progress).isEqualTo(1.0f)
 
             val restoreFilesStatus = rioClient.fileStatus(restoreJob.id)
+            assertThat(restoreFilesStatus.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(restoreFilesStatus.fileStatus).hasSize(6)
 
             val restoreFileStatus = rioClient.fileStatus(restoreJob.id, restoreRequest.files[1].name)
+            assertThat(restoreFileStatus.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(restoreFileStatus.fileStatus).hasSize(3)
 
             var jobList = rioClient.listJobs(broker = testBroker, jobStatus = "COMPLETED")
+            assertThat(jobList.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(jobList.jobs).isNotEmpty
             assertThat(jobList.jobs.map { it.id }).contains(archiveJob.id)
             assertThat(jobList.jobs.map { it.id }).contains(restoreJob.id)
@@ -644,6 +687,7 @@ class RioClient_Test {
             assertThat(rioClient.headJob(restoreJob.id.toString())).isFalse
 
             jobList = rioClient.listJobs(broker = testBroker, jobStatus = "COMPLETED")
+            assertThat(jobList.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(jobList.page.totalItems).isEqualTo(totalJobs - 2)
 
             // TODO job unhappy path testing
@@ -669,19 +713,24 @@ class RioClient_Test {
                 )
             )
             val archiveJob = rioClient.createArchiveJob(testBroker, archiveRequest)
+            assertThat(archiveJob.statusCode).isEqualTo(HttpStatusCode.Created)
 
             var i = 25
             var archiveJobStatus = rioClient.jobStatus(archiveJob.id)
+            assertThat(archiveJobStatus.statusCode).isEqualTo(HttpStatusCode.OK)
             while (archiveJobStatus.status.status == "ACTIVE" && --i > 0) {
                 delay(100)
                 archiveJobStatus = rioClient.jobStatus(archiveJob.id)
             }
+            assertThat(archiveJobStatus.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(archiveJobStatus.status.status).isEqualTo("COMPLETED")
 
             listObjects = rioClient.listObjects(testBroker)
+            assertThat(listObjects.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(listObjects.page.totalItems).isEqualTo(totalObjects + 1)
 
             val getObject = rioClient.getObject(testBroker, objectName)
+            assertThat(getObject.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(getObject.broker).isEqualTo(testBroker)
             assertThat(getObject.name).isEqualTo(objectName)
             assertThat(getObject.size).isEqualTo(archiveRequest.files[0].size)
@@ -689,6 +738,7 @@ class RioClient_Test {
 
             val newMetadata = mapOf(Pair("key9", "val9"))
             val updateObject = rioClient.updateObject(testBroker, objectName, newMetadata)
+            assertThat(updateObject.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(updateObject).isEqualTo(getObject.copy(metadata = newMetadata))
 
             assertThat(rioClient.objectExists(testBroker, objectName)).isTrue
@@ -697,6 +747,7 @@ class RioClient_Test {
             assertThat(rioClient.objectExists(testBroker, objectName)).isFalse
 
             listObjects = rioClient.listObjects(testBroker)
+            assertThat(listObjects.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(listObjects.page.totalItems).isEqualTo(totalObjects)
 
             // TODO: object unhappy path testing
@@ -728,77 +779,101 @@ class RioClient_Test {
             ObjectUpdateRequest(it, internalMetadata2)
         }
 
+        val objectBroker = "object-broker"
+
         try {
-            ensureBrokerExists()
+            if (!rioClient.headBroker(objectBroker)) {
+                val agentConfig = BpAgentConfig(brokerObjectBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
+                val createRequest = BrokerCreateRequest(objectBroker, "agent-name", agentConfig)
+                val createResponse = rioClient.createBroker(createRequest)
+                assertThat(createResponse.statusCode).isEqualTo(HttpStatusCode.Created)
+            }
 
             val filesToArchive: List<FileToArchive> = fileList.map {
                 FileToArchive(it, URI("aToZSequence://$it"), 1024L)
             }
             val archiveRequest = ArchiveRequest("archive-meta-${uuid()}", filesToArchive)
-            val archiveJob = rioClient.createArchiveJob(testBroker, archiveRequest)
+            val archiveJob = rioClient.createArchiveJob(objectBroker, archiveRequest)
+            assertThat(archiveJob.statusCode).isEqualTo(HttpStatusCode.Created)
             var i = 25
             var archiveJobStatus = rioClient.jobStatus(archiveJob.id)
             while (archiveJobStatus.status.status == "ACTIVE" && --i > 0) {
                 delay(1000)
                 archiveJobStatus = rioClient.jobStatus(archiveJob.id)
             }
+            assertThat(archiveJobStatus.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(archiveJobStatus.status.status).isEqualTo("COMPLETED")
 
             val metadata1Request = ObjectBatchUpdateRequest(metadata1UpdateRequest)
-            rioClient.updateObjects(testBroker, metadata1Request)
+            val metadata1Response = rioClient.updateObjects(objectBroker, metadata1Request)
+            assertThat(metadata1Response.statusCode).isEqualTo(HttpStatusCode.OK)
 
             fileList.forEach { fileName ->
-                val getObject = rioClient.getObject(testBroker, fileName, includeInternalMetadata = true)
+                val getObject = rioClient.getObject(objectBroker, fileName, includeInternalMetadata = true)
+                assertThat(getObject.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(getObject.metadata).isEqualTo(metadata1)
                 assertThat(getObject.internalMetadata).isNullOrEmpty()
             }
 
             val internalMetadata1Request = ObjectBatchUpdateRequest(internalMetadata1UpdateRequest)
-            rioClient.updateObjects(testBroker, internalMetadata1Request, internalData = true)
+            val internalMetadata1Response = rioClient.updateObjects(objectBroker, internalMetadata1Request, internalData = true)
+            assertThat(internalMetadata1Response.statusCode).isEqualTo(HttpStatusCode.OK)
 
             fileList.forEach { fileName ->
-                val getObject = rioClient.getObject(testBroker, fileName, includeInternalMetadata = true)
+                val getObject = rioClient.getObject(objectBroker, fileName, includeInternalMetadata = true)
+                assertThat(getObject.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(getObject.metadata).isEqualTo(metadata1)
                 assertThat(getObject.internalMetadata).isEqualTo(internalMetadata1)
             }
 
             val metadata2Request = ObjectBatchUpdateRequest(metadata2UpdateRequest)
-            rioClient.updateObjects(testBroker, metadata2Request, merge = true)
+            val metadata2Response = rioClient.updateObjects(objectBroker, metadata2Request, merge = true)
+            assertThat(metadata2Response.statusCode).isEqualTo(HttpStatusCode.OK)
 
             val combinedMetadata = metadata1.plus(metadata2)
             fileList.forEach { fileName ->
-                val getObject = rioClient.getObject(testBroker, fileName, includeInternalMetadata = true)
+                val getObject = rioClient.getObject(objectBroker, fileName, includeInternalMetadata = true)
+                assertThat(getObject.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(getObject.metadata).isEqualTo(combinedMetadata)
                 assertThat(getObject.internalMetadata).isEqualTo(internalMetadata1)
             }
 
             val internalMetadata2Request = ObjectBatchUpdateRequest(internalMetadata2UpdateRequest)
-            rioClient.updateObjects(testBroker, internalMetadata2Request, internalData = true, merge = true)
+            val internalMetadata2Response = rioClient.updateObjects(objectBroker, internalMetadata2Request, internalData = true, merge = true)
+            assertThat(internalMetadata2Response.statusCode).isEqualTo(HttpStatusCode.OK)
 
             val combinedInternalMetadata = internalMetadata1.plus(internalMetadata2)
             fileList.forEach { fileName ->
-                val getObject = rioClient.getObject(testBroker, fileName, includeInternalMetadata = true)
+                val getObject = rioClient.getObject(objectBroker, fileName, includeInternalMetadata = true)
+                assertThat(getObject.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(getObject.metadata).isEqualTo(combinedMetadata)
                 assertThat(getObject.internalMetadata).isEqualTo(combinedInternalMetadata)
             }
 
-            rioClient.updateObjects(testBroker, metadata1Request)
+            val metadataResponse = rioClient.updateObjects(objectBroker, metadata1Request)
+            assertThat(metadataResponse.statusCode).isEqualTo(HttpStatusCode.OK)
 
             fileList.forEach { fileName ->
-                val getObject = rioClient.getObject(testBroker, fileName, includeInternalMetadata = true)
+                val getObject = rioClient.getObject(objectBroker, fileName, includeInternalMetadata = true)
+                assertThat(getObject.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(getObject.metadata).isEqualTo(metadata1)
                 assertThat(getObject.internalMetadata).isEqualTo(combinedInternalMetadata)
             }
 
-            rioClient.updateObjects(testBroker, internalMetadata1Request, internalData = true)
+            val internalMetadataResponse = rioClient.updateObjects(objectBroker, internalMetadata1Request, internalData = true)
+            assertThat(internalMetadataResponse.statusCode).isEqualTo(HttpStatusCode.OK)
 
             fileList.forEach { fileName ->
-                val getObject = rioClient.getObject(testBroker, fileName, includeInternalMetadata = true)
+                val getObject = rioClient.getObject(objectBroker, fileName, includeInternalMetadata = true)
+                assertThat(getObject.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(getObject.metadata).isEqualTo(metadata1)
                 assertThat(getObject.internalMetadata).isEqualTo(internalMetadata1)
             }
         } finally {
-            removeBroker()
+            // TODO: remove bucket or objects from bucket
+            if (rioClient.headBroker(objectBroker)) {
+                rioClient.deleteBroker(objectBroker, true)
+            }
         }
     }
 
@@ -809,6 +884,7 @@ class RioClient_Test {
         val totalLogs = listLogs.page.totalItems
 
         val newLog = rioClient.createLogset()
+        assertThat(newLog.statusCode).isEqualTo(HttpStatusCode.Accepted)
 
         var i = 25
         var getLog = rioClient.getLogset(newLog.id)
@@ -816,11 +892,13 @@ class RioClient_Test {
             delay(1000)
             getLog = rioClient.getLogset(newLog.id)
         }
+        assertThat(getLog.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(getLog.status).isEqualTo("COMPLETE")
 
         assertThat(rioClient.headLogset(UUID.fromString(newLog.id))).isTrue
 
         listLogs = rioClient.listLogsets()
+        assertThat(listLogs.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(listLogs.page.totalItems).isEqualTo(totalLogs + 1)
         assertThat(listLogs.objects.map { it.id }).contains(newLog.id)
 
@@ -828,6 +906,7 @@ class RioClient_Test {
         assertThat(rioClient.headLogset(UUID.fromString(newLog.id))).isFalse
 
         listLogs = rioClient.listLogsets()
+        assertThat(listLogs.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(listLogs.page.totalItems).isEqualTo(totalLogs)
 
         // TODO: log unhappy path testing
@@ -835,7 +914,8 @@ class RioClient_Test {
 
     @Test
     fun systemTest() = blockingTest {
-        rioClient.systemInfo()
+        val systemResponse = rioClient.systemInfo()
+        assertThat(systemResponse.statusCode).isEqualTo(HttpStatusCode.OK)
     }
 
     @Test
@@ -844,6 +924,7 @@ class RioClient_Test {
         val totalTokens = listTokens.page.totalItems
 
         val createToken = rioClient.createApiToken(TokenCreateRequest())
+        assertThat(createToken.statusCode).isEqualTo(HttpStatusCode.Created)
         assertThat(createToken.userName).isEqualTo(username)
         assertThat(createToken.creationDate).isNotNull
         assertThat(createToken.id).isNotNull
@@ -851,6 +932,7 @@ class RioClient_Test {
 
         val expireZdt = ZonedDateTime.now().plusDays(2)
         val longToken = rioClient.createApiToken(TokenCreateRequest(expireZdt.toString()))
+        assertThat(longToken.statusCode).isEqualTo(HttpStatusCode.Created)
         assertThat(longToken.userName).isEqualTo(username)
         assertThat(longToken.expirationDate).isNotNull
         val expirationDate = ZonedDateTime.parse(longToken.expirationDate)
@@ -858,12 +940,14 @@ class RioClient_Test {
         assertThat(expirationDate).isAfter(expireZdt.plusMinutes(-1))
 
         val getToken = rioClient.getApiToken(createToken.id)
+        assertThat(getToken.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(getToken.id).isEqualTo(createToken.id)
         assertThat(getToken.userName).isEqualTo(createToken.userName)
         assertThat(getToken.creationDate).isEqualTo(createToken.creationDate)
         assertThat(getToken.expirationDate).isEqualTo(createToken.expirationDate)
 
         listTokens = rioClient.listTokenKeys()
+        assertThat(listTokens.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(listTokens.page.totalItems).isEqualTo(totalTokens + 2)
         assertThat(listTokens.objects.map { it.id }).containsAll(listOf(createToken.id, longToken.id))
 
@@ -876,6 +960,7 @@ class RioClient_Test {
         assertThat(rioClient.headApiToken(longToken.id)).isFalse
 
         listTokens = rioClient.listTokenKeys()
+        assertThat(listTokens.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(listTokens.page.totalItems).isEqualTo(totalTokens)
 
         // TODO: keys unhappy path testing
@@ -885,7 +970,8 @@ class RioClient_Test {
         if (!rioClient.headBroker(testBroker)) {
             val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
             val createRequest = BrokerCreateRequest(testBroker, testAgent, agentConfig)
-            rioClient.createBroker(createRequest)
+            val createResponse = rioClient.createBroker(createRequest)
+            assertThat(createResponse.statusCode).isEqualTo(HttpStatusCode.Created)
         }
     }
 

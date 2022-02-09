@@ -56,7 +56,7 @@ open class JobResponse(
     val progress: Float,
     val foreignJobs: Map<UUID, ForeignJobDetails> = mapOf(),
     val priority: String? = null
-)
+) : RioResponse()
 
 enum class JobType {
     ARCHIVE, RESTORE
@@ -70,7 +70,7 @@ data class ForeignJobDetails(
 data class JobListResponse(
     val jobs: List<JobResponse>,
     val page: PageInfo
-)
+) : RioResponse()
 
 data class FileStatus(
     val name: String,
@@ -87,7 +87,7 @@ data class FileStatus(
 data class FileStatusLogResponse(
     val page: PageInfo,
     val fileStatus: List<FileStatusResponse>
-)
+) : RioResponse()
 
 data class FileStatusResponse(
     val name: String,
@@ -97,4 +97,4 @@ data class FileStatusResponse(
     val statusMessage: String,
     val lastUpdated: String,
     val foreignJob: UUID?
-)
+) : RioResponse()
