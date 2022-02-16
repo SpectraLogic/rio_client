@@ -5,10 +5,8 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 data class SpectraDeviceCreateRequest(
     val name: String,
     val mgmtInterface: String,
@@ -17,7 +15,6 @@ data class SpectraDeviceCreateRequest(
     val dataPath: String? = null
 ) : RioRequest
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 data class SpectraDeviceUpdateRequest(
     val mgmtInterface: String,
     val username: String,
@@ -61,7 +58,6 @@ data class DivaDeviceListResponse(
     override val page: PageInfo
 ) : PageData<DivaDeviceResponse>
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 data class FlashnetDeviceCreateRequest(
     val name: String,
     val host: String,
@@ -79,7 +75,6 @@ data class FlashnetDeviceCreateRequest(
     val databaseName: String? = null
 ) : RioRequest
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 data class FlashnetDeviceUpdateRequest(
     val host: String,
     val port: Int?,
@@ -140,7 +135,6 @@ data class TbpfrDeviceListResponse(
     override val page: PageInfo
 ) : PageData<TbpfrDeviceResponse>
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 data class VailDeviceCreateRequest(
     val name: String,
     val accessKey: String,
@@ -150,7 +144,6 @@ data class VailDeviceCreateRequest(
     val https: String
 ) : RioRequest
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 data class VailDeviceUpdateRequest(
     val accessKey: String,
     val secretKey: String,
