@@ -174,7 +174,8 @@ class RioClient_Test {
             assertSpectraDeviceUpdateError(spectraDeviceName, request, expected)
         }
 
-        rioClient.deleteDevice("spectra", spectraDeviceName)
+        val deleteResponse = rioClient.deleteDevice("spectra", spectraDeviceName)
+        assertThat(deleteResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
         assertThat(rioClient.headDevice("spectra", spectraDeviceName)).isFalse
 
@@ -340,7 +341,8 @@ class RioClient_Test {
             assertThat(getAgentResponse.indexState).isEqualTo("COMPLETE")
             assertThat(getAgentResponse.lastIndexDate).isNotNull
 
-            assertThat(rioClient.deleteAgent(testBroker, divaAgentName, true)).isTrue
+            val deleteAgentResponse = rioClient.deleteAgent(testBroker, divaAgentName, true)
+            assertThat(deleteAgentResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
             assertThat(rioClient.headAgent(testBroker, divaAgentName)).isFalse
 
             val updateRequest = DivaDeviceUpdateRequest(divaEndpoint, divaUsername.uppercase(), divaPassword.uppercase())
@@ -378,7 +380,8 @@ class RioClient_Test {
 
             // TODO agent unhappy path testing
 
-            rioClient.deleteDivaDevice(divaDeviceName)
+            val deleteResponse = rioClient.deleteDivaDevice(divaDeviceName)
+            assertThat(deleteResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
             assertThat(rioClient.headDivaDevice(divaDeviceName)).isFalse
             assertThat(rioClient.headDevice("diva", divaDeviceName)).isFalse
 
@@ -512,8 +515,11 @@ class RioClient_Test {
         assertThat(rioClient.headEndpointDevice(ftpName)).isTrue
         assertThat(rioClient.headEndpointDevice(uriName)).isTrue
 
-        rioClient.deleteEndpointDevice(ftpName)
-        rioClient.deleteEndpointDevice(uriName)
+        val deleteFtpResponse = rioClient.deleteEndpointDevice(ftpName)
+        assertThat(deleteFtpResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
+
+        val deleteUriResponse = rioClient.deleteEndpointDevice(uriName)
+        assertThat(deleteUriResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
 
         assertThat(rioClient.headEndpointDevice(ftpName)).isFalse
         assertThat(rioClient.headEndpointDevice(uriName)).isFalse
@@ -527,10 +533,7 @@ class RioClient_Test {
     @Test
     fun brokerTest() = blockingTest {
         try {
-            if (rioClient.headBroker(testBroker)) {
-                rioClient.deleteBroker(testBroker, true)
-            }
-            assertThat(rioClient.headBroker(testBroker)).isFalse
+            removeBroker()
 
             val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
             val createRequest = BrokerCreateRequest(testBroker, testAgent, agentConfig)
@@ -588,7 +591,8 @@ class RioClient_Test {
             rioClient.indexAgent(testBroker, readAgentName, index = true)
 
             assertThat(rioClient.headAgent(testBroker, readAgentName)).isTrue
-            rioClient.deleteAgent(testBroker, readAgentName, true)
+            val deleteAgentResponse = rioClient.deleteAgent(testBroker, readAgentName, true)
+            assertThat(deleteAgentResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
             assertThat(rioClient.headAgent(testBroker, readAgentName)).isFalse
 
             // TODO broker unhappy path testing
@@ -680,8 +684,11 @@ class RioClient_Test {
             assertThat(jobList.jobs.map { it.id }).contains(restoreJob.id)
 
             val totalJobs = jobList.page.totalItems
-            rioClient.deleteJob(archiveJob.id)
-            rioClient.deleteJob(restoreJob.id)
+            val deleteArchiveJobResponse = rioClient.deleteJob(archiveJob.id)
+            assertThat(deleteArchiveJobResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
+
+            val deleteRestoreJobResponse = rioClient.deleteJob(restoreJob.id)
+            assertThat(deleteRestoreJobResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
 
             assertThat(rioClient.headJob(archiveJob.id.toString())).isFalse
             assertThat(rioClient.headJob(restoreJob.id.toString())).isFalse
@@ -743,7 +750,8 @@ class RioClient_Test {
 
             assertThat(rioClient.objectExists(testBroker, objectName)).isTrue
 
-            rioClient.deleteObject(testBroker, objectName)
+            val deleteObjectResponse = rioClient.deleteObject(testBroker, objectName)
+            assertThat(deleteObjectResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
             assertThat(rioClient.objectExists(testBroker, objectName)).isFalse
 
             listObjects = rioClient.listObjects(testBroker)
@@ -902,7 +910,8 @@ class RioClient_Test {
         assertThat(listLogs.page.totalItems).isEqualTo(totalLogs + 1)
         assertThat(listLogs.objects.map { it.id }).contains(newLog.id)
 
-        rioClient.deleteLogset(UUID.fromString(newLog.id))
+        val deleteLogSetResponse = rioClient.deleteLogset(UUID.fromString(newLog.id))
+        assertThat(deleteLogSetResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
         assertThat(rioClient.headLogset(UUID.fromString(newLog.id))).isFalse
 
         listLogs = rioClient.listLogsets()
@@ -952,11 +961,13 @@ class RioClient_Test {
         assertThat(listTokens.objects.map { it.id }).containsAll(listOf(createToken.id, longToken.id))
 
         assertThat(rioClient.headApiToken(createToken.id)).isTrue
-        rioClient.deleteApiToken(createToken.id)
+        val deleteApiTokenResponse = rioClient.deleteApiToken(createToken.id)
+        assertThat(deleteApiTokenResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
         assertThat(rioClient.headApiToken(createToken.id)).isFalse
 
         assertThat(rioClient.headApiToken(longToken.id)).isTrue
-        rioClient.deleteApiToken(longToken.id)
+        val deleteLongApiTokenResponse = rioClient.deleteApiToken(longToken.id)
+        assertThat(deleteLongApiTokenResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
         assertThat(rioClient.headApiToken(longToken.id)).isFalse
 
         listTokens = rioClient.listTokenKeys()
@@ -977,7 +988,8 @@ class RioClient_Test {
 
     private suspend fun removeBroker() {
         if (rioClient.headBroker(testBroker)) {
-            rioClient.deleteBroker(testBroker, true)
+            val deleteBrokerResponse = rioClient.deleteBroker(testBroker, true)
+            assertThat(deleteBrokerResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
         }
     }
 
