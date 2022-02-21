@@ -16,25 +16,25 @@ data class MessageResponse(
     val subject: MessageSubjectResponse,
     val details: MessageDetailsResponse,
     val severity: String
-)
+) : RioResponse()
 
 data class MessageSubjectResponse(
     val key: String,
     val parameters: Map<String, String>?,
     val text: String
-)
+) : RioResponse()
 
 data class MessageDetailsResponse(
     val key: String,
     val parameters: Map<String, String>?,
     val text: String
-)
+) : RioResponse()
 
 data class MessageUpdateRequest(
     val read: Boolean
 ) : RioRequest
 
 data class MessageListResponse(
-    @JsonProperty("data") override val objects: List<MessageResponse>,
-    override val page: PageInfo
-) : PageData<MessageResponse>
+    @JsonProperty("data") val objects: List<MessageResponse>,
+    val page: PageInfo
+) : RioResponse()

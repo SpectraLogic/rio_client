@@ -20,7 +20,7 @@ data class BrokerResponse(
     val name: String,
     val creationDate: String,
     val objectCount: Long
-)
+) : RioResponse()
 
 sealed class AgentConfig
 
@@ -115,7 +115,7 @@ data class AgentResponse(
     val writable: Boolean,
     val agentConfig: Map<String, String>,
     val indexState: String?
-)
+) : RioResponse()
 
 data class ObjectResponse(
     val name: String,
@@ -125,7 +125,7 @@ data class ObjectResponse(
     val checksum: Checksum,
     val metadata: Map<String, String>,
     val internalMetadata: Map<String, String>? = null
-)
+) : RioResponse()
 
 data class ObjectBatchUpdateRequest(
     val objects: List<ObjectUpdateRequest>
@@ -134,21 +134,21 @@ data class ObjectBatchUpdateRequest(
 data class ObjectUpdateRequest(
     val name: String,
     val metadata: Map<String, String>
-)
+) : RioRequest
 
 data class Checksum(val hash: String, val type: String)
 
 data class ObjectListResponse(
-    override val objects: List<ObjectResponse>,
-    override val page: PageInfo
-) : PageData<ObjectResponse>
+    val objects: List<ObjectResponse>,
+    val page: PageInfo
+) : RioResponse()
 
 data class BrokerListResponse(
-    @JsonProperty("brokers") override val objects: List<BrokerResponse>,
-    override val page: PageInfo
-) : PageData<BrokerResponse>
+    @JsonProperty("brokers") val objects: List<BrokerResponse>,
+    val page: PageInfo
+) : RioResponse()
 
 data class AgentListResponse(
-    @JsonProperty("agents") override val objects: List<AgentResponse>,
-    override val page: PageInfo
-) : PageData<AgentResponse>
+    @JsonProperty("agents") val objects: List<AgentResponse>,
+    val page: PageInfo
+) : RioResponse()

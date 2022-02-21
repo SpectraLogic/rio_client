@@ -11,9 +11,9 @@ data class LogsetResponse(
     val id: String,
     val status: String,
     val creationDate: String
-)
+) : RioResponse()
 
 data class LogsetListResponse(
-    @JsonProperty("logs") override val objects: List<LogsetResponse>,
-    override val page: PageInfo
-) : PageData<LogsetResponse>
+    @JsonProperty("logs") val objects: List<LogsetResponse>,
+    val page: PageInfo
+) : RioResponse()

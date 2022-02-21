@@ -7,11 +7,11 @@ package com.spectralogic.rioclient
 
 data class ClusterResponse(
     val clusterName: String
-)
+) : RioResponse()
 
 data class ClusterMembersListResponse(
     val clusterMembers: List<ClusterMemberResponse>
-)
+) : RioResponse()
 
 data class ClusterMemberResponse(
     val memberId: String,
@@ -19,4 +19,4 @@ data class ClusterMemberResponse(
     val clusterPort: Int,
     val httpPort: Int,
     val role: String
-)
+) : RioResponse()
