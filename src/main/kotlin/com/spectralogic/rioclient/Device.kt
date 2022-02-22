@@ -164,6 +164,7 @@ data class VailDeviceResponse(
     val endpoint: String,
     val port: Int? = null,
     val https: Boolean,
+    val accessKey: String
 ) : RioResponse()
 
 data class VailDeviceListResponse(
