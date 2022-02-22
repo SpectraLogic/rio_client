@@ -13,7 +13,13 @@ data class LogsetResponse(
     val creationDate: String
 ) : RioResponse()
 
+data class LogsetData(
+    val id: String,
+    val status: String,
+    val creationDate: String
+)
+
 data class LogsetListResponse(
-    @JsonProperty("logs") val objects: List<LogsetResponse>,
+    @JsonProperty("logs") val objects: List<LogsetData>,
     val page: PageInfo
 ) : RioResponse()

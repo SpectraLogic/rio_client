@@ -18,6 +18,16 @@ data class MessageResponse(
     val severity: String
 ) : RioResponse()
 
+data class MessageData(
+    @JsonProperty("id") val messageId: UUID,
+    val creationDate: String,
+    val lastUpdated: String,
+    val read: Boolean,
+    val subject: MessageSubjectResponse,
+    val details: MessageDetailsResponse,
+    val severity: String
+)
+
 data class MessageSubjectResponse(
     val key: String,
     val parameters: Map<String, String>?,
@@ -35,6 +45,6 @@ data class MessageUpdateRequest(
 ) : RioRequest
 
 data class MessageListResponse(
-    @JsonProperty("data") val objects: List<MessageResponse>,
+    @JsonProperty("data") val objects: List<MessageData>,
     val page: PageInfo
 ) : RioResponse()

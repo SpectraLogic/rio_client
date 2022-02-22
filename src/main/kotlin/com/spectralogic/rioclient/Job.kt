@@ -58,6 +58,21 @@ open class JobResponse(
     val priority: String? = null
 ) : RioResponse()
 
+data class JobData(
+    val name: String?,
+    val id: UUID,
+    val creationDate: String,
+    val lastUpdated: String,
+    val status: JobStatus,
+    val jobType: JobType,
+    val numberOfFiles: Long,
+    val filesTransferred: Long,
+    val totalSizeInBytes: Long,
+    val progress: Float,
+    val foreignJobs: Map<UUID, ForeignJobDetails> = mapOf(),
+    val priority: String? = null
+)
+
 enum class JobType {
     ARCHIVE, RESTORE
 }
@@ -68,7 +83,7 @@ data class ForeignJobDetails(
 )
 
 data class JobListResponse(
-    val jobs: List<JobResponse>,
+    val jobs: List<JobData>,
     val page: PageInfo
 ) : RioResponse()
 

@@ -32,8 +32,15 @@ data class SpectraDeviceResponse(
     val dataPath: String? = null
 ) : RioResponse()
 
+data class SpectraDeviceData(
+    val name: String,
+    val username: String,
+    val mgmtInterface: String,
+    val dataPath: String? = null
+)
+
 data class SpectraDeviceListResponse(
-    @JsonProperty("devices") val objects: List<SpectraDeviceResponse>,
+    @JsonProperty("devices") val objects: List<SpectraDeviceData>,
     val page: PageInfo
 ) : RioResponse()
 
@@ -56,8 +63,14 @@ data class DivaDeviceResponse(
     val username: String
 ) : RioResponse()
 
+data class DivaDeviceData(
+    val name: String,
+    val endpoint: String,
+    val username: String
+)
+
 data class DivaDeviceListResponse(
-    @JsonProperty("devices") val objects: List<DivaDeviceResponse>,
+    @JsonProperty("devices") val objects: List<DivaDeviceData>,
     val page: PageInfo
 ) : RioResponse()
 
@@ -101,18 +114,26 @@ data class FlashnetDeviceResponse(
     val host: String,
     val port: Int,
     val username: String,
-    val database: FlashnetDeviceDatabaseResponse
+    val database: FlashnetDeviceDatabaseData
 ) : RioResponse()
 
-data class FlashnetDeviceDatabaseResponse(
+data class FlashnetDeviceData(
+    val name: String,
+    val host: String,
+    val port: Int,
+    val username: String,
+    val database: FlashnetDeviceDatabaseData
+)
+
+data class FlashnetDeviceDatabaseData(
     val host: String,
     val port: String? = null,
     val username: String? = null,
     val name: String? = null
-) : RioResponse()
+)
 
 data class FlashnetDeviceListResponse(
-    @JsonProperty("devices") val objects: List<FlashnetDeviceResponse>,
+    @JsonProperty("devices") val objects: List<FlashnetDeviceData>,
     val page: PageInfo
 ) : RioResponse()
 
@@ -135,8 +156,14 @@ data class TbpfrDeviceResponse(
     val tempStorage: String
 ) : RioResponse()
 
+data class TbpfrDeviceData(
+    val name: String,
+    val endpoint: String,
+    val tempStorage: String
+)
+
 data class TbpfrDeviceListResponse(
-    @JsonProperty("devices") val objects: List<TbpfrDeviceResponse>,
+    @JsonProperty("devices") val objects: List<TbpfrDeviceData>,
     val page: PageInfo
 ) : RioResponse()
 
@@ -167,35 +194,15 @@ data class VailDeviceResponse(
     val accessKey: String
 ) : RioResponse()
 
+data class VailDeviceData(
+    val name: String,
+    val endpoint: String,
+    val port: Int? = null,
+    val https: Boolean,
+    val accessKey: String
+)
+
 data class VailDeviceListResponse(
-    @JsonProperty("devices") val objects: List<VailDeviceResponse>,
+    @JsonProperty("devices") val objects: List<VailDeviceData>,
     val page: PageInfo
 ) : RioResponse()
-
-sealed class EndpointDeviceCreateRequest(
-    open val name: String,
-    val type: String
-) : RioRequest
-
-data class FtpEndpointDeviceCreateRequest(
-    override val name: String,
-    val endpoint: String,
-    val username: String,
-    val password: String
-) : EndpointDeviceCreateRequest(name, "ftp")
-
-data class S3EndpointDeviceCreateRequest(
-    override val name: String,
-    val https: String,
-    val bucket: String,
-    @JsonProperty("access_id")
-    val accessId: String,
-    @JsonProperty("secret_key")
-    val secretKey: String,
-    val region: String
-) : EndpointDeviceCreateRequest(name, "s3")
-
-data class UriEndpointDeviceCreateRequest(
-    override val name: String,
-    val endpoint: String
-) : EndpointDeviceCreateRequest(name, "uri")
