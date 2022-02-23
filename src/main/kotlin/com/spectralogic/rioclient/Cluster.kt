@@ -10,7 +10,7 @@ data class ClusterResponse(
 ) : RioResponse()
 
 data class ClusterMembersListResponse(
-    val clusterMembers: List<ClusterMemberResponse>
+    val clusterMembers: List<ClusterMemberData>
 ) : RioResponse()
 
 data class ClusterMemberResponse(
@@ -20,3 +20,11 @@ data class ClusterMemberResponse(
     val httpPort: Int,
     val role: String
 ) : RioResponse()
+
+data class ClusterMemberData(
+    val memberId: String,
+    val ipAddress: String,
+    val clusterPort: Int,
+    val httpPort: Int,
+    val role: String
+)

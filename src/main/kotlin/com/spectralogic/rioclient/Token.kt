@@ -29,12 +29,19 @@ open class TokenKeyResponse(
     val id: UUID
 ) : RioResponse()
 
+open class TokenKeyData(
+    val expirationDate: String? = null,
+    val creationDate: String,
+    val userName: String,
+    val id: UUID
+)
+
 open class ShortTokenResponse(
     val token: String
 ) : RioResponse()
 
 data class TokenListResponse(
-    @JsonProperty("data") val objects: List<TokenKeyResponse>,
+    @JsonProperty("data") val objects: List<TokenKeyData>,
     val page: PageInfo
 ) : RioResponse()
 
