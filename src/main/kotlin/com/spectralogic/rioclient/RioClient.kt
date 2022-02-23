@@ -280,6 +280,9 @@ class RioClient(
     suspend fun createBroker(brokerCreateRequest: BrokerCreateRequest): BrokerResponse =
         client.myPost("$api/brokers", brokerCreateRequest)
 
+    suspend fun updateBrokerAgent(brokerName: String, brokerAgentUpdateRequest: BrokerAgentUpdateRequest): AgentResponse =
+        client.myPut("$api/brokers/$brokerName", brokerAgentUpdateRequest)
+
     suspend fun deleteBroker(brokerName: String, force: Boolean): EmptyResponse =
         client.myDelete("$api/brokers/$brokerName?force=$force")
 

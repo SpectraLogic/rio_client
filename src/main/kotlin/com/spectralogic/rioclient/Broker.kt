@@ -16,6 +16,10 @@ data class BrokerCreateRequest(
     val agentType: String? = "bp_agent"
 ) : RioRequest
 
+data class BrokerAgentUpdateRequest(
+    val agentConfig: Map<String, String>
+) : RioRequest
+
 data class BrokerResponse(
     val name: String,
     val creationDate: String,

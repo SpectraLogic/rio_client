@@ -551,7 +551,7 @@ class RioClient_Test {
             assertThat(listBrokers.objects).isNotEmpty
             assertThat(listBrokers.objects.map { it.name }).contains(testBroker)
 
-            val getWriteAgent = rioClient.getAgent(testBroker, testAgent)
+            var getWriteAgent = rioClient.getAgent(testBroker, testAgent)
             assertThat(getWriteAgent.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(getWriteAgent.name).isEqualTo(testAgent)
             assertThat(getWriteAgent.type).isEqualTo("bp_agent")
@@ -562,6 +562,20 @@ class RioClient_Test {
             assertThat(listAgents.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(listAgents.objects).hasSize(1)
             assertThat(listAgents.objects.first().name).isEqualTo(getWriteAgent.name)
+
+            val mapEntry = Pair("username", spectraDeviceAltUsername)
+            val updateRequest = BrokerAgentUpdateRequest(mapOf(mapEntry))
+            val newAgentConfig = agentConfig.toConfigMap().plus(mapEntry).toMap()
+            val updateResponse = rioClient.updateBrokerAgent(testBroker, updateRequest)
+            assertThat(updateResponse.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(updateResponse.agentConfig).isEqualTo(newAgentConfig)
+
+            getWriteAgent = rioClient.getAgent(testBroker, testAgent)
+            assertThat(getWriteAgent.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(getWriteAgent.name).isEqualTo(testAgent)
+            assertThat(getWriteAgent.type).isEqualTo("bp_agent")
+            assertThat(getWriteAgent.writable).isEqualTo(true)
+            assertThat(getWriteAgent.agentConfig).isEqualTo(newAgentConfig)
 
             val readAgentName = "test-read-agent"
             assertThat(rioClient.headAgent(testBroker, readAgentName)).isFalse
