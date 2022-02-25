@@ -564,9 +564,9 @@ class RioClient_Test {
             assertThat(listAgents.objects.first().name).isEqualTo(getWriteAgent.name)
 
             val mapEntry = Pair("username", spectraDeviceAltUsername)
-            val updateRequest = BrokerAgentUpdateRequest(mapOf(mapEntry))
+            val updateRequest = AgentUpdateRequest(mapOf(mapEntry))
             val newAgentConfig = agentConfig.toConfigMap().plus(mapEntry).toMap()
-            val updateResponse = rioClient.updateBrokerAgent(testBroker, updateRequest)
+            val updateResponse = rioClient.updateAgent(testBroker, testAgent, updateRequest)
             assertThat(updateResponse.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(updateResponse.agentConfig).isEqualTo(newAgentConfig)
 

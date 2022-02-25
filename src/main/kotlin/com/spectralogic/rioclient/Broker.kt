@@ -16,10 +16,6 @@ data class BrokerCreateRequest(
     val agentType: String? = "bp_agent"
 ) : RioRequest
 
-data class BrokerAgentUpdateRequest(
-    val agentConfig: Map<String, String>
-) : RioRequest
-
 data class BrokerResponse(
     val name: String,
     val creationDate: String,
@@ -114,6 +110,10 @@ fun SglLtfsAgentConfig.toConfigMap(): Map<String, String> {
 data class AgentCreateRequest(
     val name: String,
     val type: String,
+    val agentConfig: Map<String, String>
+) : RioRequest
+
+data class AgentUpdateRequest(
     val agentConfig: Map<String, String>
 ) : RioRequest
 

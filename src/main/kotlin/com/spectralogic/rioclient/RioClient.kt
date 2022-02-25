@@ -24,6 +24,7 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.utils.EmptyContent
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -44,10 +45,7 @@ class RioClient(
     longLivedToken: String? = null
 ) : Closeable {
 
-    private data class EmptyRequest(val blank: String) : RioRequest
     private data class MyMetadata(val metadata: Map<String, String>) : RioRequest
-
-    private val myEmptyRequest = EmptyRequest("")
     private val api by lazy { "$rioUrl/api" }
     private val tokenContainer: TokenContainer = TokenContainer(longLivedToken) {
         runBlocking { getShortToken() }
@@ -280,9 +278,6 @@ class RioClient(
     suspend fun createBroker(brokerCreateRequest: BrokerCreateRequest): BrokerResponse =
         client.myPost("$api/brokers", brokerCreateRequest)
 
-    suspend fun updateBrokerAgent(brokerName: String, brokerAgentUpdateRequest: BrokerAgentUpdateRequest): AgentResponse =
-        client.myPut("$api/brokers/$brokerName", brokerAgentUpdateRequest)
-
     suspend fun deleteBroker(brokerName: String, force: Boolean): EmptyResponse =
         client.myDelete("$api/brokers/$brokerName?force=$force")
 
@@ -301,6 +296,9 @@ class RioClient(
 
     suspend fun createAgent(brokerName: String, agentCreateRequest: AgentCreateRequest): AgentResponse =
         client.myPost("$api/brokers/$brokerName/agents", agentCreateRequest)
+
+    suspend fun updateAgent(brokerName: String, agentName: String, agentUpdateRequest: AgentUpdateRequest): AgentResponse =
+        client.myPut("$api/brokers/$brokerName/agents/$agentName", agentUpdateRequest)
 
     suspend fun deleteAgent(brokerName: String, agentName: String, force: Boolean?): EmptyResponse =
         client.myDelete("$api/brokers/$brokerName/agents/$agentName", "force", force)
@@ -599,12 +597,13 @@ class RioClient(
         }
     }
 
-    private suspend inline fun HttpClient.myPatch(url: String, request: RioRequest = myEmptyRequest): Boolean {
+    private suspend inline fun HttpClient.myPatch(url: String, request: RioRequest?): Boolean {
+        val requestBody: Any = request ?: EmptyContent
         return try {
             val response: HttpResponse = patch(url) {
                 contentType(ContentType.Application.Json)
                 header("Authorization", "Bearer ${tokenContainer.token}")
-                body = request
+                body = requestBody
             }
             true
         } catch (t: ClientRequestException) {
@@ -619,17 +618,18 @@ class RioClient(
         }
     }
 
-    private suspend inline fun <reified T : RioResponse> HttpClient.myPost(url: String, request: RioRequest = myEmptyRequest, key: String, value: Any? = null): T {
+    private suspend inline fun <reified T : RioResponse> HttpClient.myPost(url: String, request: RioRequest? = null, key: String, value: Any? = null): T {
         return myPost(url, request, paramMap(key, value))
     }
 
-    private suspend inline fun <reified T : RioResponse> HttpClient.myPost(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
+    private suspend inline fun <reified T : RioResponse> HttpClient.myPost(url: String, request: RioRequest? = null, paramMap: Map<String, Any?>? = null): T {
         val urlStr = "$url${paramMap.queryString()}"
+        val requestBody: Any = request ?: EmptyContent
         val response: HttpResponse = try {
             post(urlStr) {
                 contentType(ContentType.Application.Json)
                 header("Authorization", "Bearer ${tokenContainer.token}")
-                body = request
+                body = requestBody
             }
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Post, urlStr, t)
@@ -643,17 +643,18 @@ class RioClient(
         return result
     }
 
-    private suspend inline fun <reified T : RioResponse> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, key: String, value: Any? = null): T {
+    private suspend inline fun <reified T : RioResponse> HttpClient.myPut(url: String, request: RioRequest? = null, key: String, value: Any? = null): T {
         return myPut(url, request, paramMap(key, value))
     }
 
-    private suspend inline fun <reified T : RioResponse> HttpClient.myPut(url: String, request: RioRequest = myEmptyRequest, paramMap: Map<String, Any?>? = null): T {
+    private suspend inline fun <reified T : RioResponse> HttpClient.myPut(url: String, request: RioRequest? = null, paramMap: Map<String, Any?>? = null): T {
         val urlStr = "$url${paramMap.queryString()}"
+        val requestBody: Any = request ?: EmptyContent
         val response: HttpResponse = try {
             put(urlStr) {
                 contentType(ContentType.Application.Json)
                 header("Authorization", "Bearer ${tokenContainer.token}")
-                body = request
+                body = requestBody
             }
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Put, urlStr, t)
