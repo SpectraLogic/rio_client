@@ -21,6 +21,11 @@ open class RioResponse {
     var statusCode = HttpStatusCode.Processing
 }
 
+open class RioListResponse<T> (
+    open val objects: List<T>,
+    open val pageInfo: PageInfo
+) : RioResponse()
+
 class EmptyResponse : RioResponse()
 
 data class PageInfo(

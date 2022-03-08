@@ -45,6 +45,6 @@ data class MessageUpdateRequest(
 ) : RioRequest
 
 data class MessageListResponse(
-    @JsonProperty("data") val objects: List<MessageData>,
+    val data: List<MessageData>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<MessageData>(data, page)

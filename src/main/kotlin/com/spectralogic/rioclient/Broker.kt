@@ -6,7 +6,6 @@
 package com.spectralogic.rioclient
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.UUID
 
 data class BrokerCreateRequest(
@@ -169,16 +168,16 @@ data class ObjectUpdateRequest(
 data class Checksum(val hash: String, val type: String)
 
 data class ObjectListResponse(
-    val objects: List<ObjectData>,
+    override val objects: List<ObjectData>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<ObjectData>(objects, page)
 
 data class BrokerListResponse(
-    @JsonProperty("brokers") val objects: List<BrokerData>,
+    val brokers: List<BrokerData>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<BrokerData>(brokers, page)
 
 data class AgentListResponse(
-    @JsonProperty("agents") val objects: List<AgentData>,
+    val agents: List<AgentData>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<AgentData>(agents, page)
