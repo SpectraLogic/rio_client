@@ -111,7 +111,7 @@ class RioClient_Test {
         var listResponse = rioClient.listSpectraDevices()
         assertThat(listResponse.statusCode).isEqualTo(HttpStatusCode.OK)
         val spectraDeviceTotal = listResponse.page.totalItems
-        assertThat(listResponse.objects.map { it.name }).contains(spectraDeviceName)
+        assertThat(listResponse.devices.map { it.name }).contains(spectraDeviceName)
         assertThat(spectraDeviceTotal).isGreaterThanOrEqualTo(2)
 
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isTrue
@@ -181,7 +181,7 @@ class RioClient_Test {
 
         listResponse = rioClient.listSpectraDevices()
         assertThat(listResponse.statusCode).isEqualTo(HttpStatusCode.OK)
-        assertThat(listResponse.objects.map { it.name }).doesNotContain(spectraDeviceName)
+        assertThat(listResponse.devices.map { it.name }).doesNotContain(spectraDeviceName)
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
 
         // create unhappy path
@@ -508,8 +508,8 @@ class RioClient_Test {
         var endpointList = rioClient.listEndpointDevices()
         assertThat(endpointList.statusCode).isEqualTo(HttpStatusCode.OK)
         val endpointCount = endpointList.page.totalItems
-        assertThat(endpointList.objects.map { it.name }).contains(ftpName)
-        assertThat(endpointList.objects.map { it.name }).contains(uriName)
+        assertThat(endpointList.devices.map { it.name }).contains(ftpName)
+        assertThat(endpointList.devices.map { it.name }).contains(uriName)
         assertThat(endpointCount).isGreaterThanOrEqualTo(2)
 
         assertThat(rioClient.headEndpointDevice(ftpName)).isTrue
@@ -548,8 +548,8 @@ class RioClient_Test {
 
             val listBrokers = rioClient.listBrokers()
             assertThat(listBrokers.statusCode).isEqualTo(HttpStatusCode.OK)
-            assertThat(listBrokers.objects).isNotEmpty
-            assertThat(listBrokers.objects.map { it.name }).contains(testBroker)
+            assertThat(listBrokers.brokers).isNotEmpty
+            assertThat(listBrokers.brokers.map { it.name }).contains(testBroker)
 
             var getWriteAgent = rioClient.getAgent(testBroker, testAgent)
             assertThat(getWriteAgent.statusCode).isEqualTo(HttpStatusCode.OK)
@@ -560,8 +560,8 @@ class RioClient_Test {
 
             val listAgents = rioClient.listAgents(testBroker)
             assertThat(listAgents.statusCode).isEqualTo(HttpStatusCode.OK)
-            assertThat(listAgents.objects).hasSize(1)
-            assertThat(listAgents.objects.first().name).isEqualTo(getWriteAgent.name)
+            assertThat(listAgents.agents).hasSize(1)
+            assertThat(listAgents.agents.first().name).isEqualTo(getWriteAgent.name)
 
             val mapEntry = Pair("username", spectraDeviceAltUsername)
             val updateRequest = AgentUpdateRequest(mapOf(mapEntry))
@@ -922,7 +922,7 @@ class RioClient_Test {
         listLogs = rioClient.listLogsets()
         assertThat(listLogs.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(listLogs.page.totalItems).isEqualTo(totalLogs + 1)
-        assertThat(listLogs.objects.map { it.id }).contains(newLog.id)
+        assertThat(listLogs.logs.map { it.id }).contains(newLog.id)
 
         val deleteLogSetResponse = rioClient.deleteLogset(UUID.fromString(newLog.id))
         assertThat(deleteLogSetResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
@@ -972,7 +972,7 @@ class RioClient_Test {
         listTokens = rioClient.listTokenKeys()
         assertThat(listTokens.statusCode).isEqualTo(HttpStatusCode.OK)
         assertThat(listTokens.page.totalItems).isEqualTo(totalTokens + 2)
-        assertThat(listTokens.objects.map { it.id }).containsAll(listOf(createToken.id, longToken.id))
+        assertThat(listTokens.data.map { it.id }).containsAll(listOf(createToken.id, longToken.id))
 
         assertThat(rioClient.headApiToken(createToken.id)).isTrue
         val deleteApiTokenResponse = rioClient.deleteApiToken(createToken.id)

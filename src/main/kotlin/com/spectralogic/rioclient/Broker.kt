@@ -168,7 +168,7 @@ data class ObjectUpdateRequest(
 data class Checksum(val hash: String, val type: String)
 
 data class ObjectListResponse(
-    override val objects: List<ObjectData>,
+    val objects: List<ObjectData>,
     val page: PageInfo
 ) : RioListResponse<ObjectData>(objects, page)
 

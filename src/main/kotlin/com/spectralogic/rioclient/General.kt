@@ -22,7 +22,7 @@ open class RioResponse {
 }
 
 open class RioListResponse<T> (
-    open val objects: List<T>,
+    open val objectList: List<T>,
     open val pageInfo: PageInfo
 ) : RioResponse()
 
