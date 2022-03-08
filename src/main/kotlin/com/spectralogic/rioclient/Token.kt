@@ -6,7 +6,6 @@
 package com.spectralogic.rioclient
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -41,9 +40,9 @@ open class ShortTokenResponse(
 ) : RioResponse()
 
 data class TokenListResponse(
-    @JsonProperty("data") val objects: List<TokenKeyData>,
+    val data: List<TokenKeyData>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<TokenKeyData>(data, page)
 
 data class UserLoginCredentials(
     val username: String,

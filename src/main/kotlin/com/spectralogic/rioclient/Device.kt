@@ -40,9 +40,9 @@ data class SpectraDeviceData(
 )
 
 data class SpectraDeviceListResponse(
-    @JsonProperty("devices") val objects: List<SpectraDeviceData>,
+    val devices: List<SpectraDeviceData>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<SpectraDeviceData>(devices, page)
 
 data class DivaDeviceCreateRequest(
     val name: String,
@@ -70,9 +70,9 @@ data class DivaDeviceData(
 )
 
 data class DivaDeviceListResponse(
-    @JsonProperty("devices") val objects: List<DivaDeviceData>,
+    val devices: List<DivaDeviceData>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<DivaDeviceData>(devices, page)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class FlashnetDeviceCreateRequest(
@@ -133,9 +133,9 @@ data class FlashnetDeviceDatabaseData(
 )
 
 data class FlashnetDeviceListResponse(
-    @JsonProperty("devices") val objects: List<FlashnetDeviceData>,
+    val devices: List<FlashnetDeviceData>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<FlashnetDeviceData>(devices, page)
 
 data class TbpfrDeviceCreateRequest(
     val name: String,
@@ -163,9 +163,9 @@ data class TbpfrDeviceData(
 )
 
 data class TbpfrDeviceListResponse(
-    @JsonProperty("devices") val objects: List<TbpfrDeviceData>,
+    val devices: List<TbpfrDeviceData>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<TbpfrDeviceData>(devices, page)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class VailDeviceCreateRequest(
@@ -203,6 +203,6 @@ data class VailDeviceData(
 )
 
 data class VailDeviceListResponse(
-    @JsonProperty("devices") val objects: List<VailDeviceData>,
+    val devices: List<VailDeviceData>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<VailDeviceData>(devices, page)

@@ -85,7 +85,7 @@ data class ForeignJobDetails(
 data class JobListResponse(
     val jobs: List<JobData>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<JobData>(jobs, page)
 
 data class FileStatus(
     val name: String,

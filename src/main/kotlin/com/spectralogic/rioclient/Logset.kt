@@ -5,8 +5,6 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.annotation.JsonProperty
-
 data class LogsetResponse(
     val id: String,
     val status: String,
@@ -20,6 +18,6 @@ data class LogsetData(
 )
 
 data class LogsetListResponse(
-    @JsonProperty("logs") val objects: List<LogsetData>,
+    val logs: List<LogsetData>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<LogsetData>(logs, page)
