@@ -34,8 +34,8 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
 
-    val kotlinVersion = "1.5.2"
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinVersion")
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.6.10"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
     val ktorVersion = "1.6.7"
     implementation("io.ktor:ktor-client-core:$ktorVersion")
