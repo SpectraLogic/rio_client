@@ -63,7 +63,7 @@ class RioClient(
             }
             install(JsonFeature) {
                 serializer = JacksonSerializer {
-                    registerModule(KotlinModule())
+                    registerModule(KotlinModule.Builder().build())
                     registerModule(JavaTimeModule())
                     configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                     configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
@@ -579,9 +579,9 @@ class RioClient(
 
     private suspend inline fun HttpClient.myHead(url: String): Boolean {
         return try {
-            val response: HttpResponse = head(url) {
+            head(url) {
                 header("Authorization", "Bearer ${tokenContainer.token}")
-            }
+            } as HttpResponse
             true
         } catch (t: ClientRequestException) {
             when (t.response.status.value) {
@@ -600,11 +600,11 @@ class RioClient(
     private suspend inline fun HttpClient.myPatch(url: String, request: RioRequest?): Boolean {
         val requestBody: Any = request ?: EmptyContent
         return try {
-            val response: HttpResponse = patch(url) {
+            patch(url) {
                 contentType(ContentType.Application.Json)
                 header("Authorization", "Bearer ${tokenContainer.token}")
                 body = requestBody
-            }
+            } as HttpResponse
             true
         } catch (t: ClientRequestException) {
             when (t.response.status.value) {
