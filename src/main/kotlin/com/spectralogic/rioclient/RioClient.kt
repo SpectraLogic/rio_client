@@ -676,13 +676,13 @@ class RioClient(
                 header("Authorization", "Bearer ${tokenContainer.token}")
             }
         } catch (t: Throwable) {
-            throw RioHttpException(HttpMethod.Head, urlStr, t)
+            throw RioHttpException(HttpMethod.Get, urlStr, t)
         }
     }
 }
 
 // TODO: why is this RioCruise specific method here?
 data class ListMetadataValuesDistinct(
-    @JsonProperty("results") val objects: List<Map<String, String>>,
+    @JsonProperty("results") override val objectList: List<Map<String, String>>,
     val page: PageInfo
-) : RioResponse()
+) : RioListResponse<Map<String, String>>(objectList, page)
