@@ -764,6 +764,13 @@ class RioClient_Test {
 
             assertThat(rioClient.objectExists(testBroker, objectName)).isTrue
 
+            val objectBatchHeadRequest = ObjectBatchHeadRequest(false, listOf(objectName, "bad-object-1", "bad-object-2"))
+            val objectBatchHeadResponse = rioClient.objectBatchHead(testBroker, objectBatchHeadRequest)
+            assertThat(objectBatchHeadResponse.objects).hasSize(3)
+            objectBatchHeadResponse.objects.forEach {
+                assertThat(it.found).isEqualTo(objectName == it.name)
+            }
+
             val deleteObjectResponse = rioClient.deleteObject(testBroker, objectName)
             assertThat(deleteObjectResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
             assertThat(rioClient.objectExists(testBroker, objectName)).isFalse
