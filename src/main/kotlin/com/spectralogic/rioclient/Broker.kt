@@ -172,6 +172,19 @@ data class ObjectListResponse(
     val page: PageInfo
 ) : RioListResponse<ObjectData>(objects, page)
 
+data class ObjectBatchHeadRequest(
+    val encoded: Boolean,
+    val objects: List<String>
+) : RioRequest
+
+data class ObjectBatchHeadResponse(
+    val objects: List<ObjectHeadData>
+) : RioResponse()
+data class ObjectHeadData(
+    val name: String,
+    val found: Boolean
+)
+
 data class BrokerListResponse(
     val brokers: List<BrokerData>,
     val page: PageInfo
