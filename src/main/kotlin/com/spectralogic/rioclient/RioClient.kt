@@ -12,6 +12,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.features.Charsets
 import io.ktor.client.features.ClientRequestException
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JacksonSerializer
@@ -57,6 +58,10 @@ class RioClient(
                 https {
                     this.trustManager = TrustManagerUtils.createUnsafeTrustManager()
                 }
+            }
+            Charsets {
+                register(Charsets.UTF_8)
+                sendCharset = Charsets.UTF_8
             }
             install(HttpTimeout) {
                 requestTimeoutMillis = requestTimeout
