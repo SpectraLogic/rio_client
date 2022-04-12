@@ -173,7 +173,6 @@ data class ObjectListResponse(
 ) : RioListResponse<ObjectData>(objects, page)
 
 data class ObjectBatchHeadRequest(
-    val encoded: Boolean,
     val objects: List<String>
 ) : RioRequest
 

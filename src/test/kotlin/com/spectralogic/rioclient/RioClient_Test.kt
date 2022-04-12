@@ -764,7 +764,7 @@ class RioClient_Test {
 
             assertThat(rioClient.objectExists(testBroker, objectName)).isTrue
 
-            val objectBatchHeadRequest = ObjectBatchHeadRequest(false, listOf(objectName, "bad-object-1", "bad-object-2"))
+            val objectBatchHeadRequest = ObjectBatchHeadRequest(listOf(objectName, "bad-object-1", "bad-object-2"))
             val objectBatchHeadResponse = rioClient.objectBatchHead(testBroker, objectBatchHeadRequest)
             assertThat(objectBatchHeadResponse.objects).hasSize(3)
             objectBatchHeadResponse.objects.forEach {
