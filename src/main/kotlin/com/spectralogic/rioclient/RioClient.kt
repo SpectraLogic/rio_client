@@ -12,7 +12,6 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.features.Charsets
 import io.ktor.client.features.ClientRequestException
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JacksonSerializer
@@ -31,6 +30,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentLength
 import io.ktor.http.contentType
+import io.ktor.http.withCharset
+import io.ktor.utils.io.charsets.Charsets
 import kotlinx.coroutines.runBlocking
 import nl.altindag.ssl.util.TrustManagerUtils
 import java.io.Closeable
@@ -51,6 +52,7 @@ class RioClient(
     private val tokenContainer: TokenContainer = TokenContainer(longLivedToken) {
         runBlocking { getShortToken() }
     }
+    private val jsonContentType = ContentType.Application.Json.withCharset(Charsets.UTF_8)
 
     private val client by lazy {
         HttpClient(CIO) {
@@ -58,10 +60,6 @@ class RioClient(
                 https {
                     this.trustManager = TrustManagerUtils.createUnsafeTrustManager()
                 }
-            }
-            Charsets {
-                register(Charsets.UTF_8)
-                sendCharset = Charsets.UTF_8
             }
             install(HttpTimeout) {
                 requestTimeoutMillis = requestTimeout
@@ -84,7 +82,7 @@ class RioClient(
     private fun getShortToken(): String {
         val token = runBlocking {
             val response: ShortTokenResponse = client.post("$api/tokens") {
-                contentType(ContentType.Application.Json)
+                contentType(jsonContentType)
                 body = UserLoginCredentials(username, password)
             }
             response.token
@@ -576,7 +574,7 @@ class RioClient(
         val requestBody: Any = request ?: EmptyContent
         val response: HttpResponse = try {
             get(urlStr) {
-                contentType(ContentType.Application.Json)
+                contentType(jsonContentType)
                 header("Authorization", "Bearer ${tokenContainer.token}")
                 body = requestBody
             }
@@ -612,7 +610,7 @@ class RioClient(
         val requestBody: Any = request ?: EmptyContent
         return try {
             patch(url) {
-                contentType(ContentType.Application.Json)
+                contentType(jsonContentType)
                 header("Authorization", "Bearer ${tokenContainer.token}")
                 body = requestBody
             } as HttpResponse
@@ -638,7 +636,7 @@ class RioClient(
         val requestBody: Any = request ?: EmptyContent
         val response: HttpResponse = try {
             post(urlStr) {
-                contentType(ContentType.Application.Json)
+                contentType(jsonContentType)
                 header("Authorization", "Bearer ${tokenContainer.token}")
                 body = requestBody
             }
@@ -663,7 +661,7 @@ class RioClient(
         val requestBody: Any = request ?: EmptyContent
         val response: HttpResponse = try {
             put(urlStr) {
-                contentType(ContentType.Application.Json)
+                contentType(jsonContentType)
                 header("Authorization", "Bearer ${tokenContainer.token}")
                 body = requestBody
             }
