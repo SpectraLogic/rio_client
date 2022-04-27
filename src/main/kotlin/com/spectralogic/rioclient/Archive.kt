@@ -21,5 +21,5 @@ data class FileToArchive(
     val size: Long?,
     val metadata: Map<String, String>? = null,
     val indexMedia: Boolean = false,
-    val `upload-new-files-only`: Boolean = true
+    val deleteAfterArchive: Boolean = false
 )
