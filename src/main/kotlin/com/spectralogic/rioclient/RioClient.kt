@@ -480,6 +480,9 @@ class RioClient(
     suspend fun fileStatus(jobId: UUID, objectName: String): FileStatusLogResponse =
         client.myGet("$api/jobs/$jobId/filestatus/${objectName.urlEncode()}")
 
+    suspend fun deleteArchivedFiles(): EmptyResponse =
+        client.myPost("$api/deletearchivedfiles")
+
     /**
      * Log
      */
