@@ -416,8 +416,13 @@ class RioClient(
     suspend fun retryArchiveJob(brokerName: String, retry: UUID): JobResponse =
         client.myPost("$api/brokers/$brokerName/archive?retry=$retry")
 
-    suspend fun createRestoreJob(brokerName: String, restoreRequest: RestoreRequest, jobPriority: String? = null): JobResponse =
-        client.myPost("$api/brokers/$brokerName/restore", restoreRequest, "priority", jobPriority)
+    suspend fun createRestoreJob(brokerName: String, restoreRequest: RestoreRequest, jobPriority: String? = null, sessionId: String? = null): JobResponse {
+        val paramMap = mapOf(
+            Pair("priority", jobPriority),
+            Pair("sessionId", sessionId)
+        )
+        return client.myPost("$api/brokers/$brokerName/restore", restoreRequest, paramMap)
+    }
 
     suspend fun retryRestoreJob(brokerName: String, retry: UUID): JobResponse {
         return client.myPost("$api/brokers/$brokerName/restore?retry=$retry")
