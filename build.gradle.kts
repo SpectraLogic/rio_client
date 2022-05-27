@@ -38,7 +38,7 @@ dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.6.10"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
-    val ktorVersion = "1.6.7"
+    val ktorVersion = "1.6.8"
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
@@ -54,4 +54,5 @@ dependencies {
 dependencyCheck {
     // fail the build if any vulnerable dependencies are identified (CVSS score > 0)
     failBuildOnCVSS = 0f
+    suppressionFile = "project_files/owasp/dependency-check-suppression.xml"
 }
