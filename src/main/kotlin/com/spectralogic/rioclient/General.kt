@@ -76,22 +76,25 @@ class RioHttpException(
     }
 }
 
-interface RioErrorMessage
+interface RioErrorMessage {
+    val message: String
+    val statusCode: Int
+}
 
 data class RioDefaultErrorMessage
 @JsonCreator constructor (
     @JsonProperty("message")
-    val message: String,
+    override val message: String,
     @JsonProperty("statusCode")
-    val statusCode: Int
+    override val statusCode: Int
 ) : RioErrorMessage
 
 data class RioResourceErrorMessage
 @JsonCreator constructor (
     @JsonProperty("message")
-    val message: String,
+    override val message: String,
     @JsonProperty("statusCode")
-    val statusCode: Int,
+    override val statusCode: Int,
     @JsonProperty("resourceName")
     val resourceName: String,
     @JsonProperty("resourceType")
@@ -101,9 +104,9 @@ data class RioResourceErrorMessage
 data class RioValidationErrorMessage
 @JsonCreator constructor (
     @JsonProperty("message")
-    val message: String,
+    override val message: String,
     @JsonProperty("statusCode")
-    val statusCode: Int,
+    override val statusCode: Int,
     @JsonProperty("errors")
     val errors: List<RioValidationMessage>
 ) : RioErrorMessage
@@ -125,9 +128,9 @@ data class RioValidationMessage
 data class RioUnsupportedMediaError
 @JsonCreator constructor (
     @JsonProperty("message")
-    val message: String,
+    override val message: String,
     @JsonProperty("statusCode")
-    val statusCode: Int,
+    override val statusCode: Int,
     @JsonProperty("suppliedMediaType")
     val suppliedMediaType: String,
     @JsonProperty("supportedMediaType")
@@ -137,9 +140,9 @@ data class RioUnsupportedMediaError
 data class RioDownstreamErrorMessage
 @JsonCreator constructor (
     @JsonProperty("message")
-    val message: String,
+    override val message: String,
     @JsonProperty("statusCode")
-    val statusCode: Int,
+    override val statusCode: Int,
     @JsonProperty("resourceName")
     val resourceName: String?,
     @JsonProperty("resourceType")
