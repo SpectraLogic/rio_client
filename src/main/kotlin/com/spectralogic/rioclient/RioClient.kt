@@ -14,12 +14,14 @@ import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.features.ClientRequestException
 import io.ktor.client.features.HttpTimeout
+import io.ktor.client.features.auth.Auth
+import io.ktor.client.features.auth.providers.BearerTokens
+import io.ktor.client.features.auth.providers.bearer
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.head
-import io.ktor.client.request.header
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.put
@@ -32,7 +34,6 @@ import io.ktor.http.contentLength
 import io.ktor.http.contentType
 import io.ktor.http.withCharset
 import io.ktor.utils.io.charsets.Charsets
-import kotlinx.coroutines.runBlocking
 import nl.altindag.ssl.util.TrustManagerUtils
 import java.io.Closeable
 import java.net.URL
@@ -41,53 +42,44 @@ import java.util.UUID
 
 class RioClient(
     rioUrl: URL,
-    private val username: String = "spectra",
-    private val password: String = "spectra",
+    username: String = "spectra",
+    password: String = "spectra",
     private val requestTimeout: Long = 60L * 1000L, // 60 seconds
-    longLivedToken: String? = null
 ) : Closeable {
 
     private data class MyMetadata(val metadata: Map<String, String>) : RioRequest
     private val api by lazy { "$rioUrl/api" }
-    private val tokenContainer: TokenContainer = TokenContainer(longLivedToken) {
-        runBlocking { getShortToken() }
-    }
+    private val tokenClient: TokenClient = TokenClient(rioUrl, username, password)
     private val jsonContentType = ContentType.Application.Json.withCharset(Charsets.UTF_8)
 
-    private val client by lazy {
-        HttpClient(CIO) {
-            engine {
-                https {
-                    this.trustManager = TrustManagerUtils.createUnsafeTrustManager()
+    private val client = HttpClient(CIO) {
+        engine {
+            https {
+                this.trustManager = TrustManagerUtils.createUnsafeTrustManager()
+            }
+        }
+        install(HttpTimeout) {
+            requestTimeoutMillis = requestTimeout
+        }
+        install(JsonFeature) {
+            serializer = JacksonSerializer {
+                registerModule(KotlinModule.Builder().build())
+                registerModule(JavaTimeModule())
+                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
+                configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
+            }
+        }
+        install(Auth) {
+            bearer {
+                loadTokens {
+                    BearerTokens(tokenClient.getShortToken(), "")
                 }
-            }
-            install(HttpTimeout) {
-                requestTimeoutMillis = requestTimeout
-            }
-            install(JsonFeature) {
-                serializer = JacksonSerializer {
-                    registerModule(KotlinModule.Builder().build())
-                    registerModule(JavaTimeModule())
-                    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                    configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
-                    configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
+                refreshTokens {
+                    BearerTokens(tokenClient.getShortToken(), "")
                 }
             }
         }
-    }
-
-    /**
-     * Token (do not use myPost, will cause infinite loop)
-     */
-    private fun getShortToken(): String {
-        val token = runBlocking {
-            val response: ShortTokenResponse = client.post("$api/tokens") {
-                contentType(jsonContentType)
-                body = UserLoginCredentials(username, password)
-            }
-            response.token
-        }
-        return token
     }
 
     /**
@@ -559,7 +551,6 @@ class RioClient(
         val urlStr = "$url${paramMap.queryString()}"
         val response: HttpResponse = try {
             delete(urlStr) {
-                header("Authorization", "Bearer ${tokenContainer.token}")
             }
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Post, urlStr, t)
@@ -583,7 +574,6 @@ class RioClient(
         val response: HttpResponse = try {
             get(urlStr) {
                 contentType(jsonContentType)
-                header("Authorization", "Bearer ${tokenContainer.token}")
                 body = requestBody
             }
         } catch (t: Throwable) {
@@ -597,7 +587,6 @@ class RioClient(
     private suspend inline fun HttpClient.myHead(url: String): Boolean {
         return try {
             head(url) {
-                header("Authorization", "Bearer ${tokenContainer.token}")
             } as HttpResponse
             true
         } catch (t: ClientRequestException) {
@@ -619,7 +608,6 @@ class RioClient(
         return try {
             patch(url) {
                 contentType(jsonContentType)
-                header("Authorization", "Bearer ${tokenContainer.token}")
                 body = requestBody
             } as HttpResponse
             true
@@ -645,7 +633,6 @@ class RioClient(
         val response: HttpResponse = try {
             post(urlStr) {
                 contentType(jsonContentType)
-                header("Authorization", "Bearer ${tokenContainer.token}")
                 body = requestBody
             }
         } catch (t: Throwable) {
@@ -660,17 +647,12 @@ class RioClient(
         return result
     }
 
-    private suspend inline fun <reified T : RioResponse> HttpClient.myPut(url: String, request: RioRequest? = null, key: String, value: Any? = null): T {
-        return myPut(url, request, paramMap(key, value))
-    }
-
     private suspend inline fun <reified T : RioResponse> HttpClient.myPut(url: String, request: RioRequest? = null, paramMap: Map<String, Any?>? = null): T {
         val urlStr = "$url${paramMap.queryString()}"
         val requestBody: Any = request ?: EmptyContent
         val response: HttpResponse = try {
             put(urlStr) {
                 contentType(jsonContentType)
-                header("Authorization", "Bearer ${tokenContainer.token}")
                 body = requestBody
             }
         } catch (t: Throwable) {
@@ -690,7 +672,6 @@ class RioClient(
         val urlStr = "$api/brokers/$brokerName/metadata/$metadataKey?page=$page&per_page=$perPage&internalData=$internal"
         return try {
             client.get(urlStr) {
-                header("Authorization", "Bearer ${tokenContainer.token}")
             }
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Get, urlStr, t)
