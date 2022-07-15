@@ -433,7 +433,7 @@ class RioClient(
 
     suspend fun listJobs(
         job_type: String? = null,
-        jobStatus: String? = "active",
+        jobStatus: String? = null,
         broker: String? = null,
         creation_date_start: String? = null,
         creation_date_end: String? = null,

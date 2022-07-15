@@ -6,12 +6,19 @@
 package com.spectralogic.rioclient
 
 import java.net.URI
+import java.util.Collections.emptyMap
 import java.util.UUID
 
 data class JobStatus(
     val message: String,
     val status: String,
     val reason: String? = null
+)
+
+data class JobCallback(
+    val url: String,
+    val eventClass: String,
+    val eventType: String
 )
 
 class DetailedJobResponse(
@@ -26,8 +33,9 @@ class DetailedJobResponse(
     totalSizeInBytes: Long,
     progress: Float,
     val files: List<FileStatus>,
-    foreignJobs: Map<UUID, ForeignJobDetails> = mapOf(),
-    priority: String? = null
+    foreignJobs: Map<UUID, ForeignJobDetails> = emptyMap(),
+    priority: String? = null,
+    callback: JobCallback? = null
 ) : JobResponse(
     name,
     id,
@@ -40,7 +48,8 @@ class DetailedJobResponse(
     totalSizeInBytes,
     progress,
     foreignJobs,
-    priority
+    priority,
+    callback = callback
 )
 
 open class JobResponse(
@@ -54,8 +63,10 @@ open class JobResponse(
     val filesTransferred: Long,
     val totalSizeInBytes: Long,
     val progress: Float,
-    val foreignJobs: Map<UUID, ForeignJobDetails> = mapOf(),
-    val priority: String? = null
+    val foreignJobs: Map<UUID, ForeignJobDetails> = emptyMap(),
+    val priority: String? = null,
+    val sessionId: String? = null,
+    val callback: JobCallback? = null
 ) : RioResponse()
 
 data class JobData(
@@ -69,8 +80,9 @@ data class JobData(
     val filesTransferred: Long,
     val totalSizeInBytes: Long,
     val progress: Float,
-    val foreignJobs: Map<UUID, ForeignJobDetails> = mapOf(),
-    val priority: String? = null
+    val foreignJobs: Map<UUID, ForeignJobDetails> = emptyMap(),
+    val priority: String? = null,
+    val callback: JobCallback? = null
 )
 
 enum class JobType {
