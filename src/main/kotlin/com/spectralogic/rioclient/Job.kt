@@ -6,7 +6,6 @@
 package com.spectralogic.rioclient
 
 import java.net.URI
-import java.net.URL
 import java.util.Collections.emptyMap
 import java.util.UUID
 
@@ -17,7 +16,7 @@ data class JobStatus(
 )
 
 data class JobCallback(
-    val url: URL,
+    val url: String,
     val eventClass: String,
     val eventType: String
 )
@@ -36,7 +35,7 @@ class DetailedJobResponse(
     val files: List<FileStatus>,
     foreignJobs: Map<UUID, ForeignJobDetails> = emptyMap(),
     priority: String? = null,
-    callback: JobCallbackData? = null
+    callback: JobCallback? = null
 ) : JobResponse(
     name,
     id,
@@ -67,14 +66,8 @@ open class JobResponse(
     val foreignJobs: Map<UUID, ForeignJobDetails> = emptyMap(),
     val priority: String? = null,
     val sessionId: String? = null,
-    val callback: JobCallbackData? = null
+    val callback: JobCallback? = null
 ) : RioResponse()
-
-data class JobCallbackData(
-    val url: String,
-    val eventClass: String,
-    val eventType: String
-)
 
 data class JobData(
     val name: String?,
@@ -89,7 +82,7 @@ data class JobData(
     val progress: Float,
     val foreignJobs: Map<UUID, ForeignJobDetails> = emptyMap(),
     val priority: String? = null,
-    val callback: JobCallbackData? = null
+    val callback: JobCallback? = null
 )
 
 enum class JobType {
