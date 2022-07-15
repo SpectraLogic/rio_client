@@ -16,7 +16,8 @@ data class ByteRange(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class RestoreRequest(
     val name: String? = null,
-    val files: List<FileToRestore>
+    val files: List<FileToRestore>,
+    val callback: JobCallback? = null
 ) : RioRequest
 
 data class FileToRestore(

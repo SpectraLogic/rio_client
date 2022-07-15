@@ -11,7 +11,9 @@ import java.net.URI
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ArchiveRequest(
     val name: String? = null,
-    val files: List<FileToArchive>
+    val files: List<FileToArchive>,
+    val metadata: Map<String, String>? = null,
+    val callback: JobCallback? = null
 ) : RioRequest
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
