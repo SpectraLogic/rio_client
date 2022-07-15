@@ -60,7 +60,7 @@ class RioClient_Test {
             rioClient = RioClient(URL(getenvValue("ESCAPEPOD_URL", "https://localhost:5050")), username, password)
 
             spectraDeviceName = getenvValue("BP_DEVICE_NAME", "rioclient_bp")
-            spectraDeviceMgmtInterfaceUrl = "https://sm4u-13-mgmt.eng.sldomain.com" // getenvValue("MGMT_INTERFACE_URL", "https://sm25-2-mgmt.eng.sldomain.com")
+            spectraDeviceMgmtInterfaceUrl = getenvValue("MGMT_INTERFACE_URL", "https://sm25-2-mgmt.eng.sldomain.com")
             spectraDeviceUsername = getenvValue("BP_DEVICE_USERNAME", "Administrator")
             spectraDevicePassword = getenvValue("BP_DEVICE_PASSWORD", "spectra")
             spectraDeviceAltUsername = getenvValue("BP_DEVICE_ALT_USERNAME", "monitor")
