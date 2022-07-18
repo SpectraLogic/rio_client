@@ -24,6 +24,11 @@ publishing {
     }
 }
 
+tasks.test {
+    useJUnitPlatform()
+}
+
+
 repositories {
     mavenCentral()
 }
@@ -43,6 +48,7 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
+    implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.github.hakky54:sslcontext-kickstart:7.0.3")
 
 // Test
