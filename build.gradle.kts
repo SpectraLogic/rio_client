@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.6.0"
+    kotlin("jvm") version "1.7.10"
     id("org.jmailen.kotlinter") version "3.3.0"
     id("java")
     id("maven-publish")
@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.spectralogic"
-version = "1.2.0"
+version = "1.2.1"
 tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "16"
@@ -41,7 +41,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.6.10"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
 
     val ktorVersion = "1.6.8"
     implementation("io.ktor:ktor-client-core:$ktorVersion")
@@ -51,10 +51,13 @@ dependencies {
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.github.hakky54:sslcontext-kickstart:7.0.3")
 
+    implementation("org.apache.logging.log4j:log4j-api-kotlin:1.2.0")
+
+
 // Test
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-    testImplementation("org.assertj:assertj-core:3.21.0")
+    testImplementation("org.assertj:assertj-core:3.23.1")
 }
 
 dependencyCheck {

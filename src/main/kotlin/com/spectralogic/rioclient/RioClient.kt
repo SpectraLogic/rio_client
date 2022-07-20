@@ -19,6 +19,8 @@ import io.ktor.client.features.auth.providers.BearerTokens
 import io.ktor.client.features.auth.providers.bearer
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.features.logging.LogLevel
+import io.ktor.client.features.logging.Logging
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.head
@@ -45,7 +47,11 @@ class RioClient(
     username: String = "spectra",
     password: String = "spectra",
     private val requestTimeout: Long = 60L * 1000L, // 60 seconds
+    longLivedToken: String? = null,
+    private val verbose: Boolean = false
 ) : Closeable {
+
+    companion object: org.apache.logging.log4j.kotlin.Logging
 
     private data class MyMetadata(val metadata: Map<String, String>) : RioRequest
     private val api by lazy { "$rioUrl/api" }
@@ -78,6 +84,11 @@ class RioClient(
                 refreshTokens {
                     BearerTokens(tokenClient.getShortToken(), "")
                 }
+            }
+        }
+        install(Logging) {
+            if (verbose) {
+                level = LogLevel.ALL
             }
         }
     }
