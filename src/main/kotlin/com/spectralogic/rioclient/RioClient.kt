@@ -51,7 +51,9 @@ class RioClient(
     private val verbose: Boolean = false
 ) : Closeable {
 
-    companion object: org.apache.logging.log4j.kotlin.Logging
+    companion object {
+        private val logger = mu.KotlinLogging.logger {}
+    }
 
     private data class MyMetadata(val metadata: Map<String, String>) : RioRequest
     private val api by lazy { "$rioUrl/api" }
@@ -89,6 +91,8 @@ class RioClient(
         install(Logging) {
             if (verbose) {
                 level = LogLevel.ALL
+            } else {
+                level = LogLevel.NONE
             }
         }
     }

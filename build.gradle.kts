@@ -49,9 +49,10 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
-    implementation("io.github.hakky54:sslcontext-kickstart:7.0.3")
+    implementation("io.github.hakky54:sslcontext-kickstart:7.4.3")
 
-    implementation("org.apache.logging.log4j:log4j-api-kotlin:1.2.0")
+    implementation("io.github.microutils:kotlin-logging-jvm:2.1.20")
+
 
 
 // Test
