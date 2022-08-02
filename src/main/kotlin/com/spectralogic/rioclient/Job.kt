@@ -35,7 +35,7 @@ class DetailedJobResponse(
     val files: List<FileStatus>,
     foreignJobs: Map<UUID, ForeignJobDetails> = emptyMap(),
     priority: String? = null,
-    callback: JobCallback? = null
+    callbacks: List<JobCallback>? = null
 ) : JobResponse(
     name,
     id,
@@ -49,7 +49,7 @@ class DetailedJobResponse(
     progress,
     foreignJobs,
     priority,
-    callback = callback
+    callbacks = callbacks
 )
 
 open class JobResponse(
@@ -66,7 +66,7 @@ open class JobResponse(
     val foreignJobs: Map<UUID, ForeignJobDetails> = emptyMap(),
     val priority: String? = null,
     val sessionId: String? = null,
-    val callback: JobCallback? = null
+    val callbacks: List<JobCallback>? = null
 ) : RioResponse()
 
 data class JobData(
@@ -82,7 +82,7 @@ data class JobData(
     val progress: Float,
     val foreignJobs: Map<UUID, ForeignJobDetails> = emptyMap(),
     val priority: String? = null,
-    val callback: JobCallback? = null
+    val callbacks: List<JobCallback>? = null
 )
 
 enum class JobType {

@@ -473,7 +473,7 @@ class RioClient(
         client.myDelete("$api/jobs")
 
     suspend fun cancelJob(jobId: UUID): EmptyResponse =
-        client.myPut("$api/jobs/$jobId")
+        client.myPut("$api/jobs/$jobId?cancel=true")
 
     suspend fun headJob(jobId: String): Boolean =
         client.myHead("$api/jobs/$jobId")

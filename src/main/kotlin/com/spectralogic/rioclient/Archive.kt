@@ -13,7 +13,7 @@ data class ArchiveRequest(
     val name: String? = null,
     val files: List<FileToArchive>,
     val metadata: Map<String, String>? = null,
-    val callback: JobCallback? = null
+    val callbacks: List<JobCallback>? = null
 ) : RioRequest
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

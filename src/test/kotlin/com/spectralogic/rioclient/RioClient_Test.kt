@@ -725,7 +725,10 @@ class RioClient_Test {
             val archiveJobName = "archive-job-callback-${uuid()}"
             val jobMetadata = mapOf(Pair("jobkey1", "jobval1"), Pair("jobkey2", "jobval2"))
             val metadata = mapOf(Pair("key1", "val1"), Pair("key2", "val2"))
-            val archiveJobCallback = JobCallback("http://host/path?archive=true", "JOB", "FINISH")
+            val archiveJobCallbacks = listOf(
+                JobCallback("http://host/path?archive=job", "JOB", "COMPLETE"),
+                JobCallback("http://host/path?archive=file", "FILE", "COMPLETE")
+            )
             val archiveRequest = ArchiveRequest(
                 archiveJobName,
                 listOf(
@@ -733,20 +736,20 @@ class RioClient_Test {
                     FileToArchive(uuid(), URI("aToZSequence://file"), 2048L, metadata),
                 ),
                 jobMetadata,
-                archiveJobCallback
+                archiveJobCallbacks
             )
             val archiveJob = rioClient.createArchiveJob(testBroker, archiveRequest)
             assertThat(archiveJob.statusCode).isEqualTo(HttpStatusCode.Created)
             assertThat(archiveJob.name).isEqualTo(archiveJobName)
             assertThat(archiveJob.numberOfFiles).isEqualTo(2)
             assertThat(archiveJob.totalSizeInBytes).isEqualTo(3072)
-            assertThat(archiveJob.callback).isEqualTo(archiveJobCallback)
+            assertThat(archiveJob.callbacks).isEqualTo(archiveJobCallbacks)
 
             assertThat(rioClient.headJob(archiveJob.id.toString())).isTrue
 
             val archiveJobs = rioClient.listJobs(jobName = archiveJobName)
             assertThat(archiveJobs.jobs).hasSize(1)
-            assertThat(archiveJobs.jobs[0].callback).isEqualTo(archiveJobCallback)
+            assertThat(archiveJobs.jobs[0].callbacks).isEqualTo(archiveJobCallbacks)
 
             var i = 25
             var archiveJobStatus = rioClient.jobStatus(archiveJob.id)
@@ -758,29 +761,32 @@ class RioClient_Test {
             assertThat(archiveJobStatus.status.status).isEqualTo("COMPLETED")
             assertThat(archiveJobStatus.filesTransferred).isEqualTo(2)
             assertThat(archiveJobStatus.progress).isEqualTo(1.0f)
-            assertThat(archiveJobStatus.callback).isEqualTo(archiveJobCallback)
+            assertThat(archiveJobStatus.callbacks).isEqualTo(archiveJobCallbacks)
 
             val restoreJobName = "restore-job-callback-${uuid()}"
-            val restoreJobCallback = JobCallback("http://host/path?restore=true", "FILE", "FINISH")
+            val restoreJobCallbacks = listOf(
+                JobCallback("http://host/path?restore=file", "FILE", "COMPLETE"),
+                JobCallback("http://host/path?restore=job", "JOB", "COMPLETE")
+            )
             val restoreRequest = RestoreRequest(
                 restoreJobName,
                 listOf(
                     FileToRestore(archiveRequest.files[0].name, URI("null://name1")),
                     FileToRestore(archiveRequest.files[1].name, URI("null://name2"))
                 ),
-                restoreJobCallback
+                restoreJobCallbacks
             )
             val restoreJob = rioClient.createRestoreJob(testBroker, restoreRequest)
             assertThat(restoreJob.statusCode).isEqualTo(HttpStatusCode.Created)
             assertThat(restoreJob.name).isEqualTo(restoreJobName)
             assertThat(restoreJob.numberOfFiles).isEqualTo(2)
-            assertThat(restoreJob.callback).isEqualTo(restoreJobCallback)
+            assertThat(restoreJob.callbacks).isEqualTo(restoreJobCallbacks)
 
             assertThat(rioClient.headJob(restoreJob.id.toString())).isTrue
 
             val restoreJobs = rioClient.listJobs(jobName = restoreJobName)
             assertThat(restoreJobs.jobs).hasSize(1)
-            assertThat(restoreJobs.jobs[0].callback).isEqualTo(restoreJobCallback)
+            assertThat(restoreJobs.jobs[0].callbacks).isEqualTo(restoreJobCallbacks)
 
             i = 25
             var restoreJobStatus = rioClient.jobStatus(restoreJob.id)
@@ -792,7 +798,7 @@ class RioClient_Test {
             assertThat(restoreJobStatus.status.status).isEqualTo("COMPLETED")
             assertThat(restoreJobStatus.filesTransferred).isEqualTo(2)
             assertThat(restoreJobStatus.progress).isEqualTo(1.0f)
-            assertThat(restoreJobStatus.callback).isEqualTo(restoreJobCallback)
+            assertThat(restoreJobStatus.callbacks).isEqualTo(restoreJobCallbacks)
         } finally {
             removeBroker()
         }
