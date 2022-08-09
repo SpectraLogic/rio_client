@@ -276,6 +276,23 @@ class RioClient(
     suspend fun getUriEndpointDevice(name: String): EndpointUriDeviceResponse =
         client.myGet("$api/devices/endpoint/$name")
 
+    suspend fun listEndpointDevice(
+        name: String,
+        type: String,
+        recursive: Boolean = false,
+        subPath: String? = null,
+        startAfter: String? = null,
+        maxResults: Int? = null
+    ): DeviceObjectListResponse {
+        val paramMap: Map<String, Any?> = mapOf(
+            Pair("recursive", recursive),
+            Pair("path", subPath),
+            Pair("startAfter", startAfter),
+            Pair("maxResults", maxResults)
+        )
+        return client.myGet("$api/devices/$type/$name/list", paramMap = paramMap)
+    }
+
     /**
      * Broker
      */

@@ -206,3 +206,8 @@ data class VailDeviceListResponse(
     val devices: List<VailDeviceData>,
     val page: PageInfo
 ) : RioListResponse<VailDeviceData>(devices, page)
+
+data class DeviceObjectListResponse(
+    val objects: List<String>,
+    val isTruncated: Boolean
+) : RioResponse()
