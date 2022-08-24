@@ -67,7 +67,7 @@ data class DivaAgentConfig(
     val category: String,
     val qos: Int?,
     val priority: Int?
-)
+) : AgentConfig()
 
 fun DivaAgentConfig.toConfigMap(): Map<String, String> {
     return buildMap {
