@@ -97,6 +97,7 @@ class RioClient_Test {
         val mgmtBaseError = RioValidationMessage("mgmtInterface", "URI", "")
         val mgmtHostError = mgmtBaseError.copy(errorType = "unknown_host")
         val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_format")
+        val mgmtCredsError = mgmtBaseError.copy(errorType = "invalid_credentials", value = spectraDeviceMgmtInterfaceUrl)
         val userBaseError = RioValidationMessage("username", "string", "")
         val userCredsError = userBaseError.copy(errorType = "invalid_credentials")
         val passBaseError = RioValidationMessage("password", "password", "")
@@ -156,19 +157,19 @@ class RioClient_Test {
             ),
             Pair(
                 updateRequest.copy(username = ""),
-                listOf(userCredsError, passCredsError)
+                listOf(mgmtCredsError)
             ),
             Pair(
                 updateRequest.copy(username = "bad-username"),
-                listOf(userCredsError, passCredsError)
+                listOf(mgmtCredsError)
             ),
             Pair(
                 updateRequest.copy(username = "bad-username", password = "bad-password"),
-                listOf(userCredsError, passCredsError)
+                listOf(mgmtCredsError)
             ),
             Pair(
                 updateRequest.copy(password = "bad-password"),
-                listOf(userCredsError, passCredsError)
+                listOf(mgmtCredsError)
             )
         ).forEach { (request, expected) ->
             assertSpectraDeviceUpdateError(spectraDeviceName, request, expected)
@@ -216,19 +217,19 @@ class RioClient_Test {
             ),
             Pair(
                 createRequest.copy(username = ""),
-                listOf(userCredsError, passCredsError)
+                listOf(mgmtCredsError)
             ),
             Pair(
                 createRequest.copy(username = "bad-username"),
-                listOf(userCredsError, passCredsError)
+                listOf(mgmtCredsError)
             ),
             Pair(
                 createRequest.copy(username = "bad-username", password = "bad-password"),
-                listOf(userCredsError, passCredsError)
+                listOf(mgmtCredsError)
             ),
             Pair(
                 createRequest.copy(password = "bad-password"),
-                listOf(userCredsError, passCredsError)
+                listOf(mgmtCredsError)
             ),
             Pair(
                 createRequest.copy(name = "bad name", mgmtInterface = "bad uri"),
