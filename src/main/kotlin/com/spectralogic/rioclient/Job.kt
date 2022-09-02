@@ -108,7 +108,8 @@ data class FileStatus(
     val sizeInBytes: Long,
     val lastUpdated: String,
     val broker: String?,
-    val agentName: String?
+    val agentName: String?,
+    val fileId: String
 )
 
 data class FileStatusLogResponse(
