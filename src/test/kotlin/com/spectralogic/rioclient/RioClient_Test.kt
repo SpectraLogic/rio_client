@@ -648,6 +648,7 @@ class RioClient_Test {
             assertThat(archiveJobStatus.status.status).isEqualTo("COMPLETED")
             assertThat(archiveJobStatus.filesTransferred).isEqualTo(2)
             assertThat(archiveJobStatus.progress).isEqualTo(1.0f)
+            assertThat(archiveJobStatus.files.first().fileId).isNotBlank()
 
             val archiveFilesStatus = rioClient.fileStatus(archiveJob.id)
             assertThat(archiveFilesStatus.statusCode).isEqualTo(HttpStatusCode.OK)
@@ -682,6 +683,7 @@ class RioClient_Test {
             assertThat(restoreJobStatus.status.status).isEqualTo("COMPLETED")
             assertThat(restoreJobStatus.filesTransferred).isEqualTo(2)
             assertThat(restoreJobStatus.progress).isEqualTo(1.0f)
+            assertThat(restoreJobStatus.files.first().fileId).isNotBlank()
 
             val restoreFilesStatus = rioClient.fileStatus(restoreJob.id)
             assertThat(restoreFilesStatus.statusCode).isEqualTo(HttpStatusCode.OK)
