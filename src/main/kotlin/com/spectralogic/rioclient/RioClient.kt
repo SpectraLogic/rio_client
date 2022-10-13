@@ -47,7 +47,6 @@ class RioClient(
     username: String = "spectra",
     password: String = "spectra",
     private val requestTimeout: Long = 60L * 1000L, // 60 seconds
-    longLivedToken: String? = null,
     private val verbose: Boolean = false
 ) : Closeable {
 
