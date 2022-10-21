@@ -5,6 +5,8 @@
  */
 package com.spectralogic.rioclient
 
+import java.util.UUID
+
 data class SystemResponse(
     val version: String,
     val apiVersion: String,
@@ -38,4 +40,34 @@ data class ProcessStatsData(
     val totalMemory: Long,
     val usedMemory: Long,
     val freeMemory: Long
+)
+
+data class ClientDataRequest(
+    val clientDataId: String,
+    val clientName: String,
+    val tag: String,
+    val mapData: Map<String, String>
+) : RioRequest
+
+data class ClientDataResponse(
+    val dataId: UUID,
+    val creationDate: String,
+    val clientDataId: String,
+    val clientName: String,
+    val tag: String,
+    val mapData: Map<String, String>
+) : RioResponse()
+
+data class ClientDataListResponse(
+    val result: List<ClientData>,
+    val page: PageInfo
+) : RioListResponse<ClientData>(result, page)
+
+data class ClientData(
+    val dataId: UUID,
+    val creationDate: String,
+    val clientDataId: String,
+    val clientName: String,
+    val tag: String,
+    val mapData: Map<String, String>
 )
