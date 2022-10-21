@@ -5,7 +5,7 @@
  */
 package com.spectralogic.rioclient
 
-import java.util.*
+import java.util.UUID
 
 data class SystemResponse(
     val version: String,
