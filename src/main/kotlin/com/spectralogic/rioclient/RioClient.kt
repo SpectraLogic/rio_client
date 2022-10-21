@@ -560,9 +560,40 @@ class RioClient(
     suspend fun systemInfo(): SystemResponse =
         client.myGet("$api/system")
 
+    suspend fun clientDataInsert(clientDataRequest: ClientDataRequest): ClientDataResponse =
+        client.myPost("$api/system/clientData", clientDataRequest)
+    suspend fun clientDataUpdate(dataId: UUID, clientDataRequest: ClientDataRequest): ClientDataResponse =
+        client.myPut("$api/system/clientData/$dataId", clientDataRequest)
+    suspend fun clientDataDelete(dataId: UUID): EmptyResponse =
+        client.myDelete("$api/system/clientData/${dataId.toString()}")
+    suspend fun clientDataList(
+        clientDataId: String? = null,
+        clientName: String? = null,
+        tag: String? = null,
+        page: Long? = null,
+        perPage: Long? = null,
+        sortBy: String? = null,
+        sortOrder: String? = null,
+    ): ClientDataListResponse {
+        val paramMap = pageParamMap(page, perPage)
+            .plus(
+                arrayOf(
+                    Pair("clientDataId", clientDataId),
+                    Pair("clientName", clientName),
+                    Pair("tag", tag),
+                    Pair("sort_by", sortBy),
+                    Pair("sort_order", sortOrder)
+                )
+            )
+        return client.myGet("$api/system/clientData", paramMap = paramMap)
+    }
+    suspend fun clientDataGet(dataId: UUID): ClientDataResponse =
+        client.myGet("$api/system/clientData/$dataId")
+
     override fun close() {
         client.close()
     }
+
 
     /**
      * Private worker methods
