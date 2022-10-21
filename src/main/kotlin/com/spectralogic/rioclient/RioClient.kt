@@ -594,7 +594,6 @@ class RioClient(
         client.close()
     }
 
-
     /**
      * Private worker methods
      */
