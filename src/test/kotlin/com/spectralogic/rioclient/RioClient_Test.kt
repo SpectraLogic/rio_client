@@ -98,10 +98,6 @@ class RioClient_Test {
         val mgmtHostError = mgmtBaseError.copy(errorType = "unknown_host")
         val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_format")
         val mgmtCredsError = mgmtBaseError.copy(errorType = "invalid_credentials", value = spectraDeviceMgmtInterfaceUrl)
-        val userBaseError = RioValidationMessage("username", "string", "")
-        val userCredsError = userBaseError.copy(errorType = "invalid_credentials")
-        val passBaseError = RioValidationMessage("password", "password", "")
-        val passCredsError = passBaseError.copy(errorType = "invalid_credentials")
 
         val spectraDeviceName = "bp-${uuid()}"
         val createRequest = spectraDeviceCreateRequest.copy(name = spectraDeviceName)
@@ -925,7 +921,7 @@ class RioClient_Test {
 
             val metadata1Request = ObjectBatchUpdateRequest(metadata1UpdateRequest)
             val metadata1Response = rioClient.updateObjects(objectBroker, metadata1Request)
-            assertThat(metadata1Response.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(metadata1Response.statusCode).isEqualTo(HttpStatusCode.NoContent)
 
             fileList.forEach { fileName ->
                 val getObject = rioClient.getObject(objectBroker, fileName, includeInternalMetadata = true)
@@ -936,7 +932,7 @@ class RioClient_Test {
 
             val internalMetadata1Request = ObjectBatchUpdateRequest(internalMetadata1UpdateRequest)
             val internalMetadata1Response = rioClient.updateObjects(objectBroker, internalMetadata1Request, internalData = true)
-            assertThat(internalMetadata1Response.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(internalMetadata1Response.statusCode).isEqualTo(HttpStatusCode.NoContent)
 
             fileList.forEach { fileName ->
                 val getObject = rioClient.getObject(objectBroker, fileName, includeInternalMetadata = true)
@@ -947,7 +943,7 @@ class RioClient_Test {
 
             val metadata2Request = ObjectBatchUpdateRequest(metadata2UpdateRequest)
             val metadata2Response = rioClient.updateObjects(objectBroker, metadata2Request, merge = true)
-            assertThat(metadata2Response.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(metadata2Response.statusCode).isEqualTo(HttpStatusCode.NoContent)
 
             val combinedMetadata = metadata1.plus(metadata2)
             fileList.forEach { fileName ->
@@ -959,7 +955,7 @@ class RioClient_Test {
 
             val internalMetadata2Request = ObjectBatchUpdateRequest(internalMetadata2UpdateRequest)
             val internalMetadata2Response = rioClient.updateObjects(objectBroker, internalMetadata2Request, internalData = true, merge = true)
-            assertThat(internalMetadata2Response.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(internalMetadata2Response.statusCode).isEqualTo(HttpStatusCode.NoContent)
 
             val combinedInternalMetadata = internalMetadata1.plus(internalMetadata2)
             fileList.forEach { fileName ->
@@ -970,7 +966,7 @@ class RioClient_Test {
             }
 
             val metadataResponse = rioClient.updateObjects(objectBroker, metadata1Request)
-            assertThat(metadataResponse.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(metadataResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
 
             fileList.forEach { fileName ->
                 val getObject = rioClient.getObject(objectBroker, fileName, includeInternalMetadata = true)
@@ -980,7 +976,7 @@ class RioClient_Test {
             }
 
             val internalMetadataResponse = rioClient.updateObjects(objectBroker, internalMetadata1Request, internalData = true)
-            assertThat(internalMetadataResponse.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(internalMetadataResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
 
             fileList.forEach { fileName ->
                 val getObject = rioClient.getObject(objectBroker, fileName, includeInternalMetadata = true)
@@ -1036,6 +1032,28 @@ class RioClient_Test {
     fun systemTest() = blockingTest {
         val systemResponse = rioClient.systemInfo()
         assertThat(systemResponse.statusCode).isEqualTo(HttpStatusCode.OK)
+
+        assertThat(systemResponse.apiVersion).isNotBlank
+        assertThat(systemResponse.buildDate).isNotBlank
+        assertThat(systemResponse.buildNumber).isNotBlank
+        assertThat(systemResponse.buildType).isNotBlank
+        assertThat(systemResponse.gitCommitHash).isNotBlank
+        assertThat(systemResponse.version).isNotBlank
+
+        assertThat(systemResponse.runtimeStats.freeMemory).isGreaterThan(0)
+        assertThat(systemResponse.runtimeStats.totalMemory).isGreaterThan(0)
+        assertThat(systemResponse.runtimeStats.uptime).isGreaterThan(0)
+        assertThat(systemResponse.runtimeStats.usedMemory).isGreaterThan(0)
+
+        assertThat(systemResponse.server.jvm.version).isNotBlank
+        assertThat(systemResponse.server.jvm.vendor).isNotBlank
+        assertThat(systemResponse.server.jvm.vmName).isNotBlank
+        assertThat(systemResponse.server.jvm.vmVersion).isNotBlank
+
+        assertThat(systemResponse.server.operatingSystem.name).isNotBlank
+        assertThat(systemResponse.server.operatingSystem.arch).isNotBlank
+        assertThat(systemResponse.server.operatingSystem.cores).isGreaterThan(0)
+        assertThat(systemResponse.server.operatingSystem.version).isNotBlank
     }
 
     @Test

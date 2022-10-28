@@ -13,7 +13,9 @@ data class SystemResponse(
     val gitCommitHash: String,
     val buildDate: String,
     val server: ServerData,
-    val runtimeStats: ProcessStatsData
+    val runtimeStats: ProcessStatsData,
+    val buildNumber: String,
+    val buildType: String
 ) : RioResponse()
 
 data class ServerData(
