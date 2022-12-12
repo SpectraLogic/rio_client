@@ -366,7 +366,8 @@ class RioClient(
         includeInternalMetadata: Boolean? = null,
         internalMetadataKey: String? = null,
         internalMetadataValue: String? = null,
-        migration: Boolean? = null
+        migration: Boolean? = null,
+        paginationSetId: UUID? = null
     ): ObjectListResponse {
         val paramMap = pageParamMap(page, perPage).plus(
             arrayOf(
@@ -377,7 +378,8 @@ class RioClient(
                 Pair("prefix", prefix),
                 Pair("filename", filename),
                 Pair("includeInternalMetadata", includeInternalMetadata),
-                Pair("migration", migration)
+                Pair("migration", migration),
+                Pair("pagination_set_id", paginationSetId)
             )
         ).let {
             if (!internalMetadataKey.isNullOrBlank() && !internalMetadataValue.isNullOrBlank()) {
