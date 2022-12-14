@@ -172,6 +172,10 @@ data class ObjectListResponse(
     val page: PageInfo
 ) : RioListResponse<ObjectData>(objects, page)
 
+data class ObjectCountResponse(
+    val objectCount: Long
+) : RioResponse()
+
 data class ObjectBatchHeadRequest(
     val objects: List<String>
 ) : RioRequest

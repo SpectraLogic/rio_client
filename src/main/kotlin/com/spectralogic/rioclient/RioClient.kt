@@ -391,6 +391,30 @@ class RioClient(
         return client.myGet("$api/brokers/$brokerName/objects", paramMap = paramMap)
     }
 
+    suspend fun objectCount(
+        brokerName: String,
+        dateStart: String? = null,
+        dateEnd: String? = null,
+        prefix: String? = null,
+        filename: String? = null,
+        internalMetadataKey: String? = null,
+        internalMetadataValue: String? = null
+    ): ObjectCountResponse {
+        val paramMap: Map<String, Any?> = mapOf(
+                Pair("creation_date_start", dateStart),
+                Pair("creation_date_end", dateEnd),
+                Pair("prefix", prefix),
+                Pair("filename", filename)
+        ).let {
+            if (!internalMetadataKey.isNullOrBlank() && !internalMetadataValue.isNullOrBlank()) {
+                it.plus(Pair("internalMetadata", "$internalMetadataKey,$internalMetadataValue"))
+            } else {
+                it
+            }
+        }
+        return client.myGet("$api/brokers/$brokerName/objectcount", paramMap = paramMap)
+    }
+
     suspend fun getObject(
         brokerName: String,
         objectName: String,
