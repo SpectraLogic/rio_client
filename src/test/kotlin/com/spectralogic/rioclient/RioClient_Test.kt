@@ -811,6 +811,10 @@ class RioClient_Test {
             var listObjects = rioClient.listObjects(testBroker)
             val totalObjects = listObjects.page.totalItems
 
+            var countResponse = rioClient.objectCount(testBroker)
+            assertThat(countResponse.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(countResponse.objectCount).isEqualTo(totalObjects)
+
             val objectName = "object-${uuid()}"
             val metadata = mapOf(Pair("key1", "val1"))
             val archiveRequest = ArchiveRequest(
@@ -835,6 +839,18 @@ class RioClient_Test {
             listObjects = rioClient.listObjects(testBroker)
             assertThat(listObjects.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(listObjects.page.totalItems).isEqualTo(totalObjects + 1)
+
+            countResponse = rioClient.objectCount(testBroker)
+            assertThat(countResponse.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(countResponse.objectCount).isEqualTo(totalObjects + 1)
+
+            listObjects = rioClient.listObjects(brokerName = testBroker, filename = objectName)
+            assertThat(listObjects.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(listObjects.page.totalItems).isEqualTo(1)
+
+            countResponse = rioClient.objectCount(brokerName = testBroker, filename = objectName)
+            assertThat(countResponse.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(countResponse.objectCount).isEqualTo(1)
 
             val getObject = rioClient.getObject(testBroker, objectName)
             assertThat(getObject.statusCode).isEqualTo(HttpStatusCode.OK)
