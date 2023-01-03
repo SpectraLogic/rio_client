@@ -38,7 +38,7 @@ repositories {
 }
 
 dependencies {
-    val jacksonVersion = "2.13.4.20221013"
+    val jacksonVersion = "2.14.1"
     implementation(platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
