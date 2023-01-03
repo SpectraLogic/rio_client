@@ -5,45 +5,55 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.annotation.JsonInclude
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+// @JsonInclude(JsonInclude.Include.NON_NULL)
+@Serializable
 data class TokenCreateRequest(
     val expirationDate: String? = null
 ) : RioRequest
 
+@Serializable
 data class TokenResponse(
     val token: String,
     val expirationDate: String?,
     val creationDate: String,
     val userName: String,
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID
 ) : RioResponse()
 
+@Serializable
 open class TokenKeyResponse(
     val expirationDate: String? = null,
     val creationDate: String,
     val userName: String,
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID
 ) : RioResponse()
 
+@Serializable
 open class TokenKeyData(
     val expirationDate: String? = null,
     val creationDate: String,
     val userName: String,
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID
 )
 
+@Serializable
 open class ShortTokenResponse(
     val token: String
 ) : RioResponse()
 
+@Serializable
 data class TokenListResponse(
     val data: List<TokenKeyData>,
     val page: PageInfo
 ) : RioListResponse<TokenKeyData>(data, page)
 
+@Serializable
 data class UserLoginCredentials(
     val username: String,
     val password: String

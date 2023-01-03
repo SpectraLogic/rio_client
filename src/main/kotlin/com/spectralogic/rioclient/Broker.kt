@@ -5,9 +5,10 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.annotation.JsonInclude
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 data class BrokerCreateRequest(
     val name: String,
     val agentName: String,
@@ -15,26 +16,30 @@ data class BrokerCreateRequest(
     val agentType: String? = "bp_agent"
 ) : RioRequest
 
+@Serializable
 data class BrokerResponse(
     val name: String,
     val creationDate: String,
     val objectCount: Long
 ) : RioResponse()
 
+@Serializable
 data class BrokerData(
     val name: String,
     val creationDate: String,
     val objectCount: Long
 )
 
+@Serializable
 sealed class AgentConfig
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@Serializable
 data class BpAgentConfig(
     val bucket: String,
     val blackPearlName: String,
     val username: String,
     val createBucket: Boolean = false,
+    @Serializable(with = UUIDSerializer::class)
     val dataPolicyUUID: UUID? = null,
     val https: Boolean = false
 ) : AgentConfig()
@@ -50,6 +55,7 @@ fun BpAgentConfig.toConfigMap(): Map<String, String> {
     }
 }
 
+@Serializable
 data class VailAgentConfig(
     val vailDeviceName: String,
     val bucket: String
@@ -62,6 +68,7 @@ fun VailAgentConfig.toConfigMap(): Map<String, String> {
     }
 }
 
+@Serializable
 data class DivaAgentConfig(
     val divaDeviceName: String,
     val category: String,
@@ -78,6 +85,7 @@ fun DivaAgentConfig.toConfigMap(): Map<String, String> {
     }
 }
 
+@Serializable
 data class FlashnetAgentConfig(
     val flashnetDeviceName: String,
     val applicationName: String,
@@ -92,6 +100,7 @@ fun FlashnetAgentConfig.toConfigMap(): Map<String, String> {
     }
 }
 
+@Serializable
 data class SglLtfsAgentConfig(
     val bucket: String,
     val blackPearlName: String,
@@ -106,16 +115,19 @@ fun SglLtfsAgentConfig.toConfigMap(): Map<String, String> {
     }
 }
 
+@Serializable
 data class AgentCreateRequest(
     val name: String,
     val type: String,
     val agentConfig: Map<String, String>
 ) : RioRequest
 
+@Serializable
 data class AgentUpdateRequest(
     val agentConfig: Map<String, String>
 ) : RioRequest
 
+@Serializable
 data class AgentResponse(
     val name: String,
     val type: String,
@@ -126,6 +138,7 @@ data class AgentResponse(
     val indexState: String?
 ) : RioResponse()
 
+@Serializable
 data class AgentData(
     val name: String,
     val type: String,
@@ -136,6 +149,7 @@ data class AgentData(
     val indexState: String?
 )
 
+@Serializable
 data class ObjectResponse(
     val name: String,
     val size: Long,
@@ -146,6 +160,7 @@ data class ObjectResponse(
     val internalMetadata: Map<String, String>? = null
 ) : RioResponse()
 
+@Serializable
 data class ObjectData(
     val name: String,
     val size: Long,
@@ -156,43 +171,53 @@ data class ObjectData(
     val internalMetadata: Map<String, String>? = null
 )
 
+@Serializable
 data class ObjectBatchUpdateRequest(
     val objects: List<ObjectUpdateRequest>
 ) : RioRequest
 
+@Serializable
 data class ObjectUpdateRequest(
     val name: String,
     val metadata: Map<String, String>
 ) : RioRequest
 
+@Serializable
 data class Checksum(val hash: String, val type: String)
 
+@Serializable
 data class ObjectListResponse(
     val objects: List<ObjectData>,
     val page: PageInfo
 ) : RioListResponse<ObjectData>(objects, page)
 
+@Serializable
 data class ObjectCountResponse(
     val objectCount: Long
 ) : RioResponse()
 
+@Serializable
 data class ObjectBatchHeadRequest(
     val objects: List<String>
 ) : RioRequest
 
+@Serializable
 data class ObjectBatchHeadResponse(
     val objects: List<ObjectHeadData>
 ) : RioResponse()
+@Serializable
 data class ObjectHeadData(
     val name: String,
     val found: Boolean
 )
 
+@Serializable
 data class BrokerListResponse(
     val brokers: List<BrokerData>,
     val page: PageInfo
 ) : RioListResponse<BrokerData>(brokers, page)
 
+@Serializable
 data class AgentListResponse(
     val agents: List<AgentData>,
     val page: PageInfo

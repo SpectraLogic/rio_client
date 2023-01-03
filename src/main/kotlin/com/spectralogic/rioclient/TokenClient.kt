@@ -1,16 +1,17 @@
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.features.json.JacksonSerializer
-import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.features.logging.Logging
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 import nl.altindag.ssl.util.TrustManagerUtils
 import java.net.URL
 
@@ -18,15 +19,10 @@ internal class TokenClient(private val endpoint: URL, private val username: Stri
     private val api by lazy { "$endpoint/api" }
 
     private val client = HttpClient(CIO) {
-        install(JsonFeature) {
-            acceptContentTypes = listOf(ContentType.Application.Json, ContentType("text", "json"))
-            serializer = JacksonSerializer {
-                registerModule(KotlinModule.Builder().build())
-                registerModule(JavaTimeModule())
-                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
-                configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
-            }
+        install(ContentNegotiation) {
+            json(Json{
+                ignoreUnknownKeys = true
+            })
         }
         engine {
             https {
@@ -39,8 +35,8 @@ internal class TokenClient(private val endpoint: URL, private val username: Stri
     suspend fun getShortToken(): String {
         val response: ShortTokenResponse = client.post("$api/tokens") {
             contentType(ContentType.Application.Json)
-            body = UserLoginCredentials(username, password)
-        }
+            setBody(UserLoginCredentials(username, password))
+        }.body()
         return response.token
     }
 }

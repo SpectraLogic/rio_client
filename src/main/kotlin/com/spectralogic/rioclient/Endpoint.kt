@@ -5,7 +5,7 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import kotlinx.serialization.SerialName
 
 sealed class EndpointDeviceCreateRequest(
     open val name: String,
@@ -23,9 +23,9 @@ data class S3EndpointDeviceCreateRequest(
     override val name: String,
     val https: String,
     val bucket: String,
-    @JsonProperty("access_id")
+    @SerialName("access_id")
     val accessId: String,
-    @JsonProperty("secret_key")
+    @SerialName("secret_key")
     val secretKey: String,
     val region: String
 ) : EndpointDeviceCreateRequest(name, "s3")
@@ -71,9 +71,9 @@ data class EndpointS3DeviceResponse(
     override val name: String,
     override val type: String,
     val https: String,
-    @JsonProperty("access_id")
+    @SerialName("access_id")
     val accessId: String,
-    @JsonProperty("secret_key")
+    @SerialName("secret_key")
     val secretKey: String,
     val region: String
 ) : EndpointDeviceResponse(name, type)

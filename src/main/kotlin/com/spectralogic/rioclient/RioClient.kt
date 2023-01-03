@@ -5,28 +5,26 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.features.ClientRequestException
-import io.ktor.client.features.HttpTimeout
-import io.ktor.client.features.auth.Auth
-import io.ktor.client.features.auth.providers.BearerTokens
-import io.ktor.client.features.auth.providers.bearer
-import io.ktor.client.features.json.JacksonSerializer
-import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.features.logging.LogLevel
-import io.ktor.client.features.logging.Logging
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BearerTokens
+import io.ktor.client.plugins.auth.providers.bearer
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.head
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.put
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.utils.EmptyContent
 import io.ktor.http.ContentType
@@ -35,7 +33,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentLength
 import io.ktor.http.contentType
 import io.ktor.http.withCharset
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.charsets.Charsets
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.json.Json
 import nl.altindag.ssl.util.TrustManagerUtils
 import java.io.Closeable
 import java.net.URL
@@ -68,14 +69,13 @@ class RioClient(
         install(HttpTimeout) {
             requestTimeoutMillis = requestTimeout
         }
-        install(JsonFeature) {
-            serializer = JacksonSerializer {
-                registerModule(KotlinModule.Builder().build())
-                registerModule(JavaTimeModule())
-                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
-                configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
-            }
+        install(ContentNegotiation) {
+            json(
+                Json {
+                    ignoreUnknownKeys = true
+                    // TODO ?? isLenient = true
+                }
+            )
         }
         install(Auth) {
             bearer {
@@ -652,7 +652,7 @@ class RioClient(
         val result: T = if ((response.contentLength() ?: 0L) == 0L) {
             EmptyResponse() as T
         } else {
-            response.receive()
+            response.body()
         }
         result.statusCode = response.status
         return result
@@ -668,12 +668,12 @@ class RioClient(
         val response: HttpResponse = try {
             get(urlStr) {
                 contentType(jsonContentType)
-                body = requestBody
+                setBody(requestBody)
             }
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Get, urlStr, t)
         }
-        val result: T = response.receive()
+        val result: T = response.body()
         result.statusCode = response.status
         return result
     }
@@ -702,7 +702,7 @@ class RioClient(
         return try {
             patch(url) {
                 contentType(jsonContentType)
-                body = requestBody
+                setBody(requestBody)
             } as HttpResponse
             true
         } catch (t: ClientRequestException) {
@@ -727,7 +727,7 @@ class RioClient(
         val response: HttpResponse = try {
             post(urlStr) {
                 contentType(jsonContentType)
-                body = requestBody
+                setBody(requestBody)
             }
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Post, urlStr, t)
@@ -735,7 +735,7 @@ class RioClient(
         val result: T = if ((response.contentLength() ?: 0L) == 0L) {
             EmptyResponse() as T
         } else {
-            response.receive()
+            response.body()
         }
         result.statusCode = response.status
         return result
@@ -747,7 +747,7 @@ class RioClient(
         val response: HttpResponse = try {
             put(urlStr) {
                 contentType(jsonContentType)
-                body = requestBody
+                setBody(requestBody)
             }
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Put, urlStr, t)
@@ -755,7 +755,7 @@ class RioClient(
         val result: T = if ((response.contentLength() ?: 0L) == 0L) {
             EmptyResponse() as T
         } else {
-            response.receive()
+            response.body()
         }
         result.statusCode = response.status
         return result
@@ -765,8 +765,7 @@ class RioClient(
     suspend fun metadataValues(brokerName: String, metadataKey: String, page: Long = 0, perPage: Long = 100, internal: Boolean): ListMetadataValuesDistinct {
         val urlStr = "$api/brokers/$brokerName/metadata/$metadataKey?page=$page&per_page=$perPage&internalData=$internal"
         return try {
-            client.get(urlStr) {
-            }
+            client.get(urlStr) { }.body()
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Get, urlStr, t)
         }
@@ -775,6 +774,7 @@ class RioClient(
 
 // TODO: why is this RioCruise specific method here?
 data class ListMetadataValuesDistinct(
-    @JsonProperty("results") override val objectList: List<Map<String, String>>,
+    @SerialName("results")
+    override val objectList: List<Map<String, String>>,
     val page: PageInfo
 ) : RioListResponse<Map<String, String>>(objectList, page)

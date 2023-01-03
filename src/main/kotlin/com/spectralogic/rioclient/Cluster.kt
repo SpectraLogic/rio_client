@@ -5,14 +5,19 @@
  */
 package com.spectralogic.rioclient
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class ClusterResponse(
     val clusterName: String
 ) : RioResponse()
 
+@Serializable
 data class ClusterMembersListResponse(
     val clusterMembers: List<ClusterMemberData>
 ) : RioResponse()
 
+@Serializable
 data class ClusterMemberResponse(
     val memberId: String,
     val ipAddress: String,
@@ -21,6 +26,7 @@ data class ClusterMemberResponse(
     val role: String
 ) : RioResponse()
 
+@Serializable
 data class ClusterMemberData(
     val memberId: String,
     val ipAddress: String,

@@ -5,10 +5,10 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.annotation.JsonInclude
+import kotlinx.serialization.Serializable
 import java.net.URI
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@Serializable
 data class ArchiveRequest(
     val name: String? = null,
     val files: List<FileToArchive>,
@@ -16,9 +16,11 @@ data class ArchiveRequest(
     val callbacks: List<JobCallback>? = null
 ) : RioRequest
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+
+@Serializable
 data class FileToArchive(
     val name: String,
+    @Serializable(with = URISerializer::class)
     val uri: URI,
     val size: Long?,
     val metadata: Map<String, String>? = null,

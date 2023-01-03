@@ -5,18 +5,23 @@
  */
 package com.spectralogic.rioclient
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class LogsetResponse(
     val id: String,
     val status: String,
     val creationDate: String
 ) : RioResponse()
 
+@Serializable
 data class LogsetData(
     val id: String,
     val status: String,
     val creationDate: String
 )
 
+@Serializable
 data class LogsetListResponse(
     val logs: List<LogsetData>,
     val page: PageInfo

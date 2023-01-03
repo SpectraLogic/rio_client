@@ -5,11 +5,15 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 data class MessageResponse(
-    @JsonProperty("id") val messageId: UUID,
+    @Serializable(with = UUIDSerializer::class)
+    @SerialName("id")
+    val messageId: UUID,
     val creationDate: String,
     val lastUpdated: String,
     val read: Boolean,
@@ -18,8 +22,11 @@ data class MessageResponse(
     val severity: String
 ) : RioResponse()
 
+@Serializable
 data class MessageData(
-    @JsonProperty("id") val messageId: UUID,
+    @SerialName("id")
+    @Serializable(with = UUIDSerializer::class)
+    val messageId: UUID,
     val creationDate: String,
     val lastUpdated: String,
     val read: Boolean,
@@ -28,22 +35,26 @@ data class MessageData(
     val severity: String
 )
 
+@Serializable
 data class MessageSubjectResponse(
     val key: String,
     val parameters: Map<String, String>?,
     val text: String
 ) : RioResponse()
 
+@Serializable
 data class MessageDetailsResponse(
     val key: String,
     val parameters: Map<String, String>?,
     val text: String
 ) : RioResponse()
 
+@Serializable
 data class MessageUpdateRequest(
     val read: Boolean
 ) : RioRequest
 
+@Serializable
 data class MessageListResponse(
     val data: List<MessageData>,
     val page: PageInfo
