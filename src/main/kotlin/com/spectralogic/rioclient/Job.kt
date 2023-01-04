@@ -24,37 +24,24 @@ data class JobCallback(
     val eventType: String
 )
 
-// TODO: Serializable ???
-class DetailedJobResponse(
-    name: String?,
-    id: UUID,
-    creationDate: String,
-    lastUpdated: String,
-    status: JobStatus,
-    jobType: JobType,
-    numberOfFiles: Long,
-    filesTransferred: Long,
-    totalSizeInBytes: Long,
-    progress: Float,
+@Serializable
+open class DetailedJobResponse(
+    val name: String?,
+    @Serializable(with = UUIDSerializer::class)
+    val id: UUID,
+    val creationDate: String,
+    val lastUpdated: String,
+    val status: JobStatus,
+    val jobType: JobType,
+    val numberOfFiles: Long,
+    val filesTransferred: Long,
+    val totalSizeInBytes: Long,
+    val progress: Float,
     val files: List<FileStatus>,
-    foreignJobs: Map<UUID, ForeignJobDetails> = emptyMap(),
-    priority: String? = null,
-    callbacks: List<JobCallback>? = null
-) : JobResponse(
-    name,
-    id,
-    creationDate,
-    lastUpdated,
-    status,
-    jobType,
-    numberOfFiles,
-    filesTransferred,
-    totalSizeInBytes,
-    progress,
-    foreignJobs,
-    priority,
-    callbacks = callbacks
-)
+    val foreignJobs: Map<@Serializable(with = UUIDSerializer::class)UUID, ForeignJobDetails> = emptyMap(),
+    val priority: String? = null,
+    val callbacks: List<JobCallback>? = null
+) : RioResponse()
 
 @Serializable
 open class JobResponse(
@@ -108,7 +95,7 @@ data class ForeignJobDetails(
 data class JobListResponse(
     val jobs: List<JobData>,
     val page: PageInfo
-) : RioListResponse<JobData>(jobs, page)
+) : RioResponse()
 
 @Serializable
 data class FileStatus(
@@ -122,7 +109,7 @@ data class FileStatus(
     val sizeInBytes: Long,
     val lastUpdated: String,
     val broker: String?,
-    val agentName: String?,
+    val agent: String?,
     val fileId: String
 )
 

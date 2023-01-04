@@ -9,7 +9,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 
-// @JsonInclude(JsonInclude.Include.NON_NULL)
 @Serializable
 data class SpectraDeviceCreateRequest(
     val name: String,
@@ -19,7 +18,6 @@ data class SpectraDeviceCreateRequest(
     val dataPath: String? = null
 ) : RioRequest
 
-// @JsonInclude(JsonInclude.Include.NON_NULL)
 @Serializable
 data class SpectraDeviceUpdateRequest(
     val mgmtInterface: String,
@@ -48,7 +46,7 @@ data class SpectraDeviceData(
 data class SpectraDeviceListResponse(
     val devices: List<SpectraDeviceData>,
     val page: PageInfo
-) : RioListResponse<SpectraDeviceData>(devices, page)
+) : RioResponse()
 
 @Serializable
 data class DivaDeviceCreateRequest(
@@ -83,9 +81,8 @@ data class DivaDeviceData(
 data class DivaDeviceListResponse(
     val devices: List<DivaDeviceData>,
     val page: PageInfo
-) : RioListResponse<DivaDeviceData>(devices, page)
+) : RioResponse()
 
-// @JsonInclude(JsonInclude.Include.NON_NULL)
 @Serializable
 data class FlashnetDeviceCreateRequest(
     val name: String,
@@ -104,7 +101,6 @@ data class FlashnetDeviceCreateRequest(
     val databaseName: String? = null
 ) : RioRequest
 
-// @JsonInclude(JsonInclude.Include.NON_NULL)
 @Serializable
 data class FlashnetDeviceUpdateRequest(
     val host: String,
@@ -152,7 +148,7 @@ data class FlashnetDeviceDatabaseData(
 data class FlashnetDeviceListResponse(
     val devices: List<FlashnetDeviceData>,
     val page: PageInfo
-) : RioListResponse<FlashnetDeviceData>(devices, page)
+) : RioResponse()
 
 @Serializable
 data class TbpfrDeviceCreateRequest(
@@ -187,9 +183,8 @@ data class TbpfrDeviceData(
 data class TbpfrDeviceListResponse(
     val devices: List<TbpfrDeviceData>,
     val page: PageInfo
-) : RioListResponse<TbpfrDeviceData>(devices, page)
+) : RioResponse()
 
-// @JsonInclude(JsonInclude.Include.NON_NULL)
 @Serializable
 data class VailDeviceCreateRequest(
     val name: String,
@@ -200,7 +195,6 @@ data class VailDeviceCreateRequest(
     val https: String
 ) : RioRequest
 
-// @JsonInclude(JsonInclude.Include.NON_NULL)
 @Serializable
 data class VailDeviceUpdateRequest(
     val accessKey: String,
@@ -232,7 +226,7 @@ data class VailDeviceData(
 data class VailDeviceListResponse(
     val devices: List<VailDeviceData>,
     val page: PageInfo
-) : RioListResponse<VailDeviceData>(devices, page)
+) : RioResponse()
 
 @Serializable
 data class DeviceObjectListResponse(

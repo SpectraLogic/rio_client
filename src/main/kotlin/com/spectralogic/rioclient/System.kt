@@ -72,11 +72,9 @@ data class ClientDataResponse(
 
 @Serializable
 data class ClientDataListResponse(
-    @SerialName("result")
     val result: List<ClientData>,
-    @SerialName("page")
     val page: PageInfo
-) : RioListResponse<ClientData>(result, page)
+) : RioResponse()
 
 @Serializable
 data class ClientData(

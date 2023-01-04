@@ -58,4 +58,4 @@ data class MessageUpdateRequest(
 data class MessageListResponse(
     val data: List<MessageData>,
     val page: PageInfo
-) : RioListResponse<MessageData>(data, page)
+) : RioResponse()

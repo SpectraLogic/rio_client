@@ -8,7 +8,6 @@ package com.spectralogic.rioclient
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
-// @JsonInclude(JsonInclude.Include.NON_NULL)
 @Serializable
 data class TokenCreateRequest(
     val expirationDate: String? = null
@@ -51,7 +50,7 @@ open class ShortTokenResponse(
 data class TokenListResponse(
     val data: List<TokenKeyData>,
     val page: PageInfo
-) : RioListResponse<TokenKeyData>(data, page)
+) : RioResponse()
 
 @Serializable
 data class UserLoginCredentials(

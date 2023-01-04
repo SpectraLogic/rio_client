@@ -5,14 +5,11 @@
  */
 package com.spectralogic.rioclient
 
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.ServerResponseException
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-
 
 interface RioRequest
 
@@ -21,12 +18,6 @@ open class RioResponse {
     @Serializable(with = HttpStatusCodeSerializer::class)
     var statusCode = HttpStatusCode.Processing
 }
-
-@Serializable
-open class RioListResponse<T> (
-    open val objectList: List<T>,
-    open val pageInfo: PageInfo
-) : RioResponse()
 
 @Serializable
 class EmptyResponse : RioResponse()
@@ -42,41 +33,30 @@ data class PageInfo(
 class RioHttpException(
     val httpMethod: HttpMethod,
     val urlStr: String,
-    override val cause: Throwable,
-    val statusCode: HttpStatusCode = HttpStatusCode.BadRequest
-) : RuntimeException(cause.message, cause) {
-    private val errorResponse: String =
-        when (cause) {
-            is ClientRequestException -> {
-                cause.message.substringAfter("Text: \"").substringBeforeLast("\"")
-            }
-            is ServerResponseException -> {
-                cause.message?.substringAfter("Text: \"")?.substringBeforeLast("\"")
-            }
-            else -> { null }
-        } ?: "{\"message\":\"${cause.message} (${cause::class.java})\"}"
+    override val cause: Throwable? = null,
+    val statusCode: HttpStatusCode = HttpStatusCode.BadRequest,
+    private val payload: String? = null
+) : RuntimeException(cause?.message ?: payload, cause) {
+    private val rioErrorMessage: RioErrorMessage =
+        payload.asRioErrorMessage(statusCode.value)
+            ?: RioDefaultErrorMessage(cause?.message ?: "Error", statusCode.value)
 
     fun httpMethod() = httpMethod
     fun statusCode() = statusCode
     fun url() = urlStr
     fun cause() = cause
-    fun errorResponse() = errorResponse
-    fun errorMessage(): RioErrorMessage {
-        if (errorResponse.isNotBlank()) {
-            listOf(
-                RioResourceErrorMessageSerializer,
-                RioValidationErrorMessageSerializer,
-                RioUnsupportedMediaErrorSerializer,
-                /*RioDownstreamErrorMessageSerializer,
-                RioDefaultErrorMessageSerializer*/
-            ).forEach {
-                try {
-                    return Json.decodeFromString(it, errorResponse)
-                } catch (_: Throwable) { }
-            }
-        }
-        return RioDefaultErrorMessage("${cause.message}", statusCode.value)
+    fun errorMessage(): RioErrorMessage = rioErrorMessage
+}
+
+fun String?.asRioErrorMessage(statusCode: Int): RioErrorMessage? {
+    if (!this.isNullOrBlank()) {
+        try { return Json.decodeFromString<RioResourceErrorMessage>(this) } catch (_: Throwable) {}
+        try { return Json.decodeFromString<RioValidationErrorMessage>(this) } catch (_: Throwable) {}
+        try { return Json.decodeFromString<RioUnsupportedMediaErrorMessage>(this) } catch (_: Throwable) {}
+        try { return Json.decodeFromString<RioDownstreamErrorMessage>(this) } catch (_: Throwable) {}
+        try { return Json.decodeFromString<RioDefaultErrorMessage>(this) } catch (_: Throwable) {}
     }
+    return null
 }
 
 interface RioErrorMessage {

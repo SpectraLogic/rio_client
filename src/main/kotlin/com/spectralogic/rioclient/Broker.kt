@@ -132,10 +132,10 @@ data class AgentResponse(
     val name: String,
     val type: String,
     val creationDate: String,
-    val lastIndexDate: String?,
+    val lastIndexDate: String? = null,
     val writable: Boolean,
     val agentConfig: Map<String, String>,
-    val indexState: String?
+    val indexState: String? = null
 ) : RioResponse()
 
 @Serializable
@@ -189,7 +189,7 @@ data class Checksum(val hash: String, val type: String)
 data class ObjectListResponse(
     val objects: List<ObjectData>,
     val page: PageInfo
-) : RioListResponse<ObjectData>(objects, page)
+) : RioResponse()
 
 @Serializable
 data class ObjectCountResponse(
@@ -215,10 +215,10 @@ data class ObjectHeadData(
 data class BrokerListResponse(
     val brokers: List<BrokerData>,
     val page: PageInfo
-) : RioListResponse<BrokerData>(brokers, page)
+) : RioResponse()
 
 @Serializable
 data class AgentListResponse(
     val agents: List<AgentData>,
     val page: PageInfo
-) : RioListResponse<AgentData>(agents, page)
+) : RioResponse()

@@ -8,7 +8,6 @@ package com.spectralogic.rioclient
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpTimeout
@@ -26,12 +25,14 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.utils.EmptyContent
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentLength
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import io.ktor.http.withCharset
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.charsets.Charsets
@@ -647,22 +648,20 @@ class RioClient(
             delete(urlStr) {
             }
         } catch (t: Throwable) {
-            throw RioHttpException(HttpMethod.Post, urlStr, t)
+            throw RioHttpException(HttpMethod.Delete, urlStr, t)
         }
-        val result: T = if ((response.contentLength() ?: 0L) == 0L) {
-            EmptyResponse() as T
-        } else {
-            response.body()
-        }
-        result.statusCode = response.status
-        return result
+        return response.myGetBody(HttpMethod.Delete, urlStr)
     }
 
     private suspend inline fun <reified T : RioResponse> HttpClient.myGet(url: String, key: String, value: Any? = null): T {
         return myGet(url, paramMap = paramMap(key, value))
     }
 
-    private suspend inline fun <reified T : RioResponse> HttpClient.myGet(url: String, request: RioRequest? = null, paramMap: Map<String, Any?>? = null): T {
+    private suspend inline fun <reified T : RioResponse> HttpClient.myGet(
+        url: String,
+        request: RioRequest? = null,
+        paramMap: Map<String, Any?>? = null
+    ): T {
         val urlStr = "$url${paramMap.queryString()}"
         val requestBody: Any = request ?: EmptyContent
         val response: HttpResponse = try {
@@ -673,27 +672,21 @@ class RioClient(
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Get, urlStr, t)
         }
-        val result: T = response.body()
-        result.statusCode = response.status
-        return result
+        return response.myGetBody(HttpMethod.Get, urlStr)
     }
 
     private suspend inline fun HttpClient.myHead(url: String): Boolean {
-        return try {
-            head(url) {
-            } as HttpResponse
-            true
+        val statusCode = try {
+            head(url) { }.status
         } catch (t: ClientRequestException) {
-            when (t.response.status.value) {
-                HttpStatusCode.OK.value -> true
-                HttpStatusCode.NoContent.value -> true
-                HttpStatusCode.NotFound.value -> false
-                else -> {
-                    throw RioHttpException(HttpMethod.Head, url, t, t.response.status)
-                }
-            }
+            t.response.status
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Head, url, t)
+        }
+        return when (statusCode) {
+            HttpStatusCode.OK -> true
+            HttpStatusCode.NoContent -> true
+            else -> false
         }
     }
 
@@ -732,13 +725,7 @@ class RioClient(
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Post, urlStr, t)
         }
-        val result: T = if ((response.contentLength() ?: 0L) == 0L) {
-            EmptyResponse() as T
-        } else {
-            response.body()
-        }
-        result.statusCode = response.status
-        return result
+        return response.myGetBody(HttpMethod.Post, urlStr)
     }
 
     private suspend inline fun <reified T : RioResponse> HttpClient.myPut(url: String, request: RioRequest? = null, paramMap: Map<String, Any?>? = null): T {
@@ -752,12 +739,20 @@ class RioClient(
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Put, urlStr, t)
         }
-        val result: T = if ((response.contentLength() ?: 0L) == 0L) {
-            EmptyResponse() as T
+        return response.myGetBody(HttpMethod.Put, urlStr)
+    }
+
+    private suspend inline fun <reified T : RioResponse>HttpResponse.myGetBody(httpMethod: HttpMethod, url: String): T {
+        val result: T = if (this.status.isSuccess()) {
+            if ((this.contentLength() ?: 0L) == 0L) {
+                EmptyResponse() as T
+            } else {
+                this.body()
+            }
         } else {
-            response.body()
+            throw RioHttpException(httpMethod, url, null, this.status, this.bodyAsText())
         }
-        result.statusCode = response.status
+        result.statusCode = this.status
         return result
     }
 
@@ -774,7 +769,6 @@ class RioClient(
 
 // TODO: why is this RioCruise specific method here?
 data class ListMetadataValuesDistinct(
-    @SerialName("results")
-    override val objectList: List<Map<String, String>>,
+    val results: List<Map<String, String>>,
     val page: PageInfo
-) : RioListResponse<Map<String, String>>(objectList, page)
+) : RioResponse()

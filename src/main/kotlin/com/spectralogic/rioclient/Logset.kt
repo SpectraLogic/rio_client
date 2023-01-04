@@ -25,4 +25,4 @@ data class LogsetData(
 data class LogsetListResponse(
     val logs: List<LogsetData>,
     val page: PageInfo
-) : RioListResponse<LogsetData>(logs, page)
+) : RioResponse()

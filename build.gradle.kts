@@ -9,8 +9,8 @@ plugins {
     id("org.owasp.dependencycheck") version "6.3.1"
 }
 
-group = "com.spectralogic"
-version = "1.2.1"
+group = "com.spectralogic.rioclient"
+version = "2.0.0"
 tasks {
     withType<JavaCompile> {
         options.encoding = "UTF-8"

@@ -14,7 +14,6 @@ data class ByteRange(
     val endingIndex: Long
 )
 
-// @JsonInclude(JsonInclude.Include.NON_NULL)
 @Serializable
 data class RestoreRequest(
     val name: String? = null,
