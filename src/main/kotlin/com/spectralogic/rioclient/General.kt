@@ -5,29 +5,24 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.ObjectMapper
-import io.ktor.client.features.ClientRequestException
-import io.ktor.client.features.ServerResponseException
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-
-val mapper = ObjectMapper()
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 interface RioRequest
 
+@Serializable
 open class RioResponse {
+    @Serializable(with = HttpStatusCodeSerializer::class)
     var statusCode = HttpStatusCode.Processing
 }
 
-open class RioListResponse<T> (
-    open val objectList: List<T>,
-    open val pageInfo: PageInfo
-) : RioResponse()
-
+@Serializable
 class EmptyResponse : RioResponse()
 
+@Serializable
 data class PageInfo(
     val number: Long,
     val pageSize: Long,
@@ -38,42 +33,30 @@ data class PageInfo(
 class RioHttpException(
     val httpMethod: HttpMethod,
     val urlStr: String,
-    override val cause: Throwable,
-    val statusCode: HttpStatusCode = HttpStatusCode.BadRequest
-) : RuntimeException(cause.message, cause) {
-    private val errorResponse: String =
-        when (cause) {
-            is ClientRequestException -> {
-                cause.message.substringAfter("Text: \"").substringBeforeLast("\"")
-            }
-            is ServerResponseException -> {
-                cause.message?.substringAfter("Text: \"")?.substringBeforeLast("\"")
-            }
-            else -> { null }
-        } ?: "{\"message\":\"${cause.message} (${cause::class.java})\"}"
+    override val cause: Throwable? = null,
+    val statusCode: HttpStatusCode = HttpStatusCode.BadRequest,
+    private val payload: String? = null
+) : RuntimeException(cause?.message ?: payload, cause) {
+    private val rioErrorMessage: RioErrorMessage =
+        payload.asRioErrorMessage(statusCode.value)
+            ?: RioDefaultErrorMessage(cause?.message ?: "Error", statusCode.value)
 
     fun httpMethod() = httpMethod
     fun statusCode() = statusCode
     fun url() = urlStr
     fun cause() = cause
-    fun errorResponse() = errorResponse
-    fun errorMessage(): RioErrorMessage {
-        if (errorResponse.isNotBlank()) {
-            listOf(
-                RioResourceErrorMessage::class.java,
-                RioValidationErrorMessage::class.java,
-                RioUnsupportedMediaError::class.java,
-                RioDownstreamErrorMessage::class.java,
-                RioDefaultErrorMessage::class.java
-            ).forEach {
-                try {
-                    return mapper.readValue(errorResponse, it)
-                } catch (t: Throwable) {
-                }
-            }
-        }
-        return RioDefaultErrorMessage("${cause.message}", statusCode.value)
+    fun errorMessage(): RioErrorMessage = rioErrorMessage
+}
+
+fun String?.asRioErrorMessage(statusCode: Int): RioErrorMessage? {
+    if (!this.isNullOrBlank()) {
+        try { return Json.decodeFromString<RioResourceErrorMessage>(this) } catch (_: Throwable) {}
+        try { return Json.decodeFromString<RioValidationErrorMessage>(this) } catch (_: Throwable) {}
+        try { return Json.decodeFromString<RioUnsupportedMediaErrorMessage>(this) } catch (_: Throwable) {}
+        try { return Json.decodeFromString<RioDownstreamErrorMessage>(this) } catch (_: Throwable) {}
+        try { return Json.decodeFromString<RioDefaultErrorMessage>(this) } catch (_: Throwable) {}
     }
+    return null
 }
 
 interface RioErrorMessage {
@@ -81,72 +64,55 @@ interface RioErrorMessage {
     val statusCode: Int
 }
 
+@Serializable
 data class RioDefaultErrorMessage
-@JsonCreator constructor (
-    @JsonProperty("message")
+constructor(
     override val message: String,
-    @JsonProperty("statusCode")
     override val statusCode: Int
 ) : RioErrorMessage
 
+@Serializable
 data class RioResourceErrorMessage
-@JsonCreator constructor (
-    @JsonProperty("message")
+constructor(
     override val message: String,
-    @JsonProperty("statusCode")
     override val statusCode: Int,
-    @JsonProperty("resourceName")
     val resourceName: String,
-    @JsonProperty("resourceType")
     val resourceType: String
 ) : RioErrorMessage
 
+@Serializable
 data class RioValidationErrorMessage
-@JsonCreator constructor (
-    @JsonProperty("message")
+constructor(
     override val message: String,
-    @JsonProperty("statusCode")
     override val statusCode: Int,
-    @JsonProperty("errors")
     val errors: List<RioValidationMessage>
 ) : RioErrorMessage
 
+@Serializable
 data class RioValidationMessage
-@JsonCreator constructor (
-    @JsonProperty("fieldName")
+constructor(
     val fieldName: String,
-    @JsonProperty("fieldType")
     val fieldType: String,
-    @JsonProperty("errorType")
     val errorType: String,
-    @JsonProperty("value")
     val value: String? = null,
-    @JsonProperty("reason")
     val reason: String? = null
 )
 
-data class RioUnsupportedMediaError
-@JsonCreator constructor (
-    @JsonProperty("message")
+@Serializable
+data class RioUnsupportedMediaErrorMessage
+constructor(
     override val message: String,
-    @JsonProperty("statusCode")
     override val statusCode: Int,
-    @JsonProperty("suppliedMediaType")
     val suppliedMediaType: String,
-    @JsonProperty("supportedMediaType")
     val supportedMediaType: String
 ) : RioErrorMessage
 
+@Serializable
 data class RioDownstreamErrorMessage
-@JsonCreator constructor (
-    @JsonProperty("message")
+constructor(
     override val message: String,
-    @JsonProperty("statusCode")
     override val statusCode: Int,
-    @JsonProperty("resourceName")
     val resourceName: String?,
-    @JsonProperty("resourceType")
     val resourceType: String,
-    @JsonProperty("cause")
     val cause: String
 ) : RioErrorMessage

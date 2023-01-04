@@ -5,81 +5,95 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-sealed class EndpointDeviceCreateRequest(
-    open val name: String,
+interface EndpointDeviceCreateRequest {
+    val name: String
     val type: String
-) : RioRequest
+}
 
+@Serializable
 data class FtpEndpointDeviceCreateRequest(
     override val name: String,
     val endpoint: String,
     val username: String,
-    val password: String
-) : EndpointDeviceCreateRequest(name, "ftp")
+    val password: String,
+    @EncodeDefault override val type: String = "ftp"
+) : EndpointDeviceCreateRequest, RioRequest
 
+@Serializable
 data class S3EndpointDeviceCreateRequest(
     override val name: String,
     val https: String,
     val bucket: String,
-    @JsonProperty("access_id")
+    @SerialName("access_id")
     val accessId: String,
-    @JsonProperty("secret_key")
+    @SerialName("secret_key")
     val secretKey: String,
-    val region: String
-) : EndpointDeviceCreateRequest(name, "s3")
+    val region: String,
+    @EncodeDefault override val type: String = "s3"
+) : EndpointDeviceCreateRequest, RioRequest
 
+@Serializable
 data class UriEndpointDeviceCreateRequest(
     override val name: String,
-    val endpoint: String
-) : EndpointDeviceCreateRequest(name, "uri")
+    val endpoint: String,
+    @EncodeDefault override val type: String = "uri"
+) : EndpointDeviceCreateRequest, RioRequest
 
+@Serializable
 data class EndpointDeviceListResponse(
     val devices: List<EndpointGenericDeviceData>,
     val page: PageInfo
-) : RioListResponse<EndpointGenericDeviceData>(devices, page)
-
-sealed class EndpointDeviceResponse(
-    open val name: String,
-    open val type: String
 ) : RioResponse()
 
-sealed class EndpointDeviceData(
-    open val name: String,
-    open val type: String
-)
+interface EndpointDeviceResponse {
+    val name: String
+    val type: String
+}
 
+interface EndpointDeviceData {
+    val name: String
+    val type: String
+}
+
+@Serializable
 data class EndpointGenericDeviceResponse(
     override val name: String,
     override val type: String
-) : EndpointDeviceResponse(name, type)
+) : EndpointDeviceResponse, RioResponse()
 
+@Serializable
 open class EndpointGenericDeviceData(
     override val name: String,
     override val type: String
-) : EndpointDeviceData(name, type)
+) : EndpointDeviceData
 
+@Serializable
 data class EndpointFtpDeviceResponse(
     override val name: String,
     override val type: String,
     val endpoint: String,
     val username: String
-) : EndpointDeviceResponse(name, type)
+) : EndpointDeviceResponse, RioResponse()
 
+@Serializable
 data class EndpointS3DeviceResponse(
     override val name: String,
     override val type: String,
     val https: String,
-    @JsonProperty("access_id")
+    @SerialName("access_id")
     val accessId: String,
-    @JsonProperty("secret_key")
+    @SerialName("secret_key")
     val secretKey: String,
     val region: String
-) : EndpointDeviceResponse(name, type)
+) : EndpointDeviceResponse, RioResponse()
 
+@Serializable
 data class EndpointUriDeviceResponse(
     override val name: String,
     override val type: String,
-    val endpoint: String,
-) : EndpointDeviceResponse(name, type)
+    val endpoint: String
+) : EndpointDeviceResponse, RioResponse()

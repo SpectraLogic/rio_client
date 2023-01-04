@@ -5,8 +5,10 @@
  */
 package com.spectralogic.rioclient
 
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 data class SystemResponse(
     val version: String,
     val apiVersion: String,
@@ -18,11 +20,13 @@ data class SystemResponse(
     val buildType: String
 ) : RioResponse()
 
+@Serializable
 data class ServerData(
     val jvm: JvmData,
     val operatingSystem: OsData
 )
 
+@Serializable
 data class JvmData(
     val version: String,
     val vendor: String,
@@ -30,6 +34,7 @@ data class JvmData(
     val vmName: String
 )
 
+@Serializable
 data class OsData(
     val name: String,
     val arch: String,
@@ -37,6 +42,7 @@ data class OsData(
     val cores: Int
 )
 
+@Serializable
 data class ProcessStatsData(
     val uptime: Long,
     val totalMemory: Long,
@@ -44,6 +50,7 @@ data class ProcessStatsData(
     val freeMemory: Long
 )
 
+@Serializable
 data class ClientDataRequest(
     val clientDataId: String,
     val clientName: String,
@@ -51,7 +58,9 @@ data class ClientDataRequest(
     val mapData: Map<String, String>
 ) : RioRequest
 
+@Serializable
 data class ClientDataResponse(
+    @Serializable(with = UUIDSerializer::class)
     val dataId: UUID,
     val creationDate: String,
     val clientDataId: String,
@@ -60,12 +69,15 @@ data class ClientDataResponse(
     val mapData: Map<String, String>
 ) : RioResponse()
 
+@Serializable
 data class ClientDataListResponse(
     val result: List<ClientData>,
     val page: PageInfo
-) : RioListResponse<ClientData>(result, page)
+) : RioResponse()
 
+@Serializable
 data class ClientData(
+    @Serializable(with = UUIDSerializer::class)
     val dataId: UUID,
     val creationDate: String,
     val clientDataId: String,

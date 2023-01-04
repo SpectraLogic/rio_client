@@ -5,23 +5,26 @@
  */
 package com.spectralogic.rioclient
 
-import com.fasterxml.jackson.annotation.JsonInclude
+import kotlinx.serialization.Serializable
 import java.net.URI
 
+@Serializable
 data class ByteRange(
     val startingIndex: Long,
     val endingIndex: Long
 )
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@Serializable
 data class RestoreRequest(
     val name: String? = null,
     val files: List<FileToRestore>,
     val callbacks: List<JobCallback>? = null
 ) : RioRequest
 
+@Serializable
 data class FileToRestore(
     val name: String,
+    @Serializable(with = URISerializer::class)
     val uri: URI,
     val timeCodeRange: String? = null,
     val byteRange: ByteRange? = null
