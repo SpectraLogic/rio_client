@@ -16,7 +16,7 @@ data class TokenCreateRequest(
 @Serializable
 data class TokenResponse(
     val token: String,
-    val expirationDate: String?,
+    val expirationDate: String? = null,
     val creationDate: String,
     val userName: String,
     @Serializable(with = UUIDSerializer::class)

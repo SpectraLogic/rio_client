@@ -37,6 +37,7 @@ import io.ktor.http.withCharset
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.charsets.Charsets
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import nl.altindag.ssl.util.TrustManagerUtils
 import java.io.Closeable
@@ -56,6 +57,7 @@ class RioClient(
         private val logger = mu.KotlinLogging.logger {}
     }
 
+    @Serializable
     private data class MyMetadata(val metadata: Map<String, String>) : RioRequest
     private val api by lazy { "$rioUrl/api" }
     private val tokenClient: TokenClient = TokenClient(rioUrl, username, password)
@@ -74,7 +76,6 @@ class RioClient(
             json(
                 Json {
                     ignoreUnknownKeys = true
-                    // TODO ?? isLenient = true
                 }
             )
         }

@@ -533,7 +533,7 @@ class RioClient_Test {
             removeBroker()
 
             val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
-            val createRequest = BrokerCreateRequest(testBroker, testAgent, agentConfig)
+            val createRequest = BrokerCreateRequest(testBroker, testAgent, agentConfig.toConfigMap())
 
             val createBroker = rioClient.createBroker(createRequest)
             assertThat(createBroker.statusCode).isEqualTo(HttpStatusCode.Created)
@@ -915,7 +915,7 @@ class RioClient_Test {
         try {
             if (!rioClient.headBroker(objectBroker)) {
                 val agentConfig = BpAgentConfig(brokerObjectBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
-                val createRequest = BrokerCreateRequest(objectBroker, "agent-name", agentConfig)
+                val createRequest = BrokerCreateRequest(objectBroker, "agent-name", agentConfig.toConfigMap())
                 val createResponse = rioClient.createBroker(createRequest)
                 assertThat(createResponse.statusCode).isEqualTo(HttpStatusCode.Created)
             }
@@ -1221,7 +1221,7 @@ class RioClient_Test {
     private suspend fun ensureBrokerExists() {
         if (!rioClient.headBroker(testBroker)) {
             val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
-            val createRequest = BrokerCreateRequest(testBroker, testAgent, agentConfig)
+            val createRequest = BrokerCreateRequest(testBroker, testAgent, agentConfig.toConfigMap())
             val createResponse = rioClient.createBroker(createRequest)
             assertThat(createResponse.statusCode).isEqualTo(HttpStatusCode.Created)
         }
