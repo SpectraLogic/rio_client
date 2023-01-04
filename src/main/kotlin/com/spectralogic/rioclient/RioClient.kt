@@ -5,7 +5,6 @@
  */
 package com.spectralogic.rioclient
 
-
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
@@ -36,7 +35,6 @@ import io.ktor.http.isSuccess
 import io.ktor.http.withCharset
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.charsets.Charsets
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import nl.altindag.ssl.util.TrustManagerUtils
@@ -347,7 +345,7 @@ class RioClient(
         val paramMap: Map<String, Any?> = mapOf(
             Pair("index", index),
             Pair("re-index", reIndex),
-            Pair("overwrite-index", overWriteIndex),
+            Pair("overwrite-index", overWriteIndex)
         )
         return client.myPut("$api/brokers/$brokerName/agents/$agentName", paramMap = paramMap)
     }
@@ -403,10 +401,10 @@ class RioClient(
         internalMetadataValue: String? = null
     ): ObjectCountResponse {
         val paramMap: Map<String, Any?> = mapOf(
-                Pair("creation_date_start", dateStart),
-                Pair("creation_date_end", dateEnd),
-                Pair("prefix", prefix),
-                Pair("filename", filename)
+            Pair("creation_date_start", dateStart),
+            Pair("creation_date_end", dateEnd),
+            Pair("prefix", prefix),
+            Pair("filename", filename)
         ).let {
             if (!internalMetadataKey.isNullOrBlank() && !internalMetadataValue.isNullOrBlank()) {
                 it.plus(Pair("internalMetadata", "$internalMetadataKey,$internalMetadataValue"))
@@ -593,7 +591,7 @@ class RioClient(
     suspend fun clientDataUpdate(dataId: UUID, clientDataRequest: ClientDataRequest): ClientDataResponse =
         client.myPut("$api/system/clientData/$dataId", clientDataRequest)
     suspend fun clientDataDelete(dataId: UUID): EmptyResponse =
-        client.myDelete("$api/system/clientData/${dataId.toString()}")
+        client.myDelete("$api/system/clientData/$dataId")
     suspend fun clientDataList(
         clientDataId: String? = null,
         clientName: String? = null,
@@ -601,7 +599,7 @@ class RioClient(
         page: Long? = null,
         perPage: Long? = null,
         sortBy: String? = null,
-        sortOrder: String? = null,
+        sortOrder: String? = null
     ): ClientDataListResponse {
         val paramMap = pageParamMap(page, perPage)
             .plus(

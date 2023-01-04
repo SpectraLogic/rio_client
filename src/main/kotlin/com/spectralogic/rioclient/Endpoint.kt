@@ -95,5 +95,5 @@ data class EndpointS3DeviceResponse(
 data class EndpointUriDeviceResponse(
     override val name: String,
     override val type: String,
-    val endpoint: String,
+    val endpoint: String
 ) : EndpointDeviceResponse, RioResponse()

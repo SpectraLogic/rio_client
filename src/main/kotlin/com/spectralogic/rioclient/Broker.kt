@@ -211,6 +211,7 @@ data class ObjectBatchHeadRequest(
 data class ObjectBatchHeadResponse(
     val objects: List<ObjectHeadData>
 ) : RioResponse()
+
 @Serializable
 data class ObjectHeadData(
     val name: String,

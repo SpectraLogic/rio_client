@@ -466,7 +466,6 @@ class RioClient_Test {
 
     @Test
     fun endPointTest(@TempDir uriDir: Path) = blockingTest {
-
         val ftpName = "ftp-${uuid()}"
         val ftpRequest = FtpEndpointDeviceCreateRequest(ftpName, "ftp://ftp.test.com", "user", "pass")
         val ftpResponse = rioClient.createFtpEndpointDevice(ftpRequest)
@@ -624,7 +623,7 @@ class RioClient_Test {
                 archiveJobName,
                 listOf(
                     FileToArchive(uuid(), URI("aToZSequence://file"), 1024L, metadata),
-                    FileToArchive(uuid(), URI("aToZSequence://file"), 2048L, metadata),
+                    FileToArchive(uuid(), URI("aToZSequence://file"), 2048L, metadata)
                 )
             )
             val archiveJob = rioClient.createArchiveJob(testBroker, archiveRequest)
@@ -732,7 +731,7 @@ class RioClient_Test {
                 archiveJobName,
                 listOf(
                     FileToArchive(uuid(), URI("aToZSequence://file"), 1024L, metadata),
-                    FileToArchive(uuid(), URI("aToZSequence://file"), 2048L, metadata),
+                    FileToArchive(uuid(), URI("aToZSequence://file"), 2048L, metadata)
                 ),
                 jobMetadata,
                 archiveJobCallbacks
@@ -1010,7 +1009,6 @@ class RioClient_Test {
 
     @Test
     fun logTest() = blockingTest {
-
         var listLogs = rioClient.listLogsets()
         val totalLogs = listLogs.page.totalItems
 
@@ -1141,7 +1139,7 @@ class RioClient_Test {
         }.toMap()
         val updatedItem = rioClient.clientDataUpdate(
             getItem.dataId,
-            ClientDataRequest("123", "456","789", updateMapData)
+            ClientDataRequest("123", "456", "789", updateMapData)
         )
         assertThat(updatedItem.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
         assertThat(updatedItem.dataId).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(getItem.dataId)

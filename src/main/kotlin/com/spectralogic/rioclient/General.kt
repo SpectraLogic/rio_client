@@ -66,14 +66,14 @@ interface RioErrorMessage {
 
 @Serializable
 data class RioDefaultErrorMessage
-constructor (
+constructor(
     override val message: String,
     override val statusCode: Int
 ) : RioErrorMessage
 
 @Serializable
 data class RioResourceErrorMessage
-constructor (
+constructor(
     override val message: String,
     override val statusCode: Int,
     val resourceName: String,
@@ -82,7 +82,7 @@ constructor (
 
 @Serializable
 data class RioValidationErrorMessage
-constructor (
+constructor(
     override val message: String,
     override val statusCode: Int,
     val errors: List<RioValidationMessage>
@@ -90,7 +90,7 @@ constructor (
 
 @Serializable
 data class RioValidationMessage
-constructor (
+constructor(
     val fieldName: String,
     val fieldType: String,
     val errorType: String,
@@ -100,7 +100,7 @@ constructor (
 
 @Serializable
 data class RioUnsupportedMediaErrorMessage
-constructor (
+constructor(
     override val message: String,
     override val statusCode: Int,
     val suppliedMediaType: String,
@@ -109,7 +109,7 @@ constructor (
 
 @Serializable
 data class RioDownstreamErrorMessage
-constructor (
+constructor(
     override val message: String,
     override val statusCode: Int,
     val resourceName: String?,
