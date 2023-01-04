@@ -8,7 +8,6 @@ package com.spectralogic.rioclient
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 data class SpectraDeviceCreateRequest(
     val name: String,

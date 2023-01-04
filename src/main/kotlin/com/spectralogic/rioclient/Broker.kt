@@ -15,7 +15,7 @@ import java.util.UUID
 data class BrokerCreateRequest(
     val name: String,
     val agentName: String,
-    val agentConfig: Map<String,String>,
+    val agentConfig: Map<String, String>,
     @EncodeDefault val agentType: String = "bp_agent"
 ) : RioRequest
 
@@ -35,7 +35,7 @@ data class BrokerData(
 
 @Serializable
 sealed class AgentConfig {
-    abstract fun toConfigMap(): Map<String,String>
+    abstract fun toConfigMap(): Map<String, String>
 }
 
 @Serializable
@@ -59,7 +59,6 @@ data class BpAgentConfig(
             if (dataPolicyUUID != null) put("dataPolicyUUID", dataPolicyUUID.toString())
         }
     }
-
 }
 
 @Serializable
@@ -73,7 +72,6 @@ data class VailAgentConfig(
             put("bucket", bucket)
         }
     }
-
 }
 
 @Serializable
@@ -91,7 +89,6 @@ data class DivaAgentConfig(
             if (priority != null) put("priority", priority.toString())
         }
     }
-
 }
 
 @Serializable
@@ -105,8 +102,8 @@ data class FlashnetAgentConfig(
             put("flashnetDeviceName", flashnetDeviceName)
             put("applicationName", applicationName)
             put("storageGroupName", storageGroupName)
-        }    }
-
+        }
+    }
 }
 
 @Serializable

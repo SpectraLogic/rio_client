@@ -16,7 +16,6 @@ data class ArchiveRequest(
     val callbacks: List<JobCallback>? = null
 ) : RioRequest
 
-
 @Serializable
 data class FileToArchive(
     val name: String,
