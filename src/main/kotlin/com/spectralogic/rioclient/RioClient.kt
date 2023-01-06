@@ -770,4 +770,7 @@ class RioClient(
 data class ListMetadataValuesDistinct(
     val results: List<Map<String, String>>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<Map<String, String>> {
+    override fun page() = page
+    override fun results() = results
+}
