@@ -111,6 +111,10 @@ class RioClient_Test {
         assertThat(listResponse.devices.map { it.name }).contains(spectraDeviceName)
         assertThat(spectraDeviceTotal).isGreaterThanOrEqualTo(2)
 
+        assertRioListResponse("spectra devices", listResponse.page.totalItems) { page, perPage ->
+            rioClient.listSpectraDevices(page, perPage)
+        }
+
         assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isTrue
         assertThat(rioClient.headDevice("spectra", spectraDeviceName)).isTrue
 
@@ -296,6 +300,10 @@ class RioClient_Test {
             assertThat(listResponse.statusCode).isEqualTo(HttpStatusCode.OK)
             val totalDivaDevices = listResponse.page.totalItems
 
+            assertRioListResponse("diva devices", totalDivaDevices) { page, perPage ->
+                rioClient.listDivaDevices(page, perPage)
+            }
+
             val createRequest = DivaDeviceCreateRequest(divaDeviceName, divaEndpoint, divaUsername, divaPassword)
             val createResponse = rioClient.createDivaDevice(createRequest)
             assertThat(createResponse.statusCode).isEqualTo(HttpStatusCode.Created)
@@ -468,6 +476,14 @@ class RioClient_Test {
     fun endPointTest(@TempDir uriDir: Path) = blockingTest {
         val ftpName = "ftp-${uuid()}"
         val ftpRequest = FtpEndpointDeviceCreateRequest(ftpName, "ftp://ftp.test.com", "user", "pass")
+
+        val endpointsResponse = rioClient.listEndpointDevices()
+        assertThat(endpointsResponse.statusCode).isEqualTo(HttpStatusCode.OK)
+
+        assertRioListResponse("endpoints", endpointsResponse.page.totalItems) { page, perPage ->
+            rioClient.listEndpointDevices(page, perPage)
+        }
+
         val ftpResponse = rioClient.createFtpEndpointDevice(ftpRequest)
         assertThat(ftpResponse.statusCode).isEqualTo(HttpStatusCode.Created)
         assertThat(ftpResponse.name).isEqualTo(ftpName)
@@ -547,6 +563,10 @@ class RioClient_Test {
             assertThat(listBrokers.brokers).isNotEmpty
             assertThat(listBrokers.brokers.map { it.name }).contains(testBroker)
 
+            assertRioListResponse("brokers", listBrokers.page.totalItems) { page, perPage ->
+                rioClient.listBrokers(page, perPage)
+            }
+
             var getWriteAgent = rioClient.getAgent(testBroker, testAgent)
             assertThat(getWriteAgent.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(getWriteAgent.name).isEqualTo(testAgent)
@@ -558,6 +578,10 @@ class RioClient_Test {
             assertThat(listAgents.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(listAgents.agents).hasSize(1)
             assertThat(listAgents.agents.first().name).isEqualTo(getWriteAgent.name)
+
+            assertRioListResponse("agents", listAgents.page.totalItems) { page, perPage ->
+                rioClient.listAgents(testBroker, page, perPage)
+            }
 
             val mapEntry = Pair("username", spectraDeviceAltUsername)
             val updateRequest = AgentUpdateRequest(mapOf(mapEntry))
@@ -695,6 +719,10 @@ class RioClient_Test {
             assertThat(jobList.jobs.map { it.id }).contains(archiveJob.id)
             assertThat(jobList.jobs.map { it.id }).contains(restoreJob.id)
 
+            assertRioListResponse("completed jobs", jobList.page.totalItems) { page, perPage ->
+                rioClient.listJobs(broker = testBroker, jobStatus = "COMPLETED", page = page, perPage = perPage)
+            }
+
             val totalJobs = jobList.page.totalItems
             val deleteArchiveJobResponse = rioClient.deleteJob(archiveJob.id)
             assertThat(deleteArchiveJobResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
@@ -809,6 +837,10 @@ class RioClient_Test {
 
             var listObjects = rioClient.listObjects(testBroker)
             val totalObjects = listObjects.page.totalItems
+
+            assertRioListResponse("objects", listObjects.page.totalItems) { page, perPage ->
+                rioClient.listObjects(brokerName = testBroker, page = page, perPage = perPage)
+            }
 
             var countResponse = rioClient.objectCount(testBroker)
             assertThat(countResponse.statusCode).isEqualTo(HttpStatusCode.OK)
@@ -1031,6 +1063,10 @@ class RioClient_Test {
         assertThat(listLogs.page.totalItems).isEqualTo(totalLogs + 1)
         assertThat(listLogs.logs.map { it.id }).contains(newLog.id)
 
+        assertRioListResponse("logsets", listLogs.page.totalItems) { page, perPage ->
+            rioClient.listLogsets(page, perPage)
+        }
+
         val deleteLogSetResponse = rioClient.deleteLogset(UUID.fromString(newLog.id))
         assertThat(deleteLogSetResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
         assertThat(rioClient.headLogset(UUID.fromString(newLog.id))).isFalse
@@ -1171,6 +1207,10 @@ class RioClient_Test {
         var listTokens = rioClient.listTokenKeys()
         val totalTokens = listTokens.page.totalItems
 
+        assertRioListResponse("tokens", listTokens.page.totalItems) { page, perPage ->
+            rioClient.listTokenKeys(page, perPage)
+        }
+
         val createToken = rioClient.createApiToken(TokenCreateRequest())
         assertThat(createToken.statusCode).isEqualTo(HttpStatusCode.Created)
         assertThat(createToken.userName).isEqualTo(username)
@@ -1264,3 +1304,15 @@ class RioClient_Test {
 
 private fun getenvValue(key: String, default: String): String =
     System.getenv(key) ?: default
+
+private fun <T> assertRioListResponse(desc: String, assertCount: Long, fn: suspend (pageNumber: Long, perPage: Long) -> RioListResponse<T>) {
+    val firstPage = runBlocking { fn(0L, 3L) }
+    assertThat(firstPage.page().totalItems).describedAs(desc).isEqualTo(assertCount)
+    var count = firstPage.results().size
+    (1L until firstPage.page().totalPages).forEach { num ->
+        val nextPage = runBlocking { fn(num, 3L) }
+        assertThat(nextPage.page().totalItems).describedAs(desc).isEqualTo(assertCount)
+        count += nextPage.results().size
+    }
+    assertThat(count.toLong()).describedAs(desc).isEqualTo(assertCount)
+}

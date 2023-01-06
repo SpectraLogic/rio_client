@@ -50,7 +50,10 @@ open class ShortTokenResponse(
 data class TokenListResponse(
     val data: List<TokenKeyData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<TokenKeyData> {
+    override fun page() = page
+    override fun results() = data
+}
 
 @Serializable
 data class UserLoginCredentials(

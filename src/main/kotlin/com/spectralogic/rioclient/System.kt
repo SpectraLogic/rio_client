@@ -73,7 +73,10 @@ data class ClientDataResponse(
 data class ClientDataListResponse(
     val result: List<ClientData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<ClientData> {
+    override fun page() = page
+    override fun results() = result
+}
 
 @Serializable
 data class ClientData(

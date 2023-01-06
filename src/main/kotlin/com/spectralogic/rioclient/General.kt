@@ -19,6 +19,11 @@ open class RioResponse {
     var statusCode = HttpStatusCode.Processing
 }
 
+interface RioListResponse<T> {
+    fun page(): PageInfo
+    fun results(): List<T>
+}
+
 @Serializable
 class EmptyResponse : RioResponse()
 

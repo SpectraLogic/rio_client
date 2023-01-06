@@ -25,4 +25,7 @@ data class LogsetData(
 data class LogsetListResponse(
     val logs: List<LogsetData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<LogsetData> {
+    override fun page() = page
+    override fun results() = logs
+}

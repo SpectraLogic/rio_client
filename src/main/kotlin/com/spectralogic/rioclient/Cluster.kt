@@ -15,7 +15,13 @@ data class ClusterResponse(
 @Serializable
 data class ClusterMembersListResponse(
     val clusterMembers: List<ClusterMemberData>
-) : RioResponse()
+) : RioResponse(), RioListResponse<ClusterMemberData> {
+    override fun page(): PageInfo {
+        val count = clusterMembers.size.toLong()
+        return PageInfo(count, count, 1L, count)
+    }
+    override fun results() = clusterMembers
+}
 
 @Serializable
 data class ClusterMemberResponse(
