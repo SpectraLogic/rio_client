@@ -45,7 +45,10 @@ data class SpectraDeviceData(
 data class SpectraDeviceListResponse(
     val devices: List<SpectraDeviceData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<SpectraDeviceData> {
+    override fun page() = page
+    override fun results()= devices
+}
 
 @Serializable
 data class DivaDeviceCreateRequest(
@@ -80,7 +83,10 @@ data class DivaDeviceData(
 data class DivaDeviceListResponse(
     val devices: List<DivaDeviceData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<DivaDeviceData> {
+    override fun page() = page
+    override fun results() = devices
+}
 
 @Serializable
 data class FlashnetDeviceCreateRequest(
@@ -147,7 +153,10 @@ data class FlashnetDeviceDatabaseData(
 data class FlashnetDeviceListResponse(
     val devices: List<FlashnetDeviceData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<FlashnetDeviceData> {
+    override fun page() = page
+    override fun results() = devices
+}
 
 @Serializable
 data class TbpfrDeviceCreateRequest(
@@ -182,7 +191,10 @@ data class TbpfrDeviceData(
 data class TbpfrDeviceListResponse(
     val devices: List<TbpfrDeviceData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<TbpfrDeviceData> {
+    override fun page() = page
+    override fun results() = devices
+}
 
 @Serializable
 data class VailDeviceCreateRequest(
@@ -225,10 +237,19 @@ data class VailDeviceData(
 data class VailDeviceListResponse(
     val devices: List<VailDeviceData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<VailDeviceData> {
+    override fun page() = page
+    override fun results() = devices
+}
 
 @Serializable
 data class DeviceObjectListResponse(
     val objects: List<String>,
     val isTruncated: Boolean
-) : RioResponse()
+) : RioResponse(), RioListResponse<String> {
+    override fun page(): PageInfo {
+        val count = objects.size.toLong()
+        return PageInfo(count, count, 1L, count)
+    }
+    override fun results() = objects
+}

@@ -47,7 +47,10 @@ data class UriEndpointDeviceCreateRequest(
 data class EndpointDeviceListResponse(
     val devices: List<EndpointGenericDeviceData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<EndpointGenericDeviceData> {
+    override fun page() = page
+    override fun results() = devices
+}
 
 interface EndpointDeviceResponse {
     val name: String

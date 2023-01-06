@@ -95,7 +95,10 @@ data class ForeignJobDetails(
 data class JobListResponse(
     val jobs: List<JobData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<JobData> {
+    override fun page() = page
+    override fun results() = jobs
+}
 
 @Serializable
 data class FileStatus(

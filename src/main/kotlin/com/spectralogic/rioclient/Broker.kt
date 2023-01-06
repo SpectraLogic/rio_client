@@ -49,8 +49,8 @@ data class BpAgentConfig(
     val dataPolicyUUID: UUID? = null,
     @EncodeDefault val https: Boolean = false
 ) : AgentConfig() {
-    override fun toConfigMap(): Map<String, String> {
-        return buildMap(5) {
+    override fun toConfigMap(): Map<String, String> =
+        buildMap {
             put("bucket", bucket)
             put("blackPearlName", blackPearlName)
             put("username", username)
@@ -58,7 +58,6 @@ data class BpAgentConfig(
             put("https", https.toString())
             if (dataPolicyUUID != null) put("dataPolicyUUID", dataPolicyUUID.toString())
         }
-    }
 }
 
 @Serializable
@@ -66,12 +65,11 @@ data class VailAgentConfig(
     val vailDeviceName: String,
     val bucket: String
 ) : AgentConfig() {
-    override fun toConfigMap(): Map<String, String> {
-        return buildMap {
+    override fun toConfigMap(): Map<String, String> =
+        buildMap {
             put("vailDeviceName", vailDeviceName)
             put("bucket", bucket)
         }
-    }
 }
 
 @Serializable
@@ -81,14 +79,13 @@ data class DivaAgentConfig(
     val qos: Int?,
     val priority: Int?
 ) : AgentConfig() {
-    override fun toConfigMap(): Map<String, String> {
-        return buildMap {
+    override fun toConfigMap(): Map<String, String> =
+        buildMap {
             put("divaDeviceName", divaDeviceName)
             put("category", category)
             if (qos != null) put("qos", qos.toString())
             if (priority != null) put("priority", priority.toString())
         }
-    }
 }
 
 @Serializable
@@ -97,13 +94,12 @@ data class FlashnetAgentConfig(
     val applicationName: String,
     val storageGroupName: String
 ) : AgentConfig() {
-    override fun toConfigMap(): Map<String, String> {
-        return buildMap {
+    override fun toConfigMap(): Map<String, String> =
+        buildMap {
             put("flashnetDeviceName", flashnetDeviceName)
             put("applicationName", applicationName)
             put("storageGroupName", storageGroupName)
         }
-    }
 }
 
 @Serializable
@@ -112,13 +108,12 @@ data class SglLtfsAgentConfig(
     val blackPearlName: String,
     val username: String
 ) : AgentConfig() {
-    override fun toConfigMap(): Map<String, String> {
-        return buildMap {
+    override fun toConfigMap(): Map<String, String> =
+        buildMap {
             put("bucket", bucket)
             put("blackPearlName", blackPearlName)
             put("username", username)
         }
-    }
 }
 
 @Serializable
@@ -195,7 +190,10 @@ data class Checksum(val hash: String, val type: String)
 data class ObjectListResponse(
     val objects: List<ObjectData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<ObjectData> {
+    override fun page() = page
+    override fun results() = objects
+}
 
 @Serializable
 data class ObjectCountResponse(
@@ -222,10 +220,16 @@ data class ObjectHeadData(
 data class BrokerListResponse(
     val brokers: List<BrokerData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<BrokerData> {
+    override fun page()= page
+    override fun results() = brokers
+}
 
 @Serializable
 data class AgentListResponse(
     val agents: List<AgentData>,
     val page: PageInfo
-) : RioResponse()
+) : RioResponse(), RioListResponse<AgentData> {
+    override fun page() = page
+    override fun results() = agents
+}
