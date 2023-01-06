@@ -221,7 +221,7 @@ data class BrokerListResponse(
     val brokers: List<BrokerData>,
     val page: PageInfo
 ) : RioResponse(), RioListResponse<BrokerData> {
-    override fun page()= page
+    override fun page() = page
     override fun results() = brokers
 }
 

@@ -481,7 +481,7 @@ class RioClient_Test {
         assertThat(endpointsResponse.statusCode).isEqualTo(HttpStatusCode.OK)
 
         assertRioListResponse("endpoints", endpointsResponse.page.totalItems) { page, perPage ->
-                rioClient.listEndpointDevices(page, perPage)
+            rioClient.listEndpointDevices(page, perPage)
         }
 
         val ftpResponse = rioClient.createFtpEndpointDevice(ftpRequest)

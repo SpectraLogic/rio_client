@@ -47,7 +47,7 @@ data class SpectraDeviceListResponse(
     val page: PageInfo
 ) : RioResponse(), RioListResponse<SpectraDeviceData> {
     override fun page() = page
-    override fun results()= devices
+    override fun results() = devices
 }
 
 @Serializable
