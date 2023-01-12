@@ -547,7 +547,12 @@ class RioClient_Test {
         try {
             removeBroker()
 
-            val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
+            val agentConfig = BpAgentConfig(
+                brokerBucket,
+                spectraDeviceCreateRequest.name,
+                spectraDeviceCreateRequest.username,
+                protect = false
+            )
             val createRequest = BrokerCreateRequest(testBroker, testAgent, agentConfig.toConfigMap())
 
             val createBroker = rioClient.createBroker(createRequest)
