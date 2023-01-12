@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.spectralogic"
-version = "1.2.1"
+version = "1.2.2"
 tasks {
     withType<JavaCompile> {
         options.encoding = "UTF-8"
