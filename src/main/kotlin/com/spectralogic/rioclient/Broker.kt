@@ -36,16 +36,18 @@ data class BpAgentConfig(
     val username: String,
     val createBucket: Boolean = false,
     val dataPolicyUUID: UUID? = null,
-    val https: Boolean = false
+    val https: Boolean = false,
+    val protect: Boolean = false
 ) : AgentConfig()
 
 fun BpAgentConfig.toConfigMap(): Map<String, String> {
-    return buildMap(5) {
+    return buildMap {
         put("bucket", bucket)
         put("blackPearlName", blackPearlName)
         put("username", username)
         put("createBucket", createBucket.toString())
         put("https", https.toString())
+        put("protect", protect.toString())
         if (dataPolicyUUID != null) put("dataPolicyUUID", dataPolicyUUID.toString())
     }
 }
