@@ -47,7 +47,8 @@ data class BpAgentConfig(
     @EncodeDefault val createBucket: Boolean = false,
     @Serializable(with = UUIDSerializer::class)
     val dataPolicyUUID: UUID? = null,
-    @EncodeDefault val https: Boolean = false
+    @EncodeDefault val https: Boolean = false,
+    @EncodeDefault val protect: Boolean = false
 ) : AgentConfig() {
     override fun toConfigMap(): Map<String, String> =
         buildMap {
@@ -56,6 +57,7 @@ data class BpAgentConfig(
             put("username", username)
             put("createBucket", createBucket.toString())
             put("https", https.toString())
+            put("protect", protect.toString())
             if (dataPolicyUUID != null) put("dataPolicyUUID", dataPolicyUUID.toString())
         }
 }
