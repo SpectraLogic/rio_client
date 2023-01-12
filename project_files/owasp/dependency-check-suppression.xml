@@ -9,4 +9,15 @@
     <packageUrl regex="true">^pkg:maven/io.ktor/ktor-utils@1.6.8$</packageUrl>
     <cve>CVE-2022-29930</cve>
   </suppress>
+  <suppress>
+    <notes><![CDATA[
+      file name: several hits
+      reason: This CVE is for an artifact that we do not use 
+              github.com/fredsmith/utils. The CPE, 
+              cpe:2.3:a:utils_project:utils:*:*:*:*:*:*:*:*, is overly broad
+              and results in several false positives.
+      ]]></notes>
+    <filePath regex="true">.*.jar</filePath>
+    <cve>CVE-2021-4277</cve>
+  </suppress>
 </suppressions>
