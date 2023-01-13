@@ -5,7 +5,7 @@ plugins {
     id("org.jmailen.kotlinter") version "3.3.0"
     id("java")
     id("maven-publish")
-    id("org.owasp.dependencycheck") version "6.3.1"
+    id("org.owasp.dependencycheck") version "7.4.4"
 }
 
 group = "com.spectralogic"
