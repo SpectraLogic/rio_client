@@ -9,8 +9,9 @@ plugins {
     id("org.owasp.dependencycheck") version "7.4.4"
 }
 
-group = "com.spectralogic.rioclient"
+group = "com.spectralogic.rio"
 version = "2.0.1"
+
 tasks {
     withType<JavaCompile> {
         options.encoding = "UTF-8"
@@ -21,12 +22,41 @@ tasks {
     }
 }
 
+java {
+    withSourcesJar()
+}
+
 publishing {
+    repositories {
+        maven {
+            name = "internal"
+            val releasesRepoUrl = "http://artifacts.eng.sldomain.com/repository/spectra-releases/"
+            val snapshotsRepoUrl = "http://artifacts.eng.sldomain.com/repository/spectra-snapshots/"
+            url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
+            isAllowInsecureProtocol = true
+            credentials {
+                username = extra.has("artifactsUsername").let {
+                    if (it) extra.get("artifactsUsername") as String else null
+                }
+                password = extra.has("artifactsPassword").let {
+                    if (it) extra.get("artifactsPassword") as String else null
+                }
+            }
+        }
+    }
     publications {
         val mavenJava by creating(MavenPublication::class) {
             from(components["java"])
         }
     }
+}
+
+tasks.register("publishToInternalRepository") {
+    group = "publishing"
+    description = "Publishes all Maven publications to the internal Maven repository."
+    dependsOn(tasks.withType<PublishToMavenRepository>().matching {
+        it.repository == publishing.repositories["internal"]
+    })
 }
 
 tasks.test {
