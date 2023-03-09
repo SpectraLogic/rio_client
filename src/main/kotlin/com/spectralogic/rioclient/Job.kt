@@ -10,6 +10,45 @@ import java.net.URI
 import java.util.Collections.emptyMap
 import java.util.UUID
 
+enum class JobStatusEnum(val isFinal: Boolean = false) {
+    ACTIVE,
+    COMPLETED(true),
+    CANCELED(true),
+    ERROR(true),
+    UNKNOWN;
+
+    companion object {
+        fun parse(status: String): JobStatusEnum {
+            return try {
+                JobStatusEnum.valueOf(status)
+            } catch (_: IllegalArgumentException ) {
+                UNKNOWN
+            }
+        }
+    }
+}
+
+enum class FileStatusEnum(val isFinal: Boolean = false) {
+    Completed(true),
+    Error(true),
+    Initializing,
+    Indexing,
+    Copying,
+    Transferring,
+    Rewrapping,
+    UNKNOWN;
+
+    companion object {
+        fun parse(status: String): FileStatusEnum {
+            return try {
+                FileStatusEnum.valueOf(status)
+            } catch (_: IllegalArgumentException ) {
+                UNKNOWN
+            }
+        }
+    }
+}
+
 @Serializable
 data class JobStatus(
     val message: String,
