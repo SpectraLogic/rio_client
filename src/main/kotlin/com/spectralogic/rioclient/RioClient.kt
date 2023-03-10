@@ -662,7 +662,7 @@ class RioClient(
         paramMap: Map<String, Any?>? = null
     ): T {
         val urlStr = "$url${paramMap.queryString()}"
-        val requestBody: Any = request ?: EmptyContent
+        val requestBody: RioRequest = request ?: RioEmptyRequest
         val response: HttpResponse = try {
             get(urlStr) {
                 contentType(jsonContentType)
@@ -690,7 +690,7 @@ class RioClient(
     }
 
     private suspend inline fun HttpClient.myPatch(url: String, request: RioRequest?): Boolean {
-        val requestBody: Any = request ?: EmptyContent
+        val requestBody: RioRequest = request ?: RioEmptyRequest
         return try {
             patch(url) {
                 contentType(jsonContentType)
@@ -715,7 +715,7 @@ class RioClient(
 
     private suspend inline fun <reified T : RioResponse> HttpClient.myPost(url: String, request: RioRequest? = null, paramMap: Map<String, Any?>? = null): T {
         val urlStr = "$url${paramMap.queryString()}"
-        val requestBody: Any = request ?: EmptyContent
+        val requestBody: RioRequest = request ?: RioEmptyRequest
         val response: HttpResponse = try {
             post(urlStr) {
                 contentType(jsonContentType)
@@ -729,7 +729,7 @@ class RioClient(
 
     private suspend inline fun <reified T : RioResponse> HttpClient.myPut(url: String, request: RioRequest? = null, paramMap: Map<String, Any?>? = null): T {
         val urlStr = "$url${paramMap.queryString()}"
-        val requestBody: Any = request ?: EmptyContent
+        val requestBody: RioRequest = request ?: RioEmptyRequest
         val response: HttpResponse = try {
             put(urlStr) {
                 contentType(jsonContentType)

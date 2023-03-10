@@ -7,11 +7,18 @@ package com.spectralogic.rioclient
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.OutgoingContent
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 interface RioRequest
+
+@Serializable
+object RioEmptyRequest : RioRequest, OutgoingContent.NoContent() {
+    override val contentLength: Long = 0
+    override fun toString(): String = "EmptyContent"
+}
 
 @Serializable
 open class RioResponse {
