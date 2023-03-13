@@ -10,8 +10,18 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonClassDiscriminator
 
-interface RioRequest
+
+const val RioRequestDiscriminator = "rio_request_type"
+@Serializable
+@JsonClassDiscriminator(RioRequestDiscriminator)
+sealed interface RioRequest
+
+@Serializable
+data class RioEmptyRequest(
+    val contentLength: Long = 0
+) : RioRequest
 
 @Serializable
 open class RioResponse {
