@@ -25,7 +25,6 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.utils.EmptyContent
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -37,6 +36,9 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.charsets.Charsets
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import nl.altindag.ssl.util.TrustManagerUtils
 import java.io.Closeable
 import java.net.URL
@@ -662,11 +664,11 @@ class RioClient(
         paramMap: Map<String, Any?>? = null
     ): T {
         val urlStr = "$url${paramMap.queryString()}"
-        val requestBody: Any = request ?: EmptyContent
+        val requestBody: RioRequest = request ?: RioEmptyRequest()
         val response: HttpResponse = try {
             get(urlStr) {
                 contentType(jsonContentType)
-                setBody(requestBody)
+                setBody(encodeRioRequest(requestBody))
             }
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Get, urlStr, t)
@@ -690,11 +692,11 @@ class RioClient(
     }
 
     private suspend inline fun HttpClient.myPatch(url: String, request: RioRequest?): Boolean {
-        val requestBody: Any = request ?: EmptyContent
+        val requestBody: RioRequest = request ?: RioEmptyRequest()
         return try {
             patch(url) {
                 contentType(jsonContentType)
-                setBody(requestBody)
+                setBody(encodeRioRequest(requestBody))
             } as HttpResponse
             true
         } catch (t: ClientRequestException) {
@@ -715,11 +717,11 @@ class RioClient(
 
     private suspend inline fun <reified T : RioResponse> HttpClient.myPost(url: String, request: RioRequest? = null, paramMap: Map<String, Any?>? = null): T {
         val urlStr = "$url${paramMap.queryString()}"
-        val requestBody: Any = request ?: EmptyContent
+        val requestBody: RioRequest = request ?: RioEmptyRequest()
         val response: HttpResponse = try {
             post(urlStr) {
                 contentType(jsonContentType)
-                setBody(requestBody)
+                setBody(encodeRioRequest(requestBody))
             }
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Post, urlStr, t)
@@ -729,11 +731,11 @@ class RioClient(
 
     private suspend inline fun <reified T : RioResponse> HttpClient.myPut(url: String, request: RioRequest? = null, paramMap: Map<String, Any?>? = null): T {
         val urlStr = "$url${paramMap.queryString()}"
-        val requestBody: Any = request ?: EmptyContent
+        val requestBody: RioRequest = request ?: RioEmptyRequest()
         val response: HttpResponse = try {
             put(urlStr) {
                 contentType(jsonContentType)
-                setBody(requestBody)
+                setBody(encodeRioRequest(requestBody))
             }
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Put, urlStr, t)
@@ -773,4 +775,10 @@ data class ListMetadataValuesDistinct(
 ) : RioResponse(), RioListResponse<Map<String, String>> {
     override fun page() = page
     override fun results() = results
+}
+
+private inline fun <reified T>encodeRioRequest(obj: T): JsonElement {
+    val json = Json.encodeToJsonElement(obj)
+    val jsonWithoutDiscriminator = json.jsonObject.filterNot { it.key == RioRequestDiscriminator }
+    return Json.encodeToJsonElement(jsonWithoutDiscriminator)
 }

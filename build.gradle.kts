@@ -72,7 +72,7 @@ dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
 
-    val ktorVersion = "2.2.1"
+    val ktorVersion = "2.2.4"
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-json:$ktorVersion")
