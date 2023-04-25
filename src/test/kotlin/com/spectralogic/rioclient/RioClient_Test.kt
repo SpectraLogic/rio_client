@@ -655,7 +655,7 @@ class RioClient_Test {
                     FileToArchive(uuid(), URI("aToZSequence://file"), 2048L, metadata)
                 )
             )
-            val archiveJob = rioClient.createArchiveJob(testBroker, archiveRequest)
+            val archiveJob = rioClient.createArchiveJob(testBroker, archiveRequest, failFast = true)
             assertThat(archiveJob.statusCode).isEqualTo(HttpStatusCode.Created)
             assertThat(archiveJob.name).isEqualTo(archiveJobName)
             assertThat(archiveJob.numberOfFiles).isEqualTo(2)
