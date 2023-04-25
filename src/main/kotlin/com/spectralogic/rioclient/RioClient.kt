@@ -456,10 +456,17 @@ class RioClient(
     /**
      * Job
      */
-    suspend fun createArchiveJob(brokerName: String, archiveRequest: ArchiveRequest, uploadNewOnly: Boolean? = null, jobPriority: String? = null): JobResponse {
+    suspend fun createArchiveJob(
+        brokerName: String,
+        archiveRequest: ArchiveRequest,
+        uploadNewOnly: Boolean? = null,
+        jobPriority: String? = null,
+        failFast: Boolean? = null
+    ): JobResponse {
         val paramMap = mapOf(
             Pair("upload-new-files-only", uploadNewOnly),
-            Pair("priority", jobPriority)
+            Pair("priority", jobPriority),
+            Pair("fail-fast", failFast)
         )
         return client.myPost("$api/brokers/$brokerName/archive", archiveRequest, paramMap)
     }
