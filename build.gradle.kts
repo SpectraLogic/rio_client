@@ -12,6 +12,13 @@ plugins {
 group = "com.spectralogic.rio"
 version = "2.0.4"
 
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+        vendor.set(JvmVendorSpec.AMAZON)
+    }
+}
+
 tasks {
     withType<JavaCompile> {
         options.encoding = "UTF-8"
@@ -89,4 +96,9 @@ dependencyCheck {
     // fail the build if any vulnerable dependencies are identified (CVSS score > 0)
     failBuildOnCVSS = 0f
     suppressionFile = "project_files/owasp/dependency-check-suppression.xml"
+}
+
+tasks.wrapper {
+    // to upgrade the gradle wrapper, bump the version below and run ./gradlew wrapper twice
+    gradleVersion = "8.1.1"
 }
