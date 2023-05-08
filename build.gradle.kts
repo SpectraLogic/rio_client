@@ -10,54 +10,6 @@ plugins {
 group = "com.spectralogic.rio"
 version = "2.0.4"
 
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-        vendor.set(JvmVendorSpec.ADOPTIUM)
-    }
-}
-
-java {
-    withSourcesJar()
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "internal"
-            val releasesRepoUrl = "http://artifacts.eng.sldomain.com/repository/spectra-releases/"
-            val snapshotsRepoUrl = "http://artifacts.eng.sldomain.com/repository/spectra-snapshots/"
-            url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
-            isAllowInsecureProtocol = true
-            credentials {
-                username = extra.has("artifactsUsername").let {
-                    if (it) extra.get("artifactsUsername") as String else null
-                }
-                password = extra.has("artifactsPassword").let {
-                    if (it) extra.get("artifactsPassword") as String else null
-                }
-            }
-        }
-    }
-    publications {
-        val mavenJava by creating(MavenPublication::class) {
-            from(components["java"])
-        }
-    }
-}
-
-tasks.register("publishToInternalRepository") {
-    group = "publishing"
-    description = "Publishes all Maven publications to the internal Maven repository."
-    dependsOn(tasks.withType<PublishToMavenRepository>().matching {
-        it.repository == publishing.repositories["internal"]
-    })
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
 dependencies {
     implementation(platform(libs.kotlinBom))
     implementation(platform(libs.ktorBom))
@@ -78,6 +30,53 @@ dependencies {
     testImplementation(libs.junitJupiterApi)
 
     testRuntimeOnly(libs.junitJupiterEngine)
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+        vendor.set(JvmVendorSpec.ADOPTIUM)
+    }
+}
+
+java {
+    withSourcesJar()
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "internal"
+            val releasesRepoUrl = "https://artifacts.eng.sldomain.com/repository/spectra-releases/"
+            val snapshotsRepoUrl = "https://artifacts.eng.sldomain.com/repository/spectra-snapshots/"
+            url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
+            credentials {
+                username = extra.has("artifactsUsername").let {
+                    if (it) extra.get("artifactsUsername") as String else null
+                }
+                password = extra.has("artifactsPassword").let {
+                    if (it) extra.get("artifactsPassword") as String else null
+                }
+            }
+        }
+    }
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+        }
+    }
+}
+
+tasks.register("publishToInternalRepository") {
+    group = "publishing"
+    description = "Publishes all Maven publications to the internal Maven repository."
+    dependsOn(tasks.withType<PublishToMavenRepository>().matching {
+        it.repository == publishing.repositories["internal"]
+    })
 }
 
 dependencyCheck {
