@@ -1,10 +1,11 @@
 plugins {
-    kotlin("jvm") version "1.8.0"
-    kotlin("plugin.serialization") version "1.8.0"
-    id("org.jmailen.kotlinter") version "3.13.0"
-    id("java")
-    id("maven-publish")
-    id("org.owasp.dependencycheck") version "7.4.4"
+    java
+    alias(libs.plugins.kotlinJvm)
+    alias(libs.plugins.kotlinPluginSerialization)
+    `maven-publish`
+    alias(libs.plugins.kotlinter)
+    alias(libs.plugins.owaspDepCheck)
+    alias(libs.plugins.versions)
 }
 
 group = "com.spectralogic.rio"

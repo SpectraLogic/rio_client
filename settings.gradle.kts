@@ -35,6 +35,12 @@ dependencyResolutionManagement {
             library("assertjCore", "org.assertj", "assertj-core").versionRef("assertj")
             library("junitJupiterApi", "org.junit.jupiter", "junit-jupiter-api").versionRef("junit")
             library("junitJupiterEngine", "org.junit.jupiter", "junit-jupiter-engine").versionRef("junit")
+
+            plugin("kotlinJvm", "org.jetbrains.kotlin.jvm").versionRef("kotlin")
+            plugin("kotlinPluginSerialization", "org.jetbrains.kotlin.plugin.serialization").versionRef("kotlin")
+            plugin("kotlinter", "org.jmailen.kotlinter").version("3.13.0")
+            plugin("owaspDepCheck","org.owasp.dependencycheck").version("8.1.2")
+            plugin("versions", "com.github.ben-manes.versions").version("0.46.0")
         }
     }
 }
