@@ -1,24 +1,48 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+/**
+ * ***************************************************************************
+ *    Copyright 2014-2023 Spectra Logic Corporation. All Rights Reserved.
+ * ***************************************************************************
+ */
 
 plugins {
-    kotlin("jvm") version "1.8.0"
-    kotlin("plugin.serialization") version "1.8.0"
-    id("org.jmailen.kotlinter") version "3.13.0"
-    id("java")
-    id("maven-publish")
-    id("org.owasp.dependencycheck") version "7.4.4"
+    java
+    alias(libs.plugins.kotlinJvm)
+    alias(libs.plugins.kotlinPluginSerialization)
+    `maven-publish`
+    alias(libs.plugins.kotlinter)
+    alias(libs.plugins.owaspDepCheck)
+    alias(libs.plugins.versions)
 }
 
 group = "com.spectralogic.rio"
 version = "2.0.4"
 
-tasks {
-    withType<JavaCompile> {
-        options.encoding = "UTF-8"
-        options.release.set(17)
-    }
-    withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+dependencies {
+    implementation(platform(libs.kotlinBom))
+    implementation(platform(libs.ktorBom))
+
+    implementation(libs.kotlinxCoroutinesCore)
+    implementation(libs.ktorClientCore)
+    implementation(libs.ktorClientCio)
+    implementation(libs.ktorClientJson)
+    implementation(libs.ktorClientLogging)
+    implementation(libs.ktorClientContentNegotiation)
+    implementation(libs.ktorClientAuth)
+    implementation(libs.ktorSerializationKotlinxJson)
+    implementation(libs.sslcontextKickstart)
+    implementation(libs.kotlinLoggingJvm)
+
+    // Test
+    testImplementation(libs.assertjCore)
+    testImplementation(libs.junitJupiterApi)
+
+    testRuntimeOnly(libs.junitJupiterEngine)
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+        vendor.set(JvmVendorSpec.ADOPTIUM)
     }
 }
 
@@ -26,14 +50,23 @@ java {
     withSourcesJar()
 }
 
+tasks.named("compileKotlin", org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask::class.java) {
+    compilerOptions {
+        freeCompilerArgs.add("-opt-in=kotlinx.serialization.ExperimentalSerializationApi")
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
 publishing {
     repositories {
         maven {
             name = "internal"
-            val releasesRepoUrl = "http://artifacts.eng.sldomain.com/repository/spectra-releases/"
-            val snapshotsRepoUrl = "http://artifacts.eng.sldomain.com/repository/spectra-snapshots/"
+            val releasesRepoUrl = "https://artifacts.eng.sldomain.com/repository/spectra-releases/"
+            val snapshotsRepoUrl = "https://artifacts.eng.sldomain.com/repository/spectra-snapshots/"
             url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
-            isAllowInsecureProtocol = true
             credentials {
                 username = extra.has("artifactsUsername").let {
                     if (it) extra.get("artifactsUsername") as String else null
@@ -45,7 +78,7 @@ publishing {
         }
     }
     publications {
-        val mavenJava by creating(MavenPublication::class) {
+        create<MavenPublication>("mavenJava") {
             from(components["java"])
         }
     }
@@ -59,39 +92,13 @@ tasks.register("publishToInternalRepository") {
     })
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
-
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
-
-    val ktorVersion = "2.2.4"
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-client-json:$ktorVersion")
-    implementation("io.ktor:ktor-client-logging:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-client-auth:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-
-    implementation("io.github.hakky54:sslcontext-kickstart:7.4.3")
-    implementation("io.github.microutils:kotlin-logging-jvm:2.1.20")
-
-    // Test
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-    testImplementation("org.assertj:assertj-core:3.23.1")
-}
-
 dependencyCheck {
     // fail the build if any vulnerable dependencies are identified (CVSS score > 0)
     failBuildOnCVSS = 0f
     suppressionFile = "project_files/owasp/dependency-check-suppression.xml"
+}
+
+tasks.wrapper {
+    // to upgrade the gradle wrapper, bump the version below and run ./gradlew wrapper twice
+    gradleVersion = "8.1.1"
 }
