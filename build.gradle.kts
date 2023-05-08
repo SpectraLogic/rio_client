@@ -1,3 +1,9 @@
+/**
+ * ***************************************************************************
+ *    Copyright 2014-2023 Spectra Logic Corporation. All Rights Reserved.
+ * ***************************************************************************
+ */
+
 plugins {
     java
     alias(libs.plugins.kotlinJvm)

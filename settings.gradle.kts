@@ -1,3 +1,9 @@
+/**
+ * ***************************************************************************
+ *    Copyright 2014-2023 Spectra Logic Corporation. All Rights Reserved.
+ * ***************************************************************************
+ */
+
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention").version("0.5.0")
 }
