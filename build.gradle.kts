@@ -63,31 +63,26 @@ tasks.test {
     useJUnitPlatform()
 }
 
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
+    implementation(platform(libs.kotlinBom))
+    implementation(platform(libs.ktorBom))
 
-    val ktorVersion = "2.2.4"
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-client-json:$ktorVersion")
-    implementation("io.ktor:ktor-client-logging:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-client-auth:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-
-    implementation("io.github.hakky54:sslcontext-kickstart:7.4.3")
-    implementation("io.github.microutils:kotlin-logging-jvm:2.1.20")
+    implementation(libs.kotlinxCoroutinesCore)
+    implementation(libs.ktorClientCore)
+    implementation(libs.ktorClientCio)
+    implementation(libs.ktorClientJson)
+    implementation(libs.ktorClientLogging)
+    implementation(libs.ktorClientContentNegotiation)
+    implementation(libs.ktorClientAuth)
+    implementation(libs.ktorSerializationKotlinxJson)
+    implementation(libs.sslcontextKickstart)
+    implementation(libs.kotlinLoggingJvm)
 
     // Test
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-    testImplementation("org.assertj:assertj-core:3.23.1")
+    testImplementation(libs.assertjCore)
+    testImplementation(libs.junitJupiterApi)
+
+    testRuntimeOnly(libs.junitJupiterEngine)
 }
 
 dependencyCheck {
