@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     kotlin("jvm") version "1.8.0"
     kotlin("plugin.serialization") version "1.8.0"
@@ -15,17 +13,7 @@ version = "2.0.4"
 kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
-        vendor.set(JvmVendorSpec.AMAZON)
-    }
-}
-
-tasks {
-    withType<JavaCompile> {
-        options.encoding = "UTF-8"
-        options.release.set(17)
-    }
-    withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+        vendor.set(JvmVendorSpec.ADOPTIUM)
     }
 }
 
