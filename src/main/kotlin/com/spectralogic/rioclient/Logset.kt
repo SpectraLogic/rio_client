@@ -21,3 +21,15 @@ data class LogsetListResponse(
     val logs: List<LogsetData>,
     val page: PageInfo
 ) : RioListResponse<LogsetData>(logs, page)
+
+data class LogLevelResponse(
+    val currentLevel: String
+) : RioResponse()
+
+data class LogLevelSetResponse(
+    val currentLevel: String,
+    val requestedLevel: String,
+    val previousLevel: String,
+    val status: String,
+    val message: String
+) : RioResponse()
