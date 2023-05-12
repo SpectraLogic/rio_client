@@ -572,6 +572,12 @@ class RioClient(
     suspend fun listLogsets(page: Long? = null, perPage: Long? = null): LogsetListResponse =
         client.myGet("$api/logs", paramMap = pageParamMap(page, perPage))
 
+    suspend fun getLogLevel(): LogLevelResponse =
+        client.myGet("$api/logs/root/level")
+
+    suspend fun setLogLevel(logLevel: String): LogLevelSetResponse =
+        client.myPut("$api/logs/root/level/$logLevel")
+
     /**
      * Messages
      */

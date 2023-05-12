@@ -1050,6 +1050,31 @@ class RioClient_Test {
     }
 
     @Test
+    fun logLevelTest() = blockingTest {
+        var previousLevel = rioClient.getLogLevel().currentLevel
+        listOf("TRACE", "INFO", "ERROR", "WARN", "DEBUG").forEach { logLevel ->
+            val resp = rioClient.setLogLevel(logLevel)
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.currentLevel).isEqualTo(logLevel)
+            assertThat(resp.requestedLevel).isEqualTo(logLevel)
+            assertThat(resp.previousLevel).isEqualTo(previousLevel)
+            assertThat(rioClient.getLogLevel().currentLevel).isEqualTo(logLevel)
+            previousLevel = logLevel
+        }
+
+        val ex = catchThrowableOfType(
+            {
+                runBlocking {
+                    rioClient.setLogLevel("bad")
+                }
+            },
+            RioHttpException::class.java
+        )
+        assertThat(ex.statusCode).isEqualTo(HttpStatusCode.BadRequest)
+        assertThat(ex.errorMessage().message).isEqualTo("Log Level bad is invalid. Log level change request denied.")
+    }
+    
+    @Test
     fun systemTest() = blockingTest {
         val systemResponse = rioClient.systemInfo()
         assertThat(systemResponse.statusCode).isEqualTo(HttpStatusCode.OK)
