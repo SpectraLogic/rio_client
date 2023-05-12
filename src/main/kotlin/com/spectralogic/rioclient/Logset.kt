@@ -29,3 +29,17 @@ data class LogsetListResponse(
     override fun page() = page
     override fun results() = logs
 }
+
+@Serializable
+data class LogLevelResponse(
+    val currentLevel: String
+) : RioResponse()
+
+@Serializable
+data class LogLevelSetResponse(
+    val currentLevel: String,
+    val requestedLevel: String,
+    val previousLevel: String,
+    val status: String,
+    val message: String
+) : RioResponse()
