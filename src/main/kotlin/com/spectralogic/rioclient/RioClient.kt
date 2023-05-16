@@ -126,13 +126,13 @@ class RioClient(
         client.myPost("$api/cluster", paramMap = paramMap("cluster_url", url))
 
     suspend fun getCluster(): ClusterResponse =
-        client.myPost("$api/cluster")
+        client.myGet("$api/cluster")
 
     suspend fun deleteCluster(): EmptyResponse =
         client.myPost("$api/cluster")
 
     suspend fun listClusterMembers(): ClusterMembersListResponse =
-        client.myGet("$api/cluster/members/")
+        client.myGet("$api/cluster/members")
 
     /**
      * Device
