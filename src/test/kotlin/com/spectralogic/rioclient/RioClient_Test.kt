@@ -1248,6 +1248,24 @@ class RioClient_Test {
         // TODO: keys unhappy path testing
     }
 
+    @Test
+    fun clusterTest() = blockingTest {
+        val resp = rioClient.getCluster()
+        assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+        assertThat(resp.clusterName).isNotNull.isNotBlank
+
+        val listResponse = rioClient.listClusterMembers()
+        assertThat(listResponse.statusCode).isEqualTo(HttpStatusCode.OK)
+        assertThat(listResponse.members).isNotEmpty
+        listResponse.members.first().let { member ->
+            assertThat(member.memberId).isNotBlank
+            assertThat(member.clusterPort).isGreaterThan(0)
+            assertThat(member.httpPort).isGreaterThan(0)
+            assertThat(member.role).isNotBlank
+            assertThat(member.ipAddress).isNotBlank
+        }
+    }
+
     private suspend fun ensureBrokerExists() {
         if (!rioClient.headBroker(testBroker)) {
             val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)

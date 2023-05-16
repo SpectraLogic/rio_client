@@ -10,7 +10,7 @@ data class ClusterResponse(
 ) : RioResponse()
 
 data class ClusterMembersListResponse(
-    val clusterMembers: List<ClusterMemberData>
+    val members: List<ClusterMemberData>
 ) : RioResponse()
 
 data class ClusterMemberResponse(
