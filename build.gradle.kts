@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.8.0"
+    kotlin("jvm") version "1.7.10"
     id("org.jmailen.kotlinter") version "3.3.0"
     id("java")
     id("maven-publish")
@@ -74,7 +74,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.6.10"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
 
     val ktorVersion = "1.6.8"
