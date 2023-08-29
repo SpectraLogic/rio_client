@@ -12,8 +12,8 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonClassDiscriminator
 
-
 const val RioRequestDiscriminator = "rio_request_type"
+
 @Serializable
 @JsonClassDiscriminator(RioRequestDiscriminator)
 sealed interface RioRequest

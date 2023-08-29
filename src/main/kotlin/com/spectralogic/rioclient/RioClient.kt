@@ -5,6 +5,7 @@
  */
 package com.spectralogic.rioclient
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
@@ -39,7 +40,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
-import nl.altindag.ssl.util.TrustManagerUtils
 import java.io.Closeable
 import java.net.URL
 import java.nio.file.Path
@@ -54,7 +54,7 @@ class RioClient(
 ) : Closeable {
 
     companion object {
-        private val logger = mu.KotlinLogging.logger {}
+        private val logger = KotlinLogging.logger {}
     }
 
     @Serializable
@@ -66,7 +66,7 @@ class RioClient(
     private val client = HttpClient(CIO) {
         engine {
             https {
-                this.trustManager = TrustManagerUtils.createUnsafeTrustManager()
+                this.trustManager = TrustManager
             }
         }
         install(HttpTimeout) {
@@ -782,6 +782,7 @@ class RioClient(
 }
 
 // TODO: why is this RioCruise specific method here?
+@Serializable
 data class ListMetadataValuesDistinct(
     val results: List<Map<String, String>>,
     val page: PageInfo

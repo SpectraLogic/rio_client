@@ -18,14 +18,13 @@ dependencyResolutionManagement {
         create("libs") {
             version("assertj", "3.23.1")
             version("junit", "5.8.2")
-            version("kotlin", "1.8.0")
-            version("kotlinLoggingJvm", "2.1.20")
-            version("kotlinxCoroutines", "1.6.2")
-            version("ktor", "2.2.4")
-            version("sslcontextKickstart", "7.4.3")
+            version("kotlin", "1.9.10")
+            version("kotlinLogging", "5.1.0")
+            version("kotlinxCoroutines", "1.7.3")
+            version("ktor", "2.3.3")
 
             library("kotlinBom", "org.jetbrains.kotlin", "kotlin-bom").versionRef("kotlin")
-            library("kotlinLoggingJvm", "io.github.microutils", "kotlin-logging-jvm").versionRef("kotlinLoggingJvm")
+            library("kotlinLogging", "io.github.oshai", "kotlin-logging").versionRef("kotlinLogging")
             library("kotlinxCoroutinesCore", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef("kotlinxCoroutines")
             library("ktorBom", "io.ktor", "ktor-bom").versionRef("ktor")
             library("ktorClientAuth", "io.ktor", "ktor-client-auth").withoutVersion()
@@ -35,7 +34,6 @@ dependencyResolutionManagement {
             library("ktorClientJson", "io.ktor", "ktor-client-json").withoutVersion()
             library("ktorClientLogging", "io.ktor", "ktor-client-logging").withoutVersion()
             library("ktorSerializationKotlinxJson", "io.ktor", "ktor-serialization-kotlinx-json").withoutVersion()
-            library("sslcontextKickstart", "io.github.hakky54", "sslcontext-kickstart").versionRef("sslcontextKickstart")
 
             // Test-only dependencies
             library("assertjCore", "org.assertj", "assertj-core").versionRef("assertj")

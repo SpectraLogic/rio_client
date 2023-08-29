@@ -11,7 +11,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import nl.altindag.ssl.util.TrustManagerUtils
 import java.net.URL
 
 internal class TokenClient(private val endpoint: URL, private val username: String, private val password: String) {
@@ -27,7 +26,7 @@ internal class TokenClient(private val endpoint: URL, private val username: Stri
         }
         engine {
             https {
-                this.trustManager = TrustManagerUtils.createUnsafeTrustManager()
+                trustManager = TrustManager
             }
         }
         install(Logging)
