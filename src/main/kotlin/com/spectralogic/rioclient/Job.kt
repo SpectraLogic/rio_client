@@ -21,7 +21,7 @@ enum class JobStatusEnum(val isFinal: Boolean = false) {
         fun parse(status: String): JobStatusEnum {
             return try {
                 JobStatusEnum.valueOf(status)
-            } catch (_: IllegalArgumentException ) {
+            } catch (_: IllegalArgumentException) {
                 UNKNOWN
             }
         }
@@ -42,7 +42,7 @@ enum class FileStatusEnum(val isFinal: Boolean = false) {
         fun parse(status: String): FileStatusEnum {
             return try {
                 FileStatusEnum.valueOf(status)
-            } catch (_: IllegalArgumentException ) {
+            } catch (_: IllegalArgumentException) {
                 UNKNOWN
             }
         }

@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "com.spectralogic.rio"
-version = "2.0.6"
+version = "2.0.7"
 
 dependencies {
     implementation(platform(libs.kotlinBom))
@@ -29,8 +29,7 @@ dependencies {
     implementation(libs.ktorClientContentNegotiation)
     implementation(libs.ktorClientAuth)
     implementation(libs.ktorSerializationKotlinxJson)
-    implementation(libs.sslcontextKickstart)
-    implementation(libs.kotlinLoggingJvm)
+    implementation(libs.kotlinLogging)
 
     // Test
     testImplementation(libs.assertjCore)
@@ -100,5 +99,5 @@ dependencyCheck {
 
 tasks.wrapper {
     // to upgrade the gradle wrapper, bump the version below and run ./gradlew wrapper twice
-    gradleVersion = "8.1.1"
+    gradleVersion = "8.3"
 }
