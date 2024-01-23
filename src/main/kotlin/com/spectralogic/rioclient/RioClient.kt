@@ -764,7 +764,7 @@ class RioClient(
                 this.body()
             }
         } else {
-            throw RioHttpException(httpMethod, url, null, this.status, this.bodyAsText())
+            throw RioHttpException(httpMethod, url, null, this.status.value, this.bodyAsText())
         }
         result.statusCode = this.status
         return result
