@@ -21,7 +21,7 @@ dependencyResolutionManagement {
             version("kotlin", "1.9.22")
             version("kotlinLogging", "6.0.3")
             version("kotlinxCoroutines", "1.7.3")
-            version("ktor", "2.3.7")
+            version("ktor", "2.3.3")
 
             library("kotlinBom", "org.jetbrains.kotlin", "kotlin-bom").versionRef("kotlin")
             library("kotlinLogging", "io.github.oshai", "kotlin-logging").versionRef("kotlinLogging")
