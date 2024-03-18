@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.spectralogic.rio"
-version = "1.2.5"
+version = "1.3.0"
 
 tasks {
     withType<JavaCompile> {
