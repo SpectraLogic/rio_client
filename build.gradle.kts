@@ -1,6 +1,6 @@
 /**
  * ***************************************************************************
- *    Copyright 2014-2023 Spectra Logic Corporation. All Rights Reserved.
+ *    Copyright 2014-2024 Spectra Logic Corporation. All Rights Reserved.
  * ***************************************************************************
  */
 
@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "com.spectralogic.rio"
-version = "2.0.8"
+version = "3.0.0"
 
 dependencies {
     implementation(platform(libs.kotlinBom))
