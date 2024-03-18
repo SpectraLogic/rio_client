@@ -5,7 +5,6 @@
  */
 package com.spectralogic.rioclient
 
-@Serializable
 data class CreateClusterRequest(
     val name: String,
     val pgHost: String,
