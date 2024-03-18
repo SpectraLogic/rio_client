@@ -5,6 +5,20 @@
  */
 package com.spectralogic.rioclient
 
+@Serializable
+data class CreateClusterRequest(
+    val name: String,
+    val pgHost: String,
+    val pgPort: Int,
+    val pgAdmin: String,
+    val pgPassword: String,
+    val dbName: String,
+    val dboLogin: String,
+    val dboPassword: String,
+    val queryLogin: String,
+    val queryPassword: String
+) : RioRequest
+
 data class ClusterResponse(
     val clusterName: String
 ) : RioResponse()

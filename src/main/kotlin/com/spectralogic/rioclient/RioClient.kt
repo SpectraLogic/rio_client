@@ -117,11 +117,11 @@ class RioClient(
     /**
      * Cluster
      */
-    suspend fun createCluster(name: String): ClusterResponse =
-        client.myPost("$api/cluster", paramMap = paramMap("name", name))
+    suspend fun createCluster(createClusterRequest: CreateClusterRequest): ClusterResponse =
+        client.myPost("$api/cluster", createClusterRequest)
 
     suspend fun joinCluster(url: String): ClusterResponse =
-        client.myPost("$api/cluster", paramMap = paramMap("cluster_url", url))
+        client.myPost("$api/cluster/join", paramMap = paramMap("cluster_url", url))
 
     suspend fun getCluster(): ClusterResponse =
         client.myGet("$api/cluster")
