@@ -97,7 +97,10 @@ class RioClient_Test {
         val mgmtBaseError = RioValidationMessage("mgmtInterface", "URI", "")
         val mgmtHostError = mgmtBaseError.copy(errorType = "unknown_host")
         val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_format")
-        val mgmtCredsError = mgmtBaseError.copy(errorType = "invalid_credentials", value = spectraDeviceMgmtInterfaceUrl)
+        val mgmtUsernameError = mgmtBaseError.copy("username", "string", errorType = "invalid_credentials")
+        val mgmtPasswordError = mgmtBaseError.copy("password", "password", errorType = "invalid_credentials")
+        val credsUserError = RioValidationMessage("username", "string", errorType = "invalid_credentials")
+        val credsPassError = RioValidationMessage("password", "password", errorType = "invalid_credentials")
 
         val spectraDeviceName = "bp-${uuid()}"
         val createRequest = spectraDeviceCreateRequest.copy(name = spectraDeviceName)
@@ -157,19 +160,31 @@ class RioClient_Test {
             ),
             Pair(
                 updateRequest.copy(username = ""),
-                listOf(mgmtCredsError)
+                listOf(
+                    credsUserError,
+                    credsPassError
+                )
             ),
             Pair(
                 updateRequest.copy(username = "bad-username"),
-                listOf(mgmtCredsError)
+                listOf(
+                    credsUserError,
+                    credsPassError
+                )
             ),
             Pair(
                 updateRequest.copy(username = "bad-username", password = "bad-password"),
-                listOf(mgmtCredsError)
+                listOf(
+                    credsUserError,
+                    credsPassError
+                )
             ),
             Pair(
                 updateRequest.copy(password = "bad-password"),
-                listOf(mgmtCredsError)
+                listOf(
+                    credsUserError,
+                    credsPassError
+                )
             )
         ).forEach { (request, expected) ->
             assertSpectraDeviceUpdateError(spectraDeviceName, request, expected)
@@ -217,19 +232,19 @@ class RioClient_Test {
             ),
             Pair(
                 createRequest.copy(username = ""),
-                listOf(mgmtCredsError)
+                listOf(mgmtUsernameError, mgmtPasswordError)
             ),
             Pair(
                 createRequest.copy(username = "bad-username"),
-                listOf(mgmtCredsError)
+                listOf(mgmtUsernameError, mgmtPasswordError)
             ),
             Pair(
                 createRequest.copy(username = "bad-username", password = "bad-password"),
-                listOf(mgmtCredsError)
+                listOf(mgmtUsernameError, mgmtPasswordError)
             ),
             Pair(
                 createRequest.copy(password = "bad-password"),
-                listOf(mgmtCredsError)
+                listOf(mgmtUsernameError, mgmtPasswordError)
             ),
             Pair(
                 createRequest.copy(name = "bad name", mgmtInterface = "bad uri"),
@@ -683,6 +698,10 @@ class RioClient_Test {
             assertThat(archiveFileStatus.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(archiveFileStatus.fileStatus).hasSize(3)
 
+            rioClient.listJobs(fileName = archiveRequest.files[1].name).let { resp ->
+                assertThat(resp.jobs).hasSize(1)
+            }
+
             val restoreJobName = "restore-job-${uuid()}"
             val restoreRequest = RestoreRequest(
                 restoreJobName,
@@ -697,6 +716,10 @@ class RioClient_Test {
             assertThat(restoreJob.numberOfFiles).isEqualTo(2)
 
             assertThat(rioClient.headJob(restoreJob.id.toString())).isTrue
+
+            rioClient.listJobs(fileName = archiveRequest.files[1].name).let { resp ->
+                assertThat(resp.jobs).hasSize(2)
+            }
 
             i = 25
             var restoreJobStatus = rioClient.jobStatus(restoreJob.id)
@@ -1104,7 +1127,7 @@ class RioClient_Test {
             },
             RioHttpException::class.java
         )
-        assertThat(ex.statusCode).isEqualTo(HttpStatusCode.BadRequest)
+        assertThat(ex.statusCode).isEqualTo(HttpStatusCode.BadRequest.value)
         assertThat(ex.errorMessage().message).isEqualTo("Log Level bad is invalid. Log level change request denied.")
     }
 
