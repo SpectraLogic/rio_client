@@ -1256,12 +1256,12 @@ class RioClient_Test {
     }
 
     @Test
-    fun systemRegisterClientTest() = blockingTest {
+    fun systemRioClientTest() = blockingTest {
         val uuid = UUID.randomUUID()
         val appName = "rio client test $uuid"
         var testNum = 0
         val testDesc = "RegisterClientTest %d"
-        val id1 = rioClient.registerRioClient(appName,"1.2.3", 9999, "/app", true).let { resp ->
+        val rc1 = rioClient.saveRioClient(appName,"1.2.3", 9999, "/app", true).let { resp ->
             assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.Created)
             assertThat(resp.application).describedAs(testDesc.format(++testNum)).isEqualTo(appName)
             assertThat(resp.version).describedAs(testDesc.format(++testNum)).isEqualTo("1.2.3")
@@ -1269,56 +1269,65 @@ class RioClient_Test {
             assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).startsWith("https://")
             assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
             assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
-            resp.id
+            resp
         }
-        rioClient.getRioClient(id1).let { resp ->
+        rioClient.getRioClient(rc1.id).let { resp ->
             assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.OK)
-            assertThat(resp.application).describedAs(testDesc.format(++testNum)).isEqualTo(appName)
-            assertThat(resp.version).describedAs(testDesc.format(++testNum)).isEqualTo("1.2.3")
-            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).startsWith("https://")
-            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).startsWith("https://")
-            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
-            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
+            assertThat(resp.application).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.application)
+            assertThat(resp.macAddress).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.macAddress)
+            assertThat(resp.version).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.version)
+            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.ipUrl)
+            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.fqdnUrl)
+            assertThat(resp.createDate).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.createDate)
+            assertThat(resp.accessDate).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.accessDate)
         }
-        rioClient.deleteRioClient(id1).let { resp ->
-            assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.NoContent)
-        }
-        try {
-            rioClient.getRioClient(id1).let { resp ->
-                assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.NotFound)
-            }
-        } catch (e: RioHttpException) {
-            assertThat(e.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.NotFound.value)
-        }
+        rioClient.listRioClients(appName).let { resp ->
+            assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.page.totalItems).describedAs(testDesc.format(++testNum)).isEqualTo(1)
 
-        val id2 = rioClient.registerRioClient(appName,"1.2.3", 9999, "app", false).let { resp ->
-            assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.Created)
-            assertThat(resp.application).describedAs(testDesc.format(++testNum)).isEqualTo(appName)
-            assertThat(resp.version).describedAs(testDesc.format(++testNum)).isEqualTo("1.2.3")
-            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).startsWith("http://")
-            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).startsWith("http://")
-            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
-            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
-            resp.id
         }
-        rioClient.getRioClient(id2).let { resp ->
+        rioClient.updateRioClient(
+            rc1.id,
+            "New name $uuid",
+            "https://10.10.10.10:1010/api",
+            "https://host.domain.com:2020/api"
+        ).let { resp ->
             assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.OK)
             assertThat(resp.application).describedAs(testDesc.format(++testNum)).isEqualTo(appName)
-            assertThat(resp.version).describedAs(testDesc.format(++testNum)).isEqualTo("1.2.3")
-            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).startsWith("http://")
-            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).startsWith("http://")
-            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
-            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
+            assertThat(resp.macAddress).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.macAddress)
+            assertThat(resp.version).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.version)
+            assertThat(resp.createDate).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.createDate)
+            assertThat(resp.accessDate).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.accessDate)
+            assertThat(resp.name).describedAs(testDesc.format(++testNum)).isEqualTo("New name $uuid")
+            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).isEqualTo("https://10.10.10.10:1010/api")
+            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).isEqualTo("https://host.domain.com:2020/api")
         }
-        rioClient.deleteRioClient(id2).let { resp ->
+        delay(1500)
+        rioClient.saveRioClient(appName,"3.2.1", 9999, "/app", true).let { resp ->
+            assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.Created)
+            assertThat(resp.application).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.application)
+            assertThat(resp.macAddress).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.macAddress)
+            assertThat(resp.version).describedAs(testDesc.format(++testNum)).isEqualTo("3.2.1")
+            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).isEqualTo("https://10.10.10.10:1010/api")
+            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).isEqualTo("https://host.domain.com:2020/api")
+            assertThat(resp.createDate).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.createDate)
+            assertThat(resp.accessDate).describedAs(testDesc.format(++testNum)).isNotEqualTo(rc1.accessDate)
+        }
+        rioClient.listRioClientApplications().let { resp ->
+            assertThat(resp.applications).describedAs(testDesc.format(++testNum)).contains(appName)
+        }
+        rioClient.deleteRioClient(rc1.id).let { resp ->
             assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.NoContent)
         }
         try {
-            rioClient.getRioClient(id2).let { resp ->
+            rioClient.getRioClient(rc1.id).let { resp ->
                 assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.NotFound)
             }
         } catch (e: RioHttpException) {
             assertThat(e.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.NotFound.value)
+        }
+        rioClient.listRioClientApplications().let { resp ->
+            assertThat(resp.applications).describedAs(testDesc.format(++testNum)).doesNotContain(appName)
         }
     }
 

@@ -637,14 +637,14 @@ class RioClient(
     suspend fun clientDataGet(dataId: UUID): ClientDataResponse =
         client.myGet("$api/system/clientData/$dataId")
 
-    suspend fun registerRioClient(
+    suspend fun saveRioClient(
         application: String,
         version: String,
         port: Int,
         urlPath: String,
         https: Boolean = false
     ): RioClientApplicationResponse {
-        val request: RioClientApplicationUpdateRequest = try {
+        val request: RioClientApplicationRequest = try {
             withContext(Dispatchers.IO) {
                 val localHost = InetAddress.getLocalHost()
                 val ip = localHost.hostAddress
@@ -656,7 +656,7 @@ class RioClient(
                 }
                 val protocol = if (https) "https://" else "http://"
                 val relUrlPath = if (urlPath.startsWith('/')) urlPath.substring(1) else urlPath
-                RioClientApplicationUpdateRequest(
+                RioClientApplicationRequest(
                     application,
                     macAddr,
                     "$protocol$ip:$port/$relUrlPath",
@@ -670,6 +670,37 @@ class RioClient(
         }
         return client.myPost("$api/system/rioclient", request)
     }
+
+    suspend fun listRioClients(
+        application: String? = null,
+        page: Long? = null,
+        perPage: Long? = null,
+        sortBy: String? = null,
+        sortOrder: String? = null
+    ): RioClientApplicationListResponse {
+        val paramMap = pageParamMap(page, perPage)
+            .plus(
+                arrayOf(
+                    Pair("application", application),
+                    Pair("sort_by", sortBy),
+                    Pair("sort_order", sortOrder)
+                )
+            )
+        return client.myGet("$api/system/rioclient", paramMap = paramMap)
+    }
+
+    suspend fun updateRioClient(
+        id: UUID,
+        name: String,
+        ipUrl: String,
+        fqdnUrl: String
+    ): RioClientApplicationResponse {
+        val request = RioClientApplicationUpdateRequest(name, ipUrl, fqdnUrl)
+        return client.myPut("$api/system/rioclient/$id", request)
+    }
+
+    suspend fun listRioClientApplications(): RioClientApplicationsListResponse =
+        client.myGet("$api/system/rioclient/applications")
 
     suspend fun getRioClient(id: UUID): RioClientApplicationResponse =
         client.myGet("$api/system/rioclient/$id")
