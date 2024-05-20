@@ -88,3 +88,26 @@ data class ClientData(
     val tag: String,
     val mapData: Map<String, String>
 )
+
+@Serializable
+data class RioClientApplicationUpdateRequest(
+    val application: String,
+    val macAddress: String,
+    val ipUrl: String,
+    val fqdnUrl: String,
+    val version: String
+) : RioRequest
+
+@Serializable
+data class RioClientApplicationResponse(
+    @Serializable(with = UUIDSerializer::class)
+    val id: UUID,
+    val name: String,
+    val application: String,
+    val macAddress: String,
+    val ipUrl: String,
+    val fqdnUrl: String,
+    val version: String,
+    val createDate: String,
+    val accessDate: String
+) : RioResponse()

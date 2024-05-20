@@ -1256,6 +1256,73 @@ class RioClient_Test {
     }
 
     @Test
+    fun systemRegisterClientTest() = blockingTest {
+        val uuid = UUID.randomUUID()
+        val appName = "rio client test $uuid"
+        var testNum = 0
+        val testDesc = "RegisterClientTest %d"
+        val id1 = rioClient.registerRioClient(appName,"1.2.3", 9999, "/app", true).let { resp ->
+            assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.Created)
+            assertThat(resp.application).describedAs(testDesc.format(++testNum)).isEqualTo(appName)
+            assertThat(resp.version).describedAs(testDesc.format(++testNum)).isEqualTo("1.2.3")
+            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).startsWith("https://")
+            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).startsWith("https://")
+            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
+            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
+            resp.id
+        }
+        rioClient.getRioClient(id1).let { resp ->
+            assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.application).describedAs(testDesc.format(++testNum)).isEqualTo(appName)
+            assertThat(resp.version).describedAs(testDesc.format(++testNum)).isEqualTo("1.2.3")
+            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).startsWith("https://")
+            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).startsWith("https://")
+            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
+            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
+        }
+        rioClient.deleteRioClient(id1).let { resp ->
+            assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.NoContent)
+        }
+        try {
+            rioClient.getRioClient(id1).let { resp ->
+                assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.NotFound)
+            }
+        } catch (e: RioHttpException) {
+            assertThat(e.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.NotFound.value)
+        }
+
+        val id2 = rioClient.registerRioClient(appName,"1.2.3", 9999, "app", false).let { resp ->
+            assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.Created)
+            assertThat(resp.application).describedAs(testDesc.format(++testNum)).isEqualTo(appName)
+            assertThat(resp.version).describedAs(testDesc.format(++testNum)).isEqualTo("1.2.3")
+            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).startsWith("http://")
+            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).startsWith("http://")
+            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
+            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
+            resp.id
+        }
+        rioClient.getRioClient(id2).let { resp ->
+            assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.application).describedAs(testDesc.format(++testNum)).isEqualTo(appName)
+            assertThat(resp.version).describedAs(testDesc.format(++testNum)).isEqualTo("1.2.3")
+            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).startsWith("http://")
+            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).startsWith("http://")
+            assertThat(resp.ipUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
+            assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).endsWith(":9999/app")
+        }
+        rioClient.deleteRioClient(id2).let { resp ->
+            assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.NoContent)
+        }
+        try {
+            rioClient.getRioClient(id2).let { resp ->
+                assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.NotFound)
+            }
+        } catch (e: RioHttpException) {
+            assertThat(e.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.NotFound.value)
+        }
+    }
+
+    @Test
     fun keysTest() = blockingTest {
         var listTokens = rioClient.listTokenKeys()
         val totalTokens = listTokens.page.totalItems
