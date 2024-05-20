@@ -73,3 +73,38 @@ data class ClientData(
     val tag: String,
     val mapData: Map<String, String>
 )
+
+data class RioClientApplicationRequest(
+    val application: String,
+    val macAddress: String,
+    val ipUrl: String,
+    val fqdnUrl: String,
+    val version: String
+) : RioRequest
+
+data class RioClientApplicationUpdateRequest(
+    val name: String,
+    val ipUrl: String,
+    val fqdnUrl: String
+) : RioRequest
+
+data class RioClientApplicationResponse(
+    val id: UUID,
+    val name: String,
+    val application: String,
+    val macAddress: String,
+    val ipUrl: String,
+    val fqdnUrl: String,
+    val version: String,
+    val createDate: String,
+    val accessDate: String
+) : RioResponse()
+
+data class RioClientApplicationListResponse(
+    val result: List<RioClientApplicationResponse>,
+    val page: PageInfo
+) : RioListResponse<RioClientApplicationResponse>(result, page)
+
+data class RioClientApplicationsListResponse(
+    val applications: List<String>
+) : RioResponse()
