@@ -35,12 +35,16 @@ import io.ktor.http.isSuccess
 import io.ktor.http.withCharset
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.charsets.Charsets
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import java.io.Closeable
+import java.net.InetAddress
+import java.net.NetworkInterface
 import java.net.URL
 import java.nio.file.Path
 import java.util.UUID
@@ -632,6 +636,77 @@ class RioClient(
     }
     suspend fun clientDataGet(dataId: UUID): ClientDataResponse =
         client.myGet("$api/system/clientData/$dataId")
+
+    suspend fun saveRioClient(
+        application: String,
+        version: String,
+        port: Int,
+        urlPath: String,
+        https: Boolean = false
+    ): RioClientApplicationResponse {
+        val request: RioClientApplicationRequest = try {
+            withContext(Dispatchers.IO) {
+                val localHost = InetAddress.getLocalHost()
+                val ip = localHost.hostAddress
+                val fqdn = localHost.canonicalHostName
+                val networkInterface = NetworkInterface.getByInetAddress(localHost)
+                val hardwareAddress = networkInterface.getHardwareAddress()
+                val macAddr: String = hardwareAddress.joinToString(":") {
+                    String.format("%02X", it)
+                }
+                val protocol = if (https) "https://" else "http://"
+                val relUrlPath = if (urlPath.startsWith('/')) urlPath.substring(1) else urlPath
+                RioClientApplicationRequest(
+                    application,
+                    macAddr,
+                    "$protocol$ip:$port/$relUrlPath",
+                    "$protocol$fqdn:$port/$relUrlPath",
+                    version
+                )
+            }
+        } catch (t: Throwable) {
+            logger.error(t) { "register failed" }
+            throw t
+        }
+        return client.myPost("$api/system/rioclient", request)
+    }
+
+    suspend fun listRioClients(
+        application: String? = null,
+        page: Long? = null,
+        perPage: Long? = null,
+        sortBy: String? = null,
+        sortOrder: String? = null
+    ): RioClientApplicationListResponse {
+        val paramMap = pageParamMap(page, perPage)
+            .plus(
+                arrayOf(
+                    Pair("application", application),
+                    Pair("sort_by", sortBy),
+                    Pair("sort_order", sortOrder)
+                )
+            )
+        return client.myGet("$api/system/rioclient", paramMap = paramMap)
+    }
+
+    suspend fun updateRioClient(
+        id: UUID,
+        name: String,
+        ipUrl: String,
+        fqdnUrl: String
+    ): RioClientApplicationResponse {
+        val request = RioClientApplicationUpdateRequest(name, ipUrl, fqdnUrl)
+        return client.myPut("$api/system/rioclient/$id", request)
+    }
+
+    suspend fun listRioClientApplications(): RioClientApplicationsListResponse =
+        client.myGet("$api/system/rioclient/applications")
+
+    suspend fun getRioClient(id: UUID): RioClientApplicationResponse =
+        client.myGet("$api/system/rioclient/$id")
+
+    suspend fun deleteRioClient(id: UUID): EmptyResponse =
+        client.myDelete("$api/system/rioclient/$id")
 
     override fun close() {
         client.close()
