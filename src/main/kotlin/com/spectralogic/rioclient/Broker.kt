@@ -108,6 +108,16 @@ fun SglLtfsAgentConfig.toConfigMap(): Map<String, String> {
     }
 }
 
+data class NasAgentConfig(
+    val uri: String
+) : AgentConfig()
+
+fun NasAgentConfig.toConfigMap(): Map<String, String> {
+    return buildMap {
+        put("uri", uri)
+    }
+}
+
 data class AgentCreateRequest(
     val name: String,
     val type: String,

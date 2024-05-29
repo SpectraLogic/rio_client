@@ -15,11 +15,15 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.io.File
 import java.net.URI
 import java.net.URL
 import java.nio.file.Path
 import java.time.ZonedDateTime
 import java.util.UUID
+import kotlin.io.path.absolute
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.writeText
 
 @Tag("test")
 class RioClient_Test {
@@ -45,8 +49,7 @@ class RioClient_Test {
         private lateinit var divaPassword: String
         private lateinit var divaCategory: String
 
-        private const val username = "spectra"
-        private const val password = "spectra"
+        private lateinit var rio_username: String
 
         private const val deviceResourceErrorFmt = "Resource of type DEVICE and name %s does not exist"
         private const val invalidNameMsg = "names can only contain the characters: [a-z], [0-9], '-' and '_'"
@@ -57,7 +60,12 @@ class RioClient_Test {
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
-            rioClient = RioClient(URL(getenvValue("ESCAPEPOD_URL", "https://localhost:5050")), username, password)
+            rio_username = getenvValue("ESCAPEPOD_USERNAME", "spectra")
+            rioClient = RioClient(
+                URL(getenvValue("ESCAPEPOD_URL", "https://localhost:5050")),
+                rio_username,
+                getenvValue("ESCAPEPOD_PASSWORD", "spectra")
+            )
 
             spectraDeviceName = getenvValue("BP_DEVICE_NAME", "rioclient_bp")
             spectraDeviceMgmtInterfaceUrl = getenvValue("MGMT_INTERFACE_URL", "https://sm25-2-mgmt.eng.sldomain.com")
@@ -97,7 +105,8 @@ class RioClient_Test {
         val mgmtBaseError = RioValidationMessage("mgmtInterface", "URI", "")
         val mgmtHostError = mgmtBaseError.copy(errorType = "unknown_host")
         val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_format")
-        val mgmtCredsError = mgmtBaseError.copy(errorType = "invalid_credentials", value = spectraDeviceMgmtInterfaceUrl)
+        val mgmtCredsUserError = RioValidationMessage("username", "string", "invalid_credentials")
+        val mgmtCredsPassError = RioValidationMessage("password", "password", "invalid_credentials")
 
         val spectraDeviceName = "bp-${uuid()}"
         val createRequest = spectraDeviceCreateRequest.copy(name = spectraDeviceName)
@@ -153,19 +162,19 @@ class RioClient_Test {
             ),
             Pair(
                 updateRequest.copy(username = ""),
-                listOf(mgmtCredsError)
+                listOf(mgmtCredsUserError, mgmtCredsPassError)
             ),
             Pair(
                 updateRequest.copy(username = "bad-username"),
-                listOf(mgmtCredsError)
+                listOf(mgmtCredsUserError, mgmtCredsPassError)
             ),
             Pair(
                 updateRequest.copy(username = "bad-username", password = "bad-password"),
-                listOf(mgmtCredsError)
+                listOf(mgmtCredsUserError, mgmtCredsPassError)
             ),
             Pair(
                 updateRequest.copy(password = "bad-password"),
-                listOf(mgmtCredsError)
+                listOf(mgmtCredsUserError, mgmtCredsPassError)
             )
         ).forEach { (request, expected) ->
             assertSpectraDeviceUpdateError(spectraDeviceName, request, expected)
@@ -213,19 +222,19 @@ class RioClient_Test {
             ),
             Pair(
                 createRequest.copy(username = ""),
-                listOf(mgmtCredsError)
+                listOf(mgmtCredsUserError, mgmtCredsPassError)
             ),
             Pair(
                 createRequest.copy(username = "bad-username"),
-                listOf(mgmtCredsError)
+                listOf(mgmtCredsUserError, mgmtCredsPassError)
             ),
             Pair(
                 createRequest.copy(username = "bad-username", password = "bad-password"),
-                listOf(mgmtCredsError)
+                listOf(mgmtCredsUserError, mgmtCredsPassError)
             ),
             Pair(
                 createRequest.copy(password = "bad-password"),
-                listOf(mgmtCredsError)
+                listOf(mgmtCredsUserError, mgmtCredsPassError)
             ),
             Pair(
                 createRequest.copy(name = "bad name", mgmtInterface = "bad uri"),
@@ -462,6 +471,32 @@ class RioClient_Test {
             RioHttpException::class.java
         )
         assertRioValidationError(ex, expected)
+    }
+
+    @Test
+    fun nasBrokerTest(@TempDir tempDir: Path) = blockingTest {
+        val uuid = UUID.randomUUID()
+        val tempPath = tempDir.absolute().toString().split(File.separator).joinToString("/")
+        val firstFile = tempDir.resolve("first.txt")
+        firstFile.writeText("abc".repeat(10))
+        val brokerName = "nas-broker-$uuid"
+        val agentConfig = NasAgentConfig(
+            URI("file:///$tempPath").toString()
+        )
+        rioClient.createBroker(
+            BrokerCreateRequest(
+                brokerName,
+                "nas-agent",
+                agentConfig,
+                "nas_agent"
+            )
+        )
+        rioClient.listObjects(brokerName).let { resp ->
+            assertThat(resp.page.totalItems).isEqualTo(1)
+            assertThat(resp.objects.firstOrNull()?.name).isEqualTo("first.txt")
+        }
+        firstFile.deleteIfExists()
+        tempDir.deleteIfExists()
     }
 
     @Test
@@ -1107,11 +1142,12 @@ class RioClient_Test {
         val total = 6L
         var testNum = 0
         val cdtDescFmt = "ClientDataTest %d"
+        val uuid = uuid()
 
         (1..total).forEach { idx ->
-            val clientDataId = "clientDataId-$idx"
-            val clientName = "clientName"
-            val tag = "tag-${idx % 2}"
+            val clientDataId = "clientDataId-$uuid-$idx"
+            val clientName = "clientName-$uuid"
+            val tag = "tag-$uuid-${idx % 2}"
             val mapData = mapOf(
                 Pair("key1-$idx", "val1-$idx"),
                 Pair("key2-$idx", "val2-$idx"),
@@ -1125,11 +1161,11 @@ class RioClient_Test {
             assertThat(data.mapData).isEqualTo(mapData)
         }
 
-        var listData = rioClient.clientDataList(clientDataId = "clientDataId-*")
+        var listData = rioClient.clientDataList(clientDataId = "clientDataId-$uuid-*")
         assertThat(listData.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
         assertThat(listData.page.totalItems).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(total)
         assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(total.toInt())
-        listData = rioClient.clientDataList(clientDataId = "clientDataId-1")
+        listData = rioClient.clientDataList(clientDataId = "clientDataId-$uuid-1")
         assertThat(listData.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
         assertThat(listData.page.totalItems).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(1)
         assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(1)
@@ -1139,20 +1175,20 @@ class RioClient_Test {
         assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(0)
 
         val half = total / 2
-        listData = rioClient.clientDataList(tag = "tag-*")
+        listData = rioClient.clientDataList(tag = "tag-$uuid-*")
         assertThat(listData.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
         assertThat(listData.page.totalItems).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(total)
         assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(total.toInt())
-        listData = rioClient.clientDataList(tag = "tag-0")
+        listData = rioClient.clientDataList(tag = "tag-$uuid-0")
         assertThat(listData.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
         assertThat(listData.page.totalItems).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(half)
         assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(half.toInt())
-        listData = rioClient.clientDataList(tag = "tag-1")
+        listData = rioClient.clientDataList(tag = "tag-$uuid-1")
         assertThat(listData.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
         assertThat(listData.page.totalItems).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(half)
         assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(half.toInt())
 
-        listData = rioClient.clientDataList(clientDataId = "clientDataId-*", page = 1, perPage = 2)
+        listData = rioClient.clientDataList(clientDataId = "clientDataId-$uuid-*", page = 1, perPage = 2)
         assertThat(listData.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
         assertThat(listData.page.totalItems).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(total)
         assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(2)
@@ -1193,7 +1229,7 @@ class RioClient_Test {
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
         }
 
-        val resp = rioClient.clientDataList(clientDataId = "clientDataId-*")
+        val resp = rioClient.clientDataList(clientDataId = "clientDataId-$uuid-*")
         assertThat(resp.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
         assertThat(resp.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(0)
     }
@@ -1281,7 +1317,7 @@ class RioClient_Test {
 
         val createToken = rioClient.createApiToken(TokenCreateRequest())
         assertThat(createToken.statusCode).isEqualTo(HttpStatusCode.Created)
-        assertThat(createToken.userName).isEqualTo(username)
+        assertThat(createToken.userName).isEqualTo(rio_username)
         assertThat(createToken.creationDate).isNotNull
         assertThat(createToken.id).isNotNull
         assertThat(createToken.expirationDate).isNull()
@@ -1289,7 +1325,7 @@ class RioClient_Test {
         val expireZdt = ZonedDateTime.now().plusDays(2)
         val longToken = rioClient.createApiToken(TokenCreateRequest(expireZdt.toString()))
         assertThat(longToken.statusCode).isEqualTo(HttpStatusCode.Created)
-        assertThat(longToken.userName).isEqualTo(username)
+        assertThat(longToken.userName).isEqualTo(rio_username)
         assertThat(longToken.expirationDate).isNotNull
         val expirationDate = ZonedDateTime.parse(longToken.expirationDate)
         assertThat(expirationDate).isBefore(expireZdt.plusMinutes(1))
