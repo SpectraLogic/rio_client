@@ -36,6 +36,8 @@ import io.ktor.http.withCharset
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.charsets.Charsets
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -669,6 +671,20 @@ class RioClient(
             throw t
         }
         return client.myPost("$api/system/rioclient", request)
+    }
+
+    suspend fun saveRioClientSilent(
+        application: String,
+        version: String,
+        port: Int,
+        urlPath: String,
+        https: Boolean = false
+    ) {
+        coroutineScope {
+            launch {
+                saveRioClient(application, version, port, urlPath, https)
+            }
+        }
     }
 
     suspend fun listRioClients(
