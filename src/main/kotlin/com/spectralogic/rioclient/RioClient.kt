@@ -36,6 +36,8 @@ import io.ktor.http.withCharset
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.charsets.Charsets
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -678,8 +680,10 @@ class RioClient(
         urlPath: String,
         https: Boolean = false
     ) {
-        withContext(Dispatchers.IO) {
-            saveRioClient(application, version, port, urlPath, https)
+        coroutineScope {
+            launch {
+                saveRioClient(application, version, port, urlPath, https)
+            }
         }
     }
 
@@ -723,6 +727,10 @@ class RioClient(
     override fun close() {
         client.close()
     }
+
+    /**
+     * Private worker methods
+     */
 
     /**
      * Private worker methods
