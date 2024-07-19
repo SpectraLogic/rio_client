@@ -731,7 +731,7 @@ class RioClient(
     /**
      * Private worker methods
      */
-    
+
     private fun Map<String, Any?>?.queryString(): String =
         this?.let {
             "?" + it.map { (k, v) ->
