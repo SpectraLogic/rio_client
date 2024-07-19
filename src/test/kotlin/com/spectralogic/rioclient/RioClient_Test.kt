@@ -1261,7 +1261,7 @@ class RioClient_Test {
         val appName = "rio client test $uuid"
         var testNum = 0
         val testDesc = "RegisterClientTest %d"
-        val rc1 = rioClient.saveRioClient(appName,"1.2.3", 9999, "/app", true).let { resp ->
+        val rc1 = rioClient.saveRioClient(appName, "1.2.3", 9999, "/app", true).let { resp ->
             assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.Created)
             assertThat(resp.application).describedAs(testDesc.format(++testNum)).isEqualTo(appName)
             assertThat(resp.version).describedAs(testDesc.format(++testNum)).isEqualTo("1.2.3")
@@ -1284,7 +1284,6 @@ class RioClient_Test {
         rioClient.listRioClients(appName).let { resp ->
             assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.OK)
             assertThat(resp.page.totalItems).describedAs(testDesc.format(++testNum)).isEqualTo(1)
-
         }
         rioClient.updateRioClient(
             rc1.id,
@@ -1303,7 +1302,7 @@ class RioClient_Test {
             assertThat(resp.fqdnUrl).describedAs(testDesc.format(++testNum)).isEqualTo("https://host.domain.com:2020/api")
         }
         delay(1500)
-        rioClient.saveRioClient(appName,"3.2.1", 9999, "/app", true).let { resp ->
+        rioClient.saveRioClient(appName, "3.2.1", 9999, "/app", true).let { resp ->
             assertThat(resp.statusCode).describedAs(testDesc.format(++testNum)).isEqualTo(HttpStatusCode.Created)
             assertThat(resp.application).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.application)
             assertThat(resp.macAddress).describedAs(testDesc.format(++testNum)).isEqualTo(rc1.macAddress)
