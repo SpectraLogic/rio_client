@@ -671,6 +671,18 @@ class RioClient(
         return client.myPost("$api/system/rioclient", request)
     }
 
+    suspend fun saveRioClientSilent(
+        application: String,
+        version: String,
+        port: Int,
+        urlPath: String,
+        https: Boolean = false
+    ) {
+        withContext(Dispatchers.IO) {
+            saveRioClient(application, version, port, urlPath, https)
+        }
+    }
+
     suspend fun listRioClients(
         application: String? = null,
         page: Long? = null,
