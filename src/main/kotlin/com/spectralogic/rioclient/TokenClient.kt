@@ -18,7 +18,7 @@ internal class TokenClient(
     private val endpoint: URL,
     private val username: String,
     private val password: String
-): Closeable {
+) : Closeable {
     private val api by lazy { "$endpoint/api" }
 
     private val client = HttpClient(CIO) {
