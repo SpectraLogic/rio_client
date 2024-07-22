@@ -11,9 +11,14 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import java.io.Closeable
 import java.net.URL
 
-internal class TokenClient(private val endpoint: URL, private val username: String, private val password: String) {
+internal class TokenClient(
+    private val endpoint: URL,
+    private val username: String,
+    private val password: String
+): Closeable {
     private val api by lazy { "$endpoint/api" }
 
     private val client = HttpClient(CIO) {
@@ -38,5 +43,9 @@ internal class TokenClient(private val endpoint: URL, private val username: Stri
             setBody(UserLoginCredentials(username, password))
         }.body()
         return response.token
+    }
+
+    override fun close() {
+        client.close()
     }
 }
