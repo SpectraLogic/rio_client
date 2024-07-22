@@ -35,7 +35,10 @@ import io.ktor.http.isSuccess
 import io.ktor.http.withCharset
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.charsets.Charsets
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -678,11 +681,14 @@ class RioClient(
         version: String,
         port: Int,
         urlPath: String,
-        https: Boolean = false
+        https: Boolean = false,
+        coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO + CoroutineName("RioClientRegister") + SupervisorJob())
     ) {
-        coroutineScope {
-            launch {
+        coroutineScope.launch {
+            try {
                 saveRioClient(application, version, port, urlPath, https)
+            } catch (t: Throwable) {
+                logger.error(t) { "register failed" }
             }
         }
     }
