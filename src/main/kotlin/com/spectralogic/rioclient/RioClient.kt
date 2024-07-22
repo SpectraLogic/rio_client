@@ -682,7 +682,7 @@ class RioClient(
         port: Int,
         urlPath: String,
         https: Boolean = false,
-        coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO + CoroutineName("RioClientRegister") +  SupervisorJob())
+        coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO + CoroutineName("RioClientRegister") + SupervisorJob())
     ) {
         coroutineScope.launch {
             try {
