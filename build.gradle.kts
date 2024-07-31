@@ -29,7 +29,7 @@ dependencies {
     implementation(libs.ktorClientContentNegotiation)
     implementation(libs.ktorClientAuth)
     implementation(libs.ktorSerializationKotlinxJson)
-//    implementation(libs.kotlinLogging)
+    implementation(libs.kotlinLogging)
 
     // Test
     testImplementation(libs.assertjCore)
