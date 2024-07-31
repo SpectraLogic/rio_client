@@ -605,24 +605,29 @@ class RioClient(
         urlPath: String,
         https: Boolean = false
     ): RioClientApplicationResponse {
-        val request: RioClientApplicationRequest = withContext(Dispatchers.IO) {
-            val localHost = InetAddress.getLocalHost()
-            val ip = localHost.hostAddress
-            val fqdn = localHost.canonicalHostName
-            val networkInterface = NetworkInterface.getByInetAddress(localHost)
-            val hardwareAddress = networkInterface.getHardwareAddress()
-            val macAddr: String = hardwareAddress.joinToString(":") {
-                String.format("%02X", it)
+        val request: RioClientApplicationRequest = try {
+            withContext(Dispatchers.IO) {
+                val localHost = InetAddress.getLocalHost()
+                val ip = localHost.hostAddress
+                val fqdn = localHost.canonicalHostName
+                val networkInterface = NetworkInterface.getByInetAddress(localHost)
+                val hardwareAddress = networkInterface.getHardwareAddress()
+                val macAddr: String = hardwareAddress.joinToString(":") {
+                    String.format("%02X", it)
+                }
+                val protocol = if (https) "https://" else "http://"
+                val relUrlPath = if (urlPath.startsWith('/')) urlPath.substring(1) else urlPath
+                RioClientApplicationRequest(
+                    application,
+                    macAddr,
+                    "$protocol$ip:$port/$relUrlPath",
+                    "$protocol$fqdn:$port/$relUrlPath",
+                    version
+                )
             }
-            val protocol = if (https) "https://" else "http://"
-            val relUrlPath = if (urlPath.startsWith('/')) urlPath.substring(1) else urlPath
-            RioClientApplicationRequest(
-                application,
-                macAddr,
-                "$protocol$ip:$port/$relUrlPath",
-                "$protocol$fqdn:$port/$relUrlPath",
-                version
-            )
+        } catch (t: Throwable) {
+            logger.error(t) { "register failed" }
+            throw t
         }
         return client.myPost("$api/system/rioclient", request)
     }
