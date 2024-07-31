@@ -5,6 +5,7 @@
  */
 package com.spectralogic.rioclient
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
@@ -54,6 +55,7 @@ class RioClient(
 ) : Closeable {
 
     private companion object {
+        private val logger = KotlinLogging.logger {}
         private val jsonContentType = ContentType.Application.Json.withCharset(Charsets.UTF_8)
     }
 
@@ -636,7 +638,9 @@ class RioClient(
         coroutineScope.launch {
             try {
                 saveRioClient(application, version, port, urlPath, https)
-            } catch (t: Throwable) {}
+            } catch (t: Throwable) {
+                logger.error(t) { "register failed" }
+            }
         }
     }
 
