@@ -49,12 +49,12 @@ class RioHttpException(
     val httpMethod: HttpMethod,
     val urlStr: String,
     override val cause: Throwable? = null,
-    val statusCode: HttpStatusCode = HttpStatusCode.BadRequest,
+    val statusCode: Int = HttpStatusCode.BadRequest.value,
     private val payload: String? = null
 ) : RuntimeException(cause?.message ?: payload, cause) {
     private val rioErrorMessage: RioErrorMessage =
-        payload.asRioErrorMessage(statusCode.value)
-            ?: RioDefaultErrorMessage(cause?.message ?: "Error", statusCode.value)
+        payload.asRioErrorMessage(statusCode)
+            ?: RioDefaultErrorMessage(cause?.message ?: "Error", statusCode)
 
     fun httpMethod() = httpMethod
     fun statusCode() = statusCode

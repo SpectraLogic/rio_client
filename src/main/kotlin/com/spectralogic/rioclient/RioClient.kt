@@ -26,11 +26,19 @@ import io.ktor.http.isSuccess
 import io.ktor.http.withCharset
 import io.ktor.utils.io.charsets.Charsets
 import io.ktor.utils.io.core.Closeable
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
+import java.net.InetAddress
+import java.net.NetworkInterface
 import java.net.URL
 import java.nio.file.Path
 import java.util.UUID
@@ -74,11 +82,11 @@ class RioClient(
     /**
      * Cluster
      */
-    suspend fun createCluster(name: String): ClusterResponse =
-        client.myPost("$api/cluster", paramMap = paramMap("name", name))
+    suspend fun createCluster(createClusterRequest: CreateClusterRequest): ClusterResponse =
+        client.myPost("$api/cluster", createClusterRequest)
 
     suspend fun joinCluster(url: String): ClusterResponse =
-        client.myPost("$api/cluster", paramMap = paramMap("cluster_url", url))
+        client.myPost("$api/cluster/join", paramMap = paramMap("cluster_url", url))
 
     suspend fun getCluster(): ClusterResponse =
         client.myGet("$api/cluster")
@@ -461,7 +469,8 @@ class RioClient(
         sortBy: String? = null,
         sortOrder: String? = null,
         page: Long? = null,
-        perPage: Long? = null
+        perPage: Long? = null,
+        fileName: String? = null
     ): JobListResponse {
         val paramMap = pageParamMap(page, perPage)
             .plus(
@@ -472,6 +481,7 @@ class RioClient(
                     Pair("creation_date_start", creation_date_start),
                     Pair("creation_date_end", creation_date_end),
                     Pair("job_name", jobName),
+                    Pair("file_name", fileName),
                     Pair("sort_by", sortBy),
                     Pair("sort_order", sortOrder)
                 )
@@ -585,6 +595,87 @@ class RioClient(
     }
     suspend fun clientDataGet(dataId: UUID): ClientDataResponse =
         client.myGet("$api/system/clientData/$dataId")
+
+    suspend fun saveRioClient(
+        application: String,
+        version: String,
+        port: Int,
+        urlPath: String,
+        https: Boolean = false
+    ): RioClientApplicationResponse {
+        val request: RioClientApplicationRequest = withContext(Dispatchers.IO) {
+            val localHost = InetAddress.getLocalHost()
+            val ip = localHost.hostAddress
+            val fqdn = localHost.canonicalHostName
+            val networkInterface = NetworkInterface.getByInetAddress(localHost)
+            val hardwareAddress = networkInterface.getHardwareAddress()
+            val macAddr: String = hardwareAddress.joinToString(":") {
+                String.format("%02X", it)
+            }
+            val protocol = if (https) "https://" else "http://"
+            val relUrlPath = if (urlPath.startsWith('/')) urlPath.substring(1) else urlPath
+            RioClientApplicationRequest(
+                application,
+                macAddr,
+                "$protocol$ip:$port/$relUrlPath",
+                "$protocol$fqdn:$port/$relUrlPath",
+                version
+            )
+        }
+        return client.myPost("$api/system/rioclient", request)
+    }
+
+    suspend fun saveRioClientSilent(
+        application: String,
+        version: String,
+        port: Int,
+        urlPath: String,
+        https: Boolean = false,
+        coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO + CoroutineName("RioClientRegister") + SupervisorJob())
+    ) {
+        coroutineScope.launch {
+            try {
+                saveRioClient(application, version, port, urlPath, https)
+            } catch (t: Throwable) {}
+        }
+    }
+
+    suspend fun listRioClients(
+        application: String? = null,
+        page: Long? = null,
+        perPage: Long? = null,
+        sortBy: String? = null,
+        sortOrder: String? = null
+    ): RioClientApplicationListResponse {
+        val paramMap = pageParamMap(page, perPage)
+            .plus(
+                arrayOf(
+                    Pair("application", application),
+                    Pair("sort_by", sortBy),
+                    Pair("sort_order", sortOrder)
+                )
+            )
+        return client.myGet("$api/system/rioclient", paramMap = paramMap)
+    }
+
+    suspend fun updateRioClient(
+        id: UUID,
+        name: String,
+        ipUrl: String,
+        fqdnUrl: String
+    ): RioClientApplicationResponse {
+        val request = RioClientApplicationUpdateRequest(name, ipUrl, fqdnUrl)
+        return client.myPut("$api/system/rioclient/$id", request)
+    }
+
+    suspend fun listRioClientApplications(): RioClientApplicationsListResponse =
+        client.myGet("$api/system/rioclient/applications")
+
+    suspend fun getRioClient(id: UUID): RioClientApplicationResponse =
+        client.myGet("$api/system/rioclient/$id")
+
+    suspend fun deleteRioClient(id: UUID): EmptyResponse =
+        client.myDelete("$api/system/rioclient/$id")
 
     override fun close() {
         client.close()
@@ -719,7 +810,7 @@ class RioClient(
                 this.body()
             }
         } else {
-            throw RioHttpException(httpMethod, url, null, this.status, this.bodyAsText())
+            throw RioHttpException(httpMethod, url, null, this.status.value, this.bodyAsText())
         }
         result.statusCode = this.status
         return result

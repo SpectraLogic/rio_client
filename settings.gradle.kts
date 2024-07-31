@@ -18,7 +18,7 @@ dependencyResolutionManagement {
         create("libs") {
             version("assertj", "3.23.1")
             version("junit", "5.8.2")
-            version("kotlin", "1.9.20")
+            version("kotlin", "1.9.22")
 //            version("kotlinLogging", "7.0.0")
             version("kotlinxCoroutines", "1.8.1")
             version("ktor", "2.3.12")
