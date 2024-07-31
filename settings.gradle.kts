@@ -18,13 +18,13 @@ dependencyResolutionManagement {
         create("libs") {
             version("assertj", "3.23.1")
             version("junit", "5.8.2")
-            version("kotlin", "1.9.10")
-            version("kotlinLogging", "5.1.0")
-            version("kotlinxCoroutines", "1.7.3")
-            version("ktor", "2.3.3")
+            version("kotlin", "1.9.20")
+//            version("kotlinLogging", "7.0.0")
+            version("kotlinxCoroutines", "1.8.1")
+            version("ktor", "2.3.12")
 
             library("kotlinBom", "org.jetbrains.kotlin", "kotlin-bom").versionRef("kotlin")
-            library("kotlinLogging", "io.github.oshai", "kotlin-logging").versionRef("kotlinLogging")
+//            library("kotlinLogging", "io.github.oshai", "kotlin-logging").versionRef("kotlinLogging")
             library("kotlinxCoroutinesCore", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef("kotlinxCoroutines")
             library("ktorBom", "io.ktor", "ktor-bom").versionRef("ktor")
             library("ktorClientAuth", "io.ktor", "ktor-client-auth").withoutVersion()

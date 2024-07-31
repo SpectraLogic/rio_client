@@ -5,18 +5,9 @@
  */
 package com.spectralogic.rioclient
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.auth.Auth
-import io.ktor.client.plugins.auth.providers.BearerTokens
-import io.ktor.client.plugins.auth.providers.bearer
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.head
@@ -33,70 +24,34 @@ import io.ktor.http.contentLength
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.http.withCharset
-import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.charsets.Charsets
+import io.ktor.utils.io.core.Closeable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
-import java.io.Closeable
 import java.net.URL
 import java.nio.file.Path
 import java.util.UUID
+import kotlin.time.Duration.Companion.seconds
 
 class RioClient(
     rioUrl: URL,
     username: String = "spectra",
     password: String = "spectra",
-    private val requestTimeout: Long = 60L * 1000L, // 60 seconds
-    private val verbose: Boolean = false
+    requestTimeout: Long = 60.seconds.inWholeMilliseconds,
+    verbose: Boolean = false,
+    private val client: HttpClient = HttpClientFactory.createHttpClient(username, password, verbose, requestTimeout)
 ) : Closeable {
 
-    companion object {
-        private val logger = KotlinLogging.logger {}
+    private companion object {
+        private val jsonContentType = ContentType.Application.Json.withCharset(Charsets.UTF_8)
     }
 
     @Serializable
     private data class MyMetadata(val metadata: Map<String, String>) : RioRequest
     private val api by lazy { "$rioUrl/api" }
-    private val tokenClient: TokenClient = TokenClient(rioUrl, username, password)
-    private val jsonContentType = ContentType.Application.Json.withCharset(Charsets.UTF_8)
-
-    private val client = HttpClient(CIO) {
-        engine {
-            https {
-                this.trustManager = TrustManager
-            }
-        }
-        install(HttpTimeout) {
-            requestTimeoutMillis = requestTimeout
-        }
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                }
-            )
-        }
-        install(Auth) {
-            bearer {
-                loadTokens {
-                    BearerTokens(tokenClient.getShortToken(), "")
-                }
-                refreshTokens {
-                    BearerTokens(tokenClient.getShortToken(), "")
-                }
-            }
-        }
-        install(Logging) {
-            if (verbose) {
-                level = LogLevel.ALL
-            } else {
-                level = LogLevel.NONE
-            }
-        }
-    }
 
     /**
      * Keys

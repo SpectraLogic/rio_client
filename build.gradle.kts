@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "com.spectralogic.rio"
-version = "2.0.7"
+version = "2.0.8"
 
 dependencies {
     implementation(platform(libs.kotlinBom))
@@ -29,7 +29,7 @@ dependencies {
     implementation(libs.ktorClientContentNegotiation)
     implementation(libs.ktorClientAuth)
     implementation(libs.ktorSerializationKotlinxJson)
-    implementation(libs.kotlinLogging)
+//    implementation(libs.kotlinLogging)
 
     // Test
     testImplementation(libs.assertjCore)
