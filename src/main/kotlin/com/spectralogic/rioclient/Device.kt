@@ -137,6 +137,7 @@ data class FlashnetDeviceListResponse(
     val page: PageInfo
 ) : RioListResponse<FlashnetDeviceData>(devices, page)
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class S3CDeviceCreateRequest(
     val name: String,
     val accessKey: String,
@@ -147,6 +148,7 @@ data class S3CDeviceCreateRequest(
     val https: String
 ) : RioRequest
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class S3CDeviceUpdateRequest(
     val accessKey: String,
     val secretKey: String,
