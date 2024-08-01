@@ -294,6 +294,7 @@ class RioClient_Test {
         assertRioValidationError(ex, expected)
     }
 
+    // TODO: s3cDeviceTest
     // TODO: vailDeviceTest
     // TODO: flashnetDeviceTest
     // TODO: tbpfrDeviceTest
