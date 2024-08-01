@@ -137,6 +137,51 @@ data class FlashnetDeviceListResponse(
     val page: PageInfo
 ) : RioListResponse<FlashnetDeviceData>(devices, page)
 
+data class S3CDeviceCreateRequest(
+    val name: String,
+    val accessKey: String,
+    val secretKey: String,
+    val endpoint: String? = null,
+    val port: String? = null,
+    val region: String? = null,
+    val https: String
+) : RioRequest
+
+data class S3CDeviceUpdateRequest(
+    val accessKey: String,
+    val secretKey: String,
+    val endpoint: String? = null,
+    val port: String? = null,
+    val region: String? = null,
+    val https: String
+) : RioRequest
+
+data class S3CDeviceResponse(
+    val name: String,
+    val endpoint: String? = null,
+    val port: Int? = null,
+    val region: String? = null,
+    val https: Boolean,
+    val accessKey: String
+) : RioResponse()
+
+data class S3CDeviceData(
+    val name: String,
+    val endpoint: String? = null,
+    val port: Int? = null,
+    val region: String? = null,
+    val https: Boolean,
+    val accessKey: String
+)
+
+data class S3CDeviceListResponse(
+    val devices: List<S3CDeviceData>,
+    val page: PageInfo
+) : RioListResponse<S3CDeviceData>(devices, page) {
+    fun page() = page
+    fun results() = devices
+}
+
 data class TbpfrDeviceCreateRequest(
     val name: String,
     val endpoint: String,
