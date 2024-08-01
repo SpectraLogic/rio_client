@@ -45,6 +45,16 @@ import java.nio.file.Path
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * RioClient
+ * @param rioUrl URL Spectra Rio URL to connect to
+ * @param username String the username to use for authentication
+ * @param password String the password to use for authentication
+ * @param requestTimeout Long the request timeout in milliseconds default is 60 seconds
+ * @param verbose Boolean if true print debug information default is false
+ * @param client HttpClient the HttpClient to use default is created by the factory. Only pass in for testing purposes
+ */
+
 class RioClient(
     rioUrl: URL,
     username: String = "spectra",
