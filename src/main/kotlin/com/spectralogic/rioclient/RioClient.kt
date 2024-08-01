@@ -181,6 +181,25 @@ class RioClient(
     suspend fun listFlashnetDevices(page: Long? = null, perPage: Long? = null): FlashnetDeviceListResponse =
         client.myGet("$api/devices/flashnet", paramMap = pageParamMap(page, perPage))
 
+    // S3C
+    suspend fun createS3cDevice(s3cDeviceCreateRequest: S3CDeviceCreateRequest): S3CDeviceResponse =
+        client.myPost("$api/devices/s3c", s3cDeviceCreateRequest)
+
+    suspend fun updateS3cDevice(name: String, s3cDeviceUpdateRequest: S3CDeviceUpdateRequest): S3CDeviceResponse =
+        client.myPut("$api/devices/s3c/$name", s3cDeviceUpdateRequest)
+
+    suspend fun deleteS3cDevice(name: String): EmptyResponse =
+        client.myDelete("$api/devices/s3c/$name")
+
+    suspend fun getS3cDevice(name: String): S3CDeviceResponse =
+        client.myGet("$api/devices/s3c/$name")
+
+    suspend fun headS3cDevice(name: String): Boolean =
+        client.myHead("$api/devices/s3c/$name")
+
+    suspend fun listS3cDevices(page: Long? = null, perPage: Long? = null): S3CDeviceListResponse =
+        client.myGet("$api/devices/s3c", paramMap = pageParamMap(page, perPage))
+
     // TBPFR
     suspend fun createTbpfrDevice(tbpfrDeviceCreateRequest: TbpfrDeviceCreateRequest): TbpfrDeviceResponse =
         client.myPost("$api/devices/tbpfr", tbpfrDeviceCreateRequest)
