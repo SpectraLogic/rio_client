@@ -64,6 +64,18 @@ fun VailAgentConfig.toConfigMap(): Map<String, String> {
     }
 }
 
+data class S3CAgentConfig(
+    val s3cDeviceName: String,
+    val bucket: String
+) : AgentConfig()
+
+fun S3CAgentConfig.toConfigMap(): Map<String, String> {
+    return buildMap {
+        put("s3cDeviceName", s3cDeviceName)
+        put("bucket", bucket)
+    }
+}
+
 data class DivaAgentConfig(
     val divaDeviceName: String,
     val category: String,
