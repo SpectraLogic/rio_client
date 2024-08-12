@@ -75,6 +75,18 @@ data class VailAgentConfig(
 }
 
 @Serializable
+data class S3CAgentConfig(
+    val s3cDeviceName: String,
+    val bucket: String
+) : AgentConfig() {
+    override fun toConfigMap(): Map<String, String> =
+        buildMap {
+            put("s3cDeviceName", s3cDeviceName)
+            put("bucket", bucket)
+        }
+}
+
+@Serializable
 data class DivaAgentConfig(
     val divaDeviceName: String,
     val category: String,
