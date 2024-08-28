@@ -1378,6 +1378,51 @@ class RioClient_Test {
         }
     }
 
+    @Test
+    fun userTest() = blockingTest {
+        val username = "user-${uuid()}"
+
+        assertThat(rioClient.headUserLogin(username)).isFalse()
+        rioClient.createUserLogin(
+            UserCreateRequest(username, "password", true)
+        ).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+            assertThat(resp.username).isEqualTo(username)
+            assertThat(resp.active).isTrue()
+            assertThat(resp.local).isTrue()
+        }
+        assertThat(rioClient.headUserLogin(username)).isTrue()
+        rioClient.getUserLogin(username).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.username).isEqualTo(username)
+            assertThat(resp.active).isTrue()
+            assertThat(resp.local).isTrue()
+        }
+        rioClient.listUserLogins().let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.users.map { it.username }).contains(username)
+        }
+        rioClient.updateUserLogin(
+            username,
+            UserUpdateRequest("new-password", true)
+        ).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.username).isEqualTo(username)
+            assertThat(resp.active).isTrue()
+            assertThat(resp.local).isTrue()
+        }
+        rioClient.activateUser(username, false).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.username).isEqualTo(username)
+            assertThat(resp.active).isFalse()
+            assertThat(resp.local).isTrue()
+        }
+        rioClient.deleteUserLogin(username).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
+        }
+        assertThat(rioClient.headUserLogin(username)).isFalse()
+    }
+
     private suspend fun ensureBrokerExists() {
         if (!rioClient.headBroker(testBroker)) {
             val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
