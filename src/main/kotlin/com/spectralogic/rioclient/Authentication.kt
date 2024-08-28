@@ -38,8 +38,6 @@ data class UserResponse(
     val updateDate: String
 ) : RioResponse()
 
-
-
         /*
             @Serializable
 data class RioClientApplicationListResponse(

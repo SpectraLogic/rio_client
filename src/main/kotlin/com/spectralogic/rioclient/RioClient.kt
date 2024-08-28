@@ -745,16 +745,16 @@ class RioClient(
     suspend fun headUserLogin(username: String): Boolean =
         client.myHead("$api/user/$username")
 
-    suspend fun createUserLogin(userCreateRequest: UserCreateRequest) : UserResponse =
+    suspend fun createUserLogin(userCreateRequest: UserCreateRequest): UserResponse =
         client.myPost("$api/user", userCreateRequest)
 
-    suspend fun updateUserLogin(username: String, userUpdateRequest: UserUpdateRequest) : UserResponse =
+    suspend fun updateUserLogin(username: String, userUpdateRequest: UserUpdateRequest): UserResponse =
         client.myPut("$api/user/$username", userUpdateRequest)
 
     suspend fun deleteUserLogin(username: String): EmptyResponse =
         client.myDelete("$api/user/$username")
 
-    suspend fun activateUser(username: String, active: Boolean) : UserResponse =
+    suspend fun activateUser(username: String, active: Boolean): UserResponse =
         client.myPut("$api/user/$username/activate?active=$active")
 
     /**
