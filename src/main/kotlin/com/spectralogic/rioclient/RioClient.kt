@@ -720,6 +720,44 @@ class RioClient(
     }
 
     /**
+     * Authorization
+     */
+
+    suspend fun listUserLogins(
+        page: Long? = null,
+        perPage: Long? = null,
+        active: Boolean? = null,
+        local: Boolean? = null
+    ): UserListResponse {
+        val paramMap = pageParamMap(page, perPage)
+            .plus(
+                arrayOf(
+                    Pair("active", active),
+                    Pair("local", local)
+                )
+            )
+        return client.myGet("$api/user", paramMap = paramMap)
+    }
+
+    suspend fun getUserLogin(username: String): UserResponse =
+        client.myGet("$api/user/$username")
+
+    suspend fun headUserLogin(username: String): Boolean =
+        client.myHead("$api/user/$username")
+
+    suspend fun createUserLogin(userCreateRequest: UserCreateRequest): UserResponse =
+        client.myPost("$api/user", userCreateRequest)
+
+    suspend fun updateUserLogin(username: String, userUpdateRequest: UserUpdateRequest): UserResponse =
+        client.myPut("$api/user/$username", userUpdateRequest)
+
+    suspend fun deleteUserLogin(username: String): EmptyResponse =
+        client.myDelete("$api/user/$username")
+
+    suspend fun activateUser(username: String, active: Boolean): UserResponse =
+        client.myPut("$api/user/$username/activate?active=$active")
+
+    /**
      * Private worker methods
      */
 

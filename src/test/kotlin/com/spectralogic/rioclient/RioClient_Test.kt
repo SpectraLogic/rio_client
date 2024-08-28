@@ -45,8 +45,8 @@ class RioClient_Test {
         private lateinit var divaPassword: String
         private lateinit var divaCategory: String
 
-        private const val username = "spectra"
-        private const val password = "spectra"
+        private lateinit var username: String
+        private lateinit var password: String
 
         private const val deviceResourceErrorFmt = "Resource of type DEVICE and name %s does not exist"
         private const val invalidNameMsg = "names can only contain the characters: [a-z], [0-9], '-' and '_'"
@@ -57,6 +57,8 @@ class RioClient_Test {
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
+            username = getenvValue("ESCAPEPOD_LOGIN", "spectra")
+            password = getenvValue("ESCAPEPOD_PASSWORD", "spectra")
             rioClient = RioClient(URL(getenvValue("ESCAPEPOD_URL", "https://localhost:5050")), username, password)
 
             spectraDeviceName = getenvValue("BP_DEVICE_NAME", "rioclient_bp")
@@ -1407,6 +1409,51 @@ class RioClient_Test {
             assertThat(page.totalPages).isEqualTo(1L)
             assertThat(page.totalItems).isEqualTo(listResponse.members.size.toLong())
         }
+    }
+
+    @Test
+    fun userTest() = blockingTest {
+        val username = "user-${uuid()}"
+
+        assertThat(rioClient.headUserLogin(username)).isFalse()
+        rioClient.createUserLogin(
+            UserCreateRequest(username, "password", true)
+        ).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+            assertThat(resp.username).isEqualTo(username)
+            assertThat(resp.active).isTrue()
+            assertThat(resp.local).isTrue()
+        }
+        assertThat(rioClient.headUserLogin(username)).isTrue()
+        rioClient.getUserLogin(username).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.username).isEqualTo(username)
+            assertThat(resp.active).isTrue()
+            assertThat(resp.local).isTrue()
+        }
+        rioClient.listUserLogins().let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.users.map { it.username }).contains(username)
+        }
+        rioClient.updateUserLogin(
+            username,
+            UserUpdateRequest("new-password", true)
+        ).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.username).isEqualTo(username)
+            assertThat(resp.active).isTrue()
+            assertThat(resp.local).isTrue()
+        }
+        rioClient.activateUser(username, false).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.username).isEqualTo(username)
+            assertThat(resp.active).isFalse()
+            assertThat(resp.local).isTrue()
+        }
+        rioClient.deleteUserLogin(username).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
+        }
+        assertThat(rioClient.headUserLogin(username)).isFalse()
     }
 
     private suspend fun ensureBrokerExists() {
