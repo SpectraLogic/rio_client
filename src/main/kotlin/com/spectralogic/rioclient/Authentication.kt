@@ -22,11 +22,11 @@ data class UserUpdateRequest(
 
 @Serializable
 data class UserListResponse(
-    val result: List<UserResponse>,
+    val users: List<UserResponse>,
     val page: PageInfo
 ) : RioResponse(), RioListResponse<UserResponse> {
     override fun page() = page
-    override fun results() = result
+    override fun results() = users
 }
 
 @Serializable
@@ -38,14 +38,3 @@ data class UserResponse(
     val updateDate: String
 ) : RioResponse()
 
-        /*
-            @Serializable
-data class RioClientApplicationListResponse(
-    val result: List<RioClientApplicationResponse>,
-    val page: PageInfo
-) : RioResponse(), RioListResponse<RioClientApplicationResponse> {
-    override fun page() = page
-    override fun results() = result
-}
-)
-         */

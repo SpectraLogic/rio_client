@@ -1431,6 +1431,10 @@ class RioClient_Test {
             assertThat(resp.active).isTrue()
             assertThat(resp.local).isTrue()
         }
+        rioClient.listUserLogins().let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.users.map { it.username }).contains(username)
+        }
         rioClient.updateUserLogin(
             username,
             UserUpdateRequest("new-password", true)
