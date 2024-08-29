@@ -1384,12 +1384,13 @@ class RioClient_Test {
 
         assertThat(rioClient.headUserLogin(username)).isFalse()
         rioClient.createUserLogin(
-            UserCreateRequest(username, "password", true)
+            UserCreateRequest(username, "password", true, "Operator")
         ).let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
             assertThat(resp.username).isEqualTo(username)
             assertThat(resp.active).isTrue()
             assertThat(resp.local).isTrue()
+            assertThat(resp.role).isEqualTo("Operator")
         }
         assertThat(rioClient.headUserLogin(username)).isTrue()
         rioClient.getUserLogin(username).let { resp ->
@@ -1397,6 +1398,7 @@ class RioClient_Test {
             assertThat(resp.username).isEqualTo(username)
             assertThat(resp.active).isTrue()
             assertThat(resp.local).isTrue()
+            assertThat(resp.role).isEqualTo("Operator")
         }
         rioClient.listUserLogins().let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
@@ -1404,18 +1406,20 @@ class RioClient_Test {
         }
         rioClient.updateUserLogin(
             username,
-            UserUpdateRequest("new-password", true)
+            UserUpdateRequest("new-password", true, "Supervisor")
         ).let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(resp.username).isEqualTo(username)
             assertThat(resp.active).isTrue()
             assertThat(resp.local).isTrue()
+            assertThat(resp.role).isEqualTo("Supervisor")
         }
         rioClient.activateUser(username, false).let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(resp.username).isEqualTo(username)
             assertThat(resp.active).isFalse()
             assertThat(resp.local).isTrue()
+            assertThat(resp.role).isEqualTo("Supervisor")
         }
         rioClient.deleteUserLogin(username).let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
