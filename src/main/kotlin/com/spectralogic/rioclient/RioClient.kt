@@ -754,8 +754,17 @@ class RioClient(
     suspend fun deleteUserLogin(username: String): EmptyResponse =
         client.myDelete("$api/user/$username")
 
-    suspend fun activateUser(username: String, active: Boolean): UserResponse =
-        client.myPut("$api/user/$username/activate?active=$active")
+    suspend fun updateUserPassword(username: String, userUpdatePasswordRequest: UserUpdatePasswordRequest): UserResponse =
+        client.myPut("$api/user/$username/password", userUpdatePasswordRequest)
+
+    /**
+     * Config
+     */
+
+    suspend fun getActiveDirectoryConfig(): ActiveDirectoryResponse =
+        client.myGet("$api/config/ldap")
+    suspend fun setActiveDirectoryConfig(activeDirectoryRequest: ActiveDirectoryRequest): ActiveDirectoryResponse =
+        client.myPut("$api/config/ldap", activeDirectoryRequest)
 
     /**
      * Private worker methods
