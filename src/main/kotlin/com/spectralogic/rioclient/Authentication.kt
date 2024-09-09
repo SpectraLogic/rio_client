@@ -45,4 +45,3 @@ data class UserResponse(
     val createDate: String,
     val updateDate: String
 ) : RioResponse()
-

@@ -1439,7 +1439,7 @@ class RioClient_Test {
         }
         rioClient.updateUserLogin(
             username,
-            UserUpdateRequest( true, "Administrator")
+            UserUpdateRequest(true, "Administrator")
         ).let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(resp.username).isEqualTo(username)
