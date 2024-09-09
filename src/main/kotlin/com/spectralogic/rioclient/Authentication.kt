@@ -8,14 +8,18 @@ package com.spectralogic.rioclient
 data class UserCreateRequest(
     val username: String,
     val password: String,
+    val active: Boolean,
     val local: Boolean,
     val role: String
 ) : RioRequest
 
 data class UserUpdateRequest(
-    val password: String?,
-    val local: Boolean?,
+    val active: Boolean,
     val role: String
+) : RioRequest
+
+data class UserUpdatePasswordRequest(
+    val password: String
 ) : RioRequest
 
 data class UserListResponse(

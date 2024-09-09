@@ -1384,11 +1384,11 @@ class RioClient_Test {
 
         assertThat(rioClient.headUserLogin(username)).isFalse()
         rioClient.createUserLogin(
-            UserCreateRequest(username, "password", true, "Operator")
+            UserCreateRequest(username, "password", false, true, "Operator")
         ).let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
             assertThat(resp.username).isEqualTo(username)
-            assertThat(resp.active).isTrue()
+            assertThat(resp.active).isFalse()
             assertThat(resp.local).isTrue()
             assertThat(resp.role).isEqualTo("Operator")
         }
@@ -1396,7 +1396,7 @@ class RioClient_Test {
         rioClient.getUserLogin(username).let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(resp.username).isEqualTo(username)
-            assertThat(resp.active).isTrue()
+            assertThat(resp.active).isFalse()
             assertThat(resp.local).isTrue()
             assertThat(resp.role).isEqualTo("Operator")
         }
@@ -1406,25 +1406,75 @@ class RioClient_Test {
         }
         rioClient.updateUserLogin(
             username,
-            UserUpdateRequest("new-password", true, "Supervisor")
+            UserUpdateRequest(true, "Administrator")
         ).let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(resp.username).isEqualTo(username)
             assertThat(resp.active).isTrue()
             assertThat(resp.local).isTrue()
-            assertThat(resp.role).isEqualTo("Supervisor")
+            assertThat(resp.role).isEqualTo("Administrator")
         }
-        rioClient.activateUser(username, false).let { resp ->
+        rioClient.updateUserPassword(
+            username,
+            UserUpdatePasswordRequest("new-password")
+        ).let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(resp.username).isEqualTo(username)
-            assertThat(resp.active).isFalse()
+            assertThat(resp.active).isTrue()
             assertThat(resp.local).isTrue()
-            assertThat(resp.role).isEqualTo("Supervisor")
+            assertThat(resp.role).isEqualTo("Administrator")
         }
         rioClient.deleteUserLogin(username).let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
         }
         assertThat(rioClient.headUserLogin(username)).isFalse()
+    }
+
+    @Test
+    fun configLdapTest() = blockingTest {
+        val orig = rioClient.getActiveDirectoryConfig()
+        listOf(true, false).forEach { tls ->
+            listOf(true, false).forEach { allow ->
+                listOf("Operator", "Administrator").forEach { role ->
+                    val domain = "domain-$tls-$allow-$role.com"
+                    val ldap = "host-$tls-$allow-$role"
+                    rioClient.setActiveDirectoryConfig(
+                        ActiveDirectoryRequest(domain, ldap, 111, tls, allow, role)
+                    ).let { resp ->
+                        assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                        assertThat(resp.domain).isEqualTo(domain)
+                        assertThat(resp.ldapServer).isEqualTo(ldap)
+                        assertThat(resp.port).isEqualTo(111)
+                        assertThat(resp.tls).isEqualTo(tls)
+                        assertThat(resp.allowAny).isEqualTo(allow)
+                        assertThat(resp.defaultRole).isEqualTo(role)
+                    }
+
+                    rioClient.getActiveDirectoryConfig().let { resp ->
+                        assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                        assertThat(resp.domain).isEqualTo(domain)
+                        assertThat(resp.ldapServer).isEqualTo(ldap)
+                        assertThat(resp.port).isEqualTo(111)
+                        assertThat(resp.tls).isEqualTo(tls)
+                        assertThat(resp.allowAny).isEqualTo(allow)
+                        assertThat(resp.defaultRole).isEqualTo(role)
+                    }
+                }
+            }
+        }
+        if (orig.statusCode == HttpStatusCode.OK) {
+            rioClient.setActiveDirectoryConfig(
+                ActiveDirectoryRequest(orig.domain, orig.ldapServer, orig.port, orig.tls, orig.allowAny, orig.defaultRole)
+            ).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.domain).isEqualTo(orig.domain)
+                assertThat(resp.ldapServer).isEqualTo(orig.ldapServer)
+                assertThat(resp.port).isEqualTo(orig.port)
+                assertThat(resp.tls).isEqualTo(orig.tls)
+                assertThat(resp.allowAny).isEqualTo(orig.allowAny)
+                assertThat(resp.defaultRole).isEqualTo(orig.defaultRole)
+            }
+        }
     }
 
     private suspend fun ensureBrokerExists() {
