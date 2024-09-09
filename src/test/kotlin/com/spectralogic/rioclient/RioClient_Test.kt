@@ -631,7 +631,6 @@ class RioClient_Test {
             assertThat(createAgent.writable).isEqualTo(false)
             assertThat(createAgent.agentConfig).isEqualTo(agentConfig.toConfigMap())
 
-            println("DWL")
             var getReadAgent = rioClient.getAgent(testBroker, readAgentName)
             assertThat(getReadAgent.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(getReadAgent).isEqualTo(createAgent)
