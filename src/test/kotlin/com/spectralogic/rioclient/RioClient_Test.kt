@@ -1438,6 +1438,7 @@ class RioClient_Test {
                 listOf("Operator", "Administrator").forEach { role ->
                     val domain = "domain-$tls-$allow-$role.com"
                     val ldap = "host-$tls-$allow-$role"
+                    val expectedRole = if (allow) role else "Operator"
                     rioClient.setActiveDirectoryConfig(
                         ActiveDirectoryRequest(domain, ldap, 111, tls, allow, role)
                     ).let { resp ->
@@ -1447,7 +1448,7 @@ class RioClient_Test {
                         assertThat(resp.port).isEqualTo(111)
                         assertThat(resp.tls).isEqualTo(tls)
                         assertThat(resp.allowAny).isEqualTo(allow)
-                        assertThat(resp.defaultRole).isEqualTo(role)
+                        assertThat(resp.defaultRole).isEqualTo(expectedRole)
                     }
 
                     rioClient.getActiveDirectoryConfig().let { resp ->
@@ -1457,7 +1458,7 @@ class RioClient_Test {
                         assertThat(resp.port).isEqualTo(111)
                         assertThat(resp.tls).isEqualTo(tls)
                         assertThat(resp.allowAny).isEqualTo(allow)
-                        assertThat(resp.defaultRole).isEqualTo(role)
+                        assertThat(resp.defaultRole).isEqualTo(expectedRole)
                     }
                 }
             }
