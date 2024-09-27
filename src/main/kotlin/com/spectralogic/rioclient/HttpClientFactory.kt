@@ -43,7 +43,7 @@ object HttpClientFactory {
                         val host = url.host
                         val port = url.port
                         val protocol = url.protocol.name
-                        val response: ShortTokenResponse = client.post("$protocol://$host:$port/api/tokens") {
+                        val response: LoginTokenResponse = client.post("$protocol://$host:$port/api/tokens") {
                             contentType(ContentType.Application.Json)
                             setBody(UserLoginCredentials(username, password))
                         }.body()
