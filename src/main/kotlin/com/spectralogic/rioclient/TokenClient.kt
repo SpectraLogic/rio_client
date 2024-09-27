@@ -37,7 +37,7 @@ internal class TokenClient(private val endpoint: URL, private val username: Stri
     }
 
     suspend fun getShortToken(): String {
-        val response: ShortTokenResponse = client.post("$api/tokens") {
+        val response: LoginTokenResponse = client.post("$api/tokens") {
             contentType(ContentType.Application.Json)
             body = UserLoginCredentials(username, password)
         }
