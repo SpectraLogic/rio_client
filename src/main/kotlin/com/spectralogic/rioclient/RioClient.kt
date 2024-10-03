@@ -765,6 +765,8 @@ class RioClient(
         client.myGet("$api/config/ldap")
     suspend fun setActiveDirectoryConfig(activeDirectoryRequest: ActiveDirectoryRequest): ActiveDirectoryResponse =
         client.myPut("$api/config/ldap", activeDirectoryRequest)
+    suspend fun deleteActiveDirectoryConfig(): EmptyResponse =
+        client.myDelete("$api/config/ldap")
 
     /**
      * Private worker methods
