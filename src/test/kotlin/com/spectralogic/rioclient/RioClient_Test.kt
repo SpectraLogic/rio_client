@@ -20,6 +20,7 @@ import java.net.URL
 import java.nio.file.Path
 import java.time.ZonedDateTime
 import java.util.UUID
+import org.junit.jupiter.api.assertThrows
 
 @Tag("test")
 class RioClient_Test {
@@ -44,6 +45,9 @@ class RioClient_Test {
         private lateinit var divaUsername: String
         private lateinit var divaPassword: String
         private lateinit var divaCategory: String
+
+        private lateinit var ldapHost: String
+        private lateinit var ldapDomain: String
 
         private lateinit var username: String
         private lateinit var password: String
@@ -83,6 +87,9 @@ class RioClient_Test {
             divaUsername = getenvValue("DIVA_USERNAME", "user")
             divaPassword = getenvValue("DIVA_PASSWORD", "pass")
             divaCategory = getenvValue("DIVA_CATEGORY", "DVT-10")
+
+            ldapHost = getenvValue("LDAP_HOST", "6285bou-dc01.sldomain.com")
+            ldapDomain = getenvValue("LDAP_DOMAIN", "sldomain.com")
         }
     }
 
@@ -1465,20 +1472,19 @@ class RioClient_Test {
 
     @Test
     fun configLdapTest() = blockingTest {
-        val orig = rioClient.getActiveDirectoryConfig()
+        val orig = try { rioClient.getActiveDirectoryConfig() } catch (_: Throwable) { null }
         listOf(true, false).forEach { tls ->
             listOf(true, false).forEach { allow ->
                 listOf("Operator", "Administrator").forEach { role ->
-                    val domain = "domain-$tls-$allow-$role.com"
-                    val ldap = "host-$tls-$allow-$role"
+                    val port = if (tls) 636 else 389
                     val expectedRole = if (allow) role else "Operator"
                     rioClient.setActiveDirectoryConfig(
-                        ActiveDirectoryRequest(domain, ldap, 111, tls, allow, role)
+                        ActiveDirectoryRequest(ldapDomain, ldapHost, port, tls, allow, role)
                     ).let { resp ->
                         assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
-                        assertThat(resp.domain).isEqualTo(domain)
-                        assertThat(resp.ldapServer).isEqualTo(ldap)
-                        assertThat(resp.port).isEqualTo(111)
+                        assertThat(resp.domain).isEqualTo(ldapDomain)
+                        assertThat(resp.ldapServer).isEqualTo(ldapHost)
+                        assertThat(resp.port).isEqualTo(port)
                         assertThat(resp.tls).isEqualTo(tls)
                         assertThat(resp.allowAny).isEqualTo(allow)
                         assertThat(resp.defaultRole).isEqualTo(expectedRole)
@@ -1486,29 +1492,40 @@ class RioClient_Test {
 
                     rioClient.getActiveDirectoryConfig().let { resp ->
                         assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
-                        assertThat(resp.domain).isEqualTo(domain)
-                        assertThat(resp.ldapServer).isEqualTo(ldap)
-                        assertThat(resp.port).isEqualTo(111)
+                        assertThat(resp.domain).isEqualTo(ldapDomain)
+                        assertThat(resp.ldapServer).isEqualTo(ldapHost)
+                        assertThat(resp.port).isEqualTo(port)
                         assertThat(resp.tls).isEqualTo(tls)
                         assertThat(resp.allowAny).isEqualTo(allow)
                         assertThat(resp.defaultRole).isEqualTo(expectedRole)
                     }
+
+                    rioClient.deleteActiveDirectoryConfig().let { resp ->
+                        assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
+                    }
+
+                    assertThrows<RioHttpException> {
+                        rioClient.getActiveDirectoryConfig()
+                    }
                 }
             }
         }
-        if (orig.statusCode == HttpStatusCode.OK) {
-            rioClient.setActiveDirectoryConfig(
-                ActiveDirectoryRequest(orig.domain, orig.ldapServer, orig.port, orig.tls, orig.allowAny, orig.defaultRole)
-            ).let { resp ->
-                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
-                assertThat(resp.domain).isEqualTo(orig.domain)
-                assertThat(resp.ldapServer).isEqualTo(orig.ldapServer)
-                assertThat(resp.port).isEqualTo(orig.port)
-                assertThat(resp.tls).isEqualTo(orig.tls)
-                assertThat(resp.allowAny).isEqualTo(orig.allowAny)
-                assertThat(resp.defaultRole).isEqualTo(orig.defaultRole)
+        orig?.let {
+            if (it.statusCode == HttpStatusCode.OK) {
+                rioClient.setActiveDirectoryConfig(
+                    ActiveDirectoryRequest(it.domain, it.ldapServer, it.port, it.tls, it.allowAny, it.defaultRole)
+                ).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.domain).isEqualTo(it.domain)
+                    assertThat(resp.ldapServer).isEqualTo(it.ldapServer)
+                    assertThat(resp.port).isEqualTo(it.port)
+                    assertThat(resp.tls).isEqualTo(it.tls)
+                    assertThat(resp.allowAny).isEqualTo(it.allowAny)
+                    assertThat(resp.defaultRole).isEqualTo(it.defaultRole)
+                }
             }
         }
+
     }
 
     private suspend fun ensureBrokerExists() {
