@@ -870,7 +870,7 @@ class RioClient_Test {
     }
 
     @Test
-    fun arhiveFolderJobGroupTest(@TempDir tempDir: Path) = blockingTest {
+    fun archiveFolderJobGroupTest(@TempDir tempDir: Path) = blockingTest {
         val uuid = UUID.randomUUID()
         val endpointName = "endpoint-$uuid"
         val endpointPath = tempDir.resolve("endpoint")
