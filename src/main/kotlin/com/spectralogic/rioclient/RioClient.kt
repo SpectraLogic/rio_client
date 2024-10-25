@@ -582,23 +582,6 @@ class RioClient(
     ): ArchiveFolderResponse =
         client.myPost("$api/brokers/$brokerName/archive/folder", archiveFolderRequest)
 
-    /*
-    suspend fun createRestoreJob(
-        brokerName: String,
-        restoreRequest: RestoreRequest,
-        jobPriority: String? = null,
-        sessionId: String? = null,
-        failFast: Boolean? = null
-    ): JobResponse {
-        val paramMap = mapOf(
-            Pair("priority", jobPriority),
-            Pair("sessionId", sessionId),
-            Pair("fail-fast", failFast)
-        )
-        return client.myPost("$api/brokers/$brokerName/restore", restoreRequest, paramMap)
-    }
-     */
-
     suspend fun jobGroupStatus(groupId: UUID): JobGroupStatusResponse =
         client.myGet("$api/jobgroup/$groupId")
 
