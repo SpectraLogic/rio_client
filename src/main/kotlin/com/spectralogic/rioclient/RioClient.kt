@@ -549,6 +549,34 @@ class RioClient(
     suspend fun deleteArchivedFiles(): EmptyResponse =
         client.myPost("$api/deletearchivedfiles")
 
+    suspend fun createArchiveFolderJob(
+        brokerName: String,
+        archiveFolderRequest: ArchiveFolderRequest
+    ): ArchiveFolderResponse =
+        client.myPost("$api/brokers/$brokerName/archive/folder", archiveFolderRequest)
+
+    suspend fun jobGroupStatus(groupId: UUID): JobGroupStatusResponse =
+        client.myGet("$api/jobgroup/$groupId")
+
+    suspend fun listJobGroups(
+        groupType: String? = null,
+        sortBy: String? = null,
+        sortOrder: String? = null,
+        page: Long? = null,
+        perPage: Long? = null
+    ): JobGroupListResponse {
+        val paramMap = pageParamMap(page, perPage)
+            .plus(
+                arrayOf(
+                    Pair("group_type", groupType),
+                    Pair("sort_by", sortBy),
+                    Pair("sort_order", sortOrder)
+                )
+            )
+        return client.myGet("$api/jobgroup", paramMap = paramMap)
+    }
+
+
     /**
      * Log
      */
