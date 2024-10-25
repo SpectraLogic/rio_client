@@ -165,3 +165,41 @@ data class FileStatusResponse(
     val lastUpdated: String,
     val foreignJob: UUID?
 ) : RioResponse()
+
+data class ArchiveFolderResponse(
+    val jobGroupId: String
+) : RioResponse()
+
+data class JobGroupResponse(
+    val groupName: String,
+    val groupId: String,
+    val errorCount: Int,
+    val jobGroupStatus: JobStatus,
+    val createBy: String,
+    val createDate: Long,
+    val updateBy: String,
+    val updateDate: Long
+) : RioResponse()
+
+data class JobGroupListResponse(
+    val jobGroups: List<JobGroupResponse>,
+    val page: PageInfo
+) : RioListResponse<JobGroupResponse>(jobGroups, page)
+
+data class JobGroupStatusResponse(
+    val groupName: String,
+    val summary: String,
+    val errorCount: Int,
+    val jobGroupStatus: JobStatus,
+    val createBy: String,
+    val createDate: Long,
+    val updateBy: String,
+    val updateDate: Long,
+    val jobs: List<DetailedJobResponse>,
+    val failedFiles: List<JobGroupFailedFile>
+) : RioResponse()
+
+data class JobGroupFailedFile(
+    val uri: String,
+    val statusMessage: String
+)
