@@ -851,6 +851,73 @@ class RioClient_Test {
     }
 
     @Test
+    fun archiveFolderJobGroupTest(@TempDir tempDir: Path) = blockingTest {
+        val uuid = UUID.randomUUID()
+        val endpointName = "endpoint-$uuid"
+        val endpointPath = tempDir.resolve("endpoint")
+        endpointPath.toFile().mkdir()
+        val endpointDirs = (1..3).map { idx ->
+            endpointPath.resolve("endpoint-dir-$idx")
+                .also { it.toFile().mkdir() }
+        }
+        val endpointFiles: List<File> = endpointDirs.mapIndexed { epIdx, epDir ->
+            (1..3).map { fileIdx ->
+                epDir.resolve("Endpoint-file-$epIdx-$fileIdx.txt").toFile()
+                    .also { it.writeText("This is an endpoint file ${it.name}") }
+            }
+        }.flatten()
+        val files: List<File> = (1..10).map { idx ->
+            endpointPath.resolve("file-$idx.txt").toFile()
+                .also { it.writeText("This is a plain file") }
+        }
+        val req = ArchiveFolderRequest(
+            jobName = "ArchiveFolder $uuid",
+            prefix = "$uuid/",
+            files = files.map { FileToArchive(it.name, it.toURI(), null) },
+            folders = endpointDirs.map { FolderToArchive(it.toUri()) }
+        )
+
+        try {
+            ensureBrokerExists()
+
+            rioClient.createUriEndpointDevice(
+                UriEndpointDeviceCreateRequest(endpointName, endpointPath.toUri().toString())
+            ).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+            }
+
+            val jobGroupId: UUID = rioClient.createArchiveFolderJob(testBroker, req).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                UUID.fromString(resp.jobGroupId)
+            }
+            var tries = 100
+
+            do {
+                delay(20000)
+                val jgStatus = rioClient.jobGroupStatus(jobGroupId)
+                assertThat(jgStatus.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(jgStatus.jobs).isNotEmpty
+
+                val activeJobCount = jgStatus.jobs.filter { it.status.status == "ACTIVE" }.size
+
+                rioClient.listJobGroups().let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.jobGroups.map { it.groupId } ).contains(jobGroupId.toString())
+                }
+            } while (--tries > 0 && activeJobCount > 0)
+            rioClient.jobGroupStatus(jobGroupId).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.errorCount).isEqualTo(0)
+                assertThat(resp.failedFiles).isEmpty()
+            }
+        } finally {
+            if (rioClient.headEndpointDevice(endpointName)) {
+                rioClient.deleteEndpointDevice(endpointName)
+            }
+        }
+    }
+
+    @Test
     fun objectTest() = blockingTest {
         try {
             ensureBrokerExists()
