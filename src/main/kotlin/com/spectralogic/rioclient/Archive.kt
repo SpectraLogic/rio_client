@@ -26,3 +26,20 @@ data class FileToArchive(
     val indexMedia: Boolean = false,
     val deleteAfterArchive: Boolean = false
 )
+
+@Serializable
+data class ArchiveFolderRequest(
+    val jobName: String? = null,
+    val prefix: String? = null,
+    val files: List<FileToArchive>? = null,
+    val folders: List<FolderToArchive>? = null,
+    val callbacks: List<JobCallback>? = null
+) : RioRequest
+
+@Serializable
+data class FolderToArchive(
+    @Serializable(with = URISerializer::class)
+    val uri: URI,
+    val metadata: Map<String, String>? = null,
+    val deleteAfterArchive: Boolean = false
+)
