@@ -528,7 +528,8 @@ class RioClient(
         sortOrder: String? = null,
         page: Long? = null,
         perPage: Long? = null,
-        fileName: String? = null
+        fileName: String? = null,
+        createBy: Long? = null
     ): JobListResponse {
         val paramMap = pageParamMap(page, perPage)
             .plus(
@@ -540,6 +541,7 @@ class RioClient(
                     Pair("creation_date_end", creation_date_end),
                     Pair("job_name", jobName),
                     Pair("file_name", fileName),
+                    Pair("create_by", createBy),
                     Pair("sort_by", sortBy),
                     Pair("sort_order", sortOrder)
                 )
