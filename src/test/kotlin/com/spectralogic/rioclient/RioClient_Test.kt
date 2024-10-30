@@ -776,6 +776,11 @@ class RioClient_Test {
             assertThat(jobList.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(jobList.page.totalItems).isEqualTo(totalJobs - 2)
 
+            val allJobCount = rioClient.listJobs().page.totalItems
+            val spectraJobCount = rioClient.listJobs(createBy = 1L).page.totalItems
+            assertThat(spectraJobCount).isLessThanOrEqualTo(allJobCount)
+            // assertThat(spectraJobCount).isLessThan(allJobCount)  Not always true, but a better test
+
             // TODO job unhappy path testing
         } finally {
             removeBroker()
