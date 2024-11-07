@@ -910,10 +910,16 @@ class RioClient_Test {
                     assertThat(resp.jobGroups.map { it.groupId } ).contains(jobGroupId.toString())
                 }
             } while (--tries > 0 && activeJobCount > 0)
+            val jgJobCount: Int = rioClient.listJobs(groupId = jobGroupId).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.page.totalItems).isGreaterThan(0)
+                resp.page.totalItems.toInt()
+            }
             rioClient.jobGroupStatus(jobGroupId).let { resp ->
                 assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(resp.errorCount).isEqualTo(0)
                 assertThat(resp.failedFiles).isEmpty()
+                assertThat(resp.jobs).hasSize(jgJobCount)
             }
         } finally {
             if (rioClient.headEndpointDevice(endpointName)) {
