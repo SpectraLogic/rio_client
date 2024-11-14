@@ -1466,10 +1466,11 @@ class RioClient_Test {
     @Test
     fun userTest() = blockingTest {
         val username = "user-${uuid()}"
+        val password = "wordpass"
 
         assertThat(rioClient.headUserLogin(username)).isFalse()
         rioClient.createUserLogin(
-            UserCreateRequest(username, "password", false, true, "Operator")
+            UserCreateRequest(username, password, false, true, "Operator")
         ).let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
             assertThat(resp.username).isEqualTo(username)
@@ -1478,12 +1479,28 @@ class RioClient_Test {
             assertThat(resp.role).isEqualTo("Operator")
         }
         assertThat(rioClient.headUserLogin(username)).isTrue()
+        assertThrows<RioHttpException> {
+            rioClient.getBearerToken(username, password)
+        }
         rioClient.getUserLogin(username).let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
             assertThat(resp.username).isEqualTo(username)
             assertThat(resp.active).isFalse()
             assertThat(resp.local).isTrue()
             assertThat(resp.role).isEqualTo("Operator")
+        }
+        rioClient.updateUserLogin(username, UserUpdateRequest(true, "Operator")).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.username).isEqualTo(username)
+            assertThat(resp.active).isTrue()
+            assertThat(resp.local).isTrue()
+            assertThat(resp.role).isEqualTo("Operator")
+        }
+        rioClient.getBearerToken(username, password).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+            assertThat(resp.username).isEqualTo(username)
+            assertThat(resp.role).isEqualTo("Operator")
+            assertThat(resp.token).isNotBlank()
         }
         rioClient.listUserLogins().let { resp ->
             assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
