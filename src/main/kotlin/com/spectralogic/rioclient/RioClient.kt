@@ -74,6 +74,12 @@ class RioClient(
     private val api by lazy { "$rioUrl/api" }
 
     /**
+     * Token
+     */
+    suspend fun getBearerToken(username: String, password: String): LoginTokenResponse =
+        client.myPost("$api/tokens", UserLoginCredentials(username, password))
+
+    /**
      * Keys
      */
     suspend fun createApiToken(tokenCreateRequest: TokenCreateRequest): TokenResponse =
