@@ -76,6 +76,14 @@ class RioClient(
     private val api by lazy { "$rioUrl/api" }
 
     /**
+     * Token
+     */
+    suspend fun getBearerToken(
+        username: String,
+        password: String,
+    ): LoginTokenResponse = client.myPost("$api/tokens", UserLoginCredentials(username, password))
+
+    /**
      * Keys
      */
     suspend fun createApiToken(tokenCreateRequest: TokenCreateRequest): TokenResponse = client.myPost("$api/keys", tokenCreateRequest)
@@ -551,6 +559,8 @@ class RioClient(
         page: Long? = null,
         perPage: Long? = null,
         fileName: String? = null,
+        createBy: Long? = null,
+        groupId: UUID? = null,
     ): JobListResponse {
         val paramMap =
             pageParamMap(page, perPage)
@@ -563,6 +573,8 @@ class RioClient(
                         Pair("creation_date_end", creation_date_end),
                         Pair("job_name", jobName),
                         Pair("file_name", fileName),
+                        Pair("create_by", createBy),
+                        Pair("job_group_id", groupId),
                         Pair("sort_by", sortBy),
                         Pair("sort_order", sortOrder),
                     ),
@@ -599,6 +611,32 @@ class RioClient(
     ): FileStatusLogResponse = client.myGet("$api/jobs/$jobId/filestatus/${objectName.urlEncode()}")
 
     suspend fun deleteArchivedFiles(): EmptyResponse = client.myPost("$api/deletearchivedfiles")
+
+    suspend fun createArchiveFolderJob(
+        brokerName: String,
+        archiveFolderRequest: ArchiveFolderRequest,
+    ): ArchiveFolderResponse = client.myPost("$api/brokers/$brokerName/archive/folder", archiveFolderRequest)
+
+    suspend fun jobGroupStatus(groupId: UUID): JobGroupStatusResponse = client.myGet("$api/jobgroup/$groupId")
+
+    suspend fun listJobGroups(
+        groupType: String? = null,
+        sortBy: String? = null,
+        sortOrder: String? = null,
+        page: Long? = null,
+        perPage: Long? = null,
+    ): JobGroupListResponse {
+        val paramMap =
+            pageParamMap(page, perPage)
+                .plus(
+                    arrayOf(
+                        Pair("group_type", groupType),
+                        Pair("sort_by", sortBy),
+                        Pair("sort_order", sortOrder),
+                    ),
+                )
+        return client.myGet("$api/jobgroup", paramMap = paramMap)
+    }
 
     /**
      * Log
@@ -805,10 +843,21 @@ class RioClient(
 
     suspend fun deleteUserLogin(username: String): EmptyResponse = client.myDelete("$api/user/$username")
 
-    suspend fun activateUser(
+    suspend fun updateUserPassword(
         username: String,
-        active: Boolean,
-    ): UserResponse = client.myPut("$api/user/$username/activate?active=$active")
+        userUpdatePasswordRequest: UserUpdatePasswordRequest,
+    ): UserResponse = client.myPut("$api/user/$username/password", userUpdatePasswordRequest)
+
+    /**
+     * Config
+     */
+
+    suspend fun getActiveDirectoryConfig(): ActiveDirectoryResponse = client.myGet("$api/config/ldap")
+
+    suspend fun setActiveDirectoryConfig(activeDirectoryRequest: ActiveDirectoryRequest): ActiveDirectoryResponse =
+        client.myPut("$api/config/ldap", activeDirectoryRequest)
+
+    suspend fun deleteActiveDirectoryConfig(): EmptyResponse = client.myDelete("$api/config/ldap")
 
     /**
      * Private worker methods
@@ -1012,6 +1061,6 @@ data class ListMetadataValuesDistinct(
 
 private inline fun <reified T> encodeRioRequest(obj: T): JsonElement {
     val json = Json.encodeToJsonElement(obj)
-    val jsonWithoutDiscriminator = json.jsonObject.filterNot { it.key == RIO_REQUEST_DISCRIMINATOR }
+    val jsonWithoutDiscriminator = json.jsonObject.filterNot { it.key == RioRequestDiscriminator }
     return Json.encodeToJsonElement(jsonWithoutDiscriminator)
 }

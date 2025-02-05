@@ -42,8 +42,11 @@ open class TokenKeyData(
 )
 
 @Serializable
-open class ShortTokenResponse(
+open class LoginTokenResponse(
     val token: String,
+    val username: String? = null,
+    val userId: Long? = null,
+    val role: String? = null,
 ) : RioResponse()
 
 @Serializable

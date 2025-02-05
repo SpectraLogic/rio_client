@@ -11,13 +11,20 @@ import kotlinx.serialization.Serializable
 data class UserCreateRequest(
     val username: String,
     val password: String,
-    val local: Boolean?,
+    val active: Boolean,
+    val local: Boolean,
+    val role: String,
 ) : RioRequest
 
 @Serializable
 data class UserUpdateRequest(
-    val password: String?,
-    val local: Boolean?,
+    val active: Boolean,
+    val role: String,
+) : RioRequest
+
+@Serializable
+data class UserUpdatePasswordRequest(
+    val password: String,
 ) : RioRequest
 
 @Serializable
@@ -36,6 +43,7 @@ data class UserResponse(
     val username: String,
     val active: Boolean,
     val local: Boolean,
+    val role: String,
     val createDate: String,
     val updateDate: String,
 ) : RioResponse()

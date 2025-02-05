@@ -192,3 +192,51 @@ data class FileStatusResponse(
     @Serializable(with = UUIDSerializer::class)
     val foreignJob: UUID?,
 ) : RioResponse()
+
+@Serializable
+data class ArchiveFolderResponse(
+    val jobGroupId: String,
+) : RioResponse()
+
+@Serializable
+data class JobGroupResponse(
+    val groupName: String,
+    val groupId: String,
+    val errorCount: Int,
+    val jobGroupStatus: JobStatus,
+    val createBy: String,
+    val createDate: Long,
+    val updateBy: String,
+    val updateDate: Long,
+) : RioResponse()
+
+@Serializable
+data class JobGroupListResponse(
+    val jobGroups: List<JobGroupResponse>,
+    val page: PageInfo,
+) : RioResponse(),
+    RioListResponse<JobGroupResponse> {
+    override fun page() = page
+
+    override fun results() = jobGroups
+}
+
+@Serializable
+data class JobGroupStatusResponse(
+    val groupName: String,
+    val summary: String,
+    val errorCount: Int,
+    val jobGroupStatus: JobStatus,
+    val createBy: String,
+    val createDate: Long,
+    val updateBy: String,
+    val updateDate: Long,
+    val jobs: List<DetailedJobResponse>,
+    val failedFiles: List<JobGroupFailedFile>,
+) : RioResponse()
+
+@Serializable
+data class JobGroupFailedFile(
+    val uri: String,
+    val statusMessage: String,
+)

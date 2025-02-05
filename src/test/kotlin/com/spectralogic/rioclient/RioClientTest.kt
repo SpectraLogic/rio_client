@@ -14,7 +14,9 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
+import java.io.File
 import java.net.URI
 import java.net.URL
 import java.nio.file.Path
@@ -43,14 +45,17 @@ class RioClientTest {
         private lateinit var divaPassword: String
         private lateinit var divaCategory: String
 
+        private lateinit var ldapHost: String
+        private lateinit var ldapDomain: String
+
         private lateinit var username: String
         private lateinit var password: String
 
-        private const val DEVICE_RESOURCE_ERROR_FMT = "Resource of type DEVICE and name %s does not exist"
-        private const val INVALID_NAME_MSG = "names can only contain the characters: [a-z], [0-9], '-' and '_'"
-        private const val URI_PATH_FORMAT_ERROR_FMT = "URI is not properly formatted (Illegal character in path at index %s: %s)"
-        private const val URI_AUTH_FORMAT_ERROR_FMT = "URI is not properly formatted (Illegal character in authority at index %s: %s)"
-        private const val EMPTY_ERROR = "cannot be empty or consist only of whitespace"
+        private const val deviceResourceErrorFmt = "Resource of type DEVICE and name %s does not exist"
+        private const val invalidNameMsg = "names can only contain the characters: [a-z], [0-9], '-' and '_'"
+        private const val uriPathFormatErrorFmt = "URI is not properly formatted (Illegal character in path at index %s: %s)"
+        private const val uriAuthFormatErrorFmt = "URI is not properly formatted (Illegal character in authority at index %s: %s)"
+        private const val emptyError = "cannot be empty or consist only of whitespace"
 
         @JvmStatic
         @BeforeAll
@@ -82,6 +87,9 @@ class RioClientTest {
             divaUsername = getenvValue("DIVA_USERNAME", "user")
             divaPassword = getenvValue("DIVA_PASSWORD", "pass")
             divaCategory = getenvValue("DIVA_CATEGORY", "DVT-10")
+
+            ldapHost = getenvValue("LDAP_HOST", "6285bou-dc01.sldomain.com")
+            ldapDomain = getenvValue("LDAP_DOMAIN", "sldomain.com")
         }
     }
 
@@ -96,7 +104,7 @@ class RioClientTest {
         blockingTest {
             val nameBaseError = RioValidationMessage("name", "string", "")
             val nameMissingError = nameBaseError.copy(errorType = "missing")
-            val nameInvalidError = nameBaseError.copy(errorType = "invalid_device_name", reason = INVALID_NAME_MSG)
+            val nameInvalidError = nameBaseError.copy(errorType = "invalid_device_name", reason = invalidNameMsg)
             val mgmtBaseError = RioValidationMessage("mgmtInterface", "URI", "")
             val mgmtHostError = mgmtBaseError.copy(errorType = "unknown_host")
             val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_format")
@@ -152,14 +160,14 @@ class RioClientTest {
             listOf(
                 Pair(
                     updateRequest.copy(mgmtInterface = "bad uri"),
-                    listOf(mgmtUriError.copy(value = "bad uri", reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
+                    listOf(mgmtUriError.copy(value = "bad uri", reason = uriPathFormatErrorFmt.format("3", "bad uri"))),
                 ),
                 Pair(
                     updateRequest.copy(mgmtInterface = "badscheme://bad value"),
                     listOf(
                         mgmtUriError.copy(
                             value = "badscheme://bad value",
-                            reason = URI_AUTH_FORMAT_ERROR_FMT.format("12", "badscheme://bad value"),
+                            reason = uriAuthFormatErrorFmt.format("12", "badscheme://bad value"),
                         ),
                     ),
                 ),
@@ -229,14 +237,14 @@ class RioClientTest {
                 ),
                 Pair(
                     createRequest.copy(mgmtInterface = "bad uri"),
-                    listOf(mgmtUriError.copy(value = "bad uri", reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
+                    listOf(mgmtUriError.copy(value = "bad uri", reason = uriPathFormatErrorFmt.format("3", "bad uri"))),
                 ),
                 Pair(
                     createRequest.copy(mgmtInterface = "badscheme://bad value"),
                     listOf(
                         mgmtUriError.copy(
                             value = "badscheme://bad value",
-                            reason = URI_AUTH_FORMAT_ERROR_FMT.format("12", "badscheme://bad value"),
+                            reason = uriAuthFormatErrorFmt.format("12", "badscheme://bad value"),
                         ),
                     ),
                 ),
@@ -262,7 +270,7 @@ class RioClientTest {
                 ),
                 Pair(
                     createRequest.copy(name = "bad name", mgmtInterface = "bad uri"),
-                    listOf(mgmtUriError.copy(value = "bad uri", reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
+                    listOf(mgmtUriError.copy(value = "bad uri", reason = uriPathFormatErrorFmt.format("3", "bad uri"))),
                 ),
                 Pair(
                     createRequest.copy(name = "bad name", mgmtInterface = "https://badhost.eng.sldomain.com"),
@@ -282,7 +290,7 @@ class RioClientTest {
                     },
                     RioHttpException::class.java,
                 )
-            assertRioResourceError(ex, RioResourceErrorMessage(DEVICE_RESOURCE_ERROR_FMT.format("bad-name"), 404, "bad-name", "DEVICE"))
+            assertRioResourceError(ex, RioResourceErrorMessage(deviceResourceErrorFmt.format("bad-name"), 404, "bad-name", "DEVICE"))
         }
 
     private fun assertSpectraDeviceCreateError(
@@ -328,9 +336,9 @@ class RioClientTest {
         blockingTest {
             val nameBaseError = RioValidationMessage("name", "string", "")
             val nameMissingError = nameBaseError.copy(errorType = "missing")
-            val nameInvalidError = nameBaseError.copy(errorType = "invalid_device_name", reason = INVALID_NAME_MSG)
+            val nameInvalidError = nameBaseError.copy(errorType = "invalid_device_name", reason = invalidNameMsg)
             val endpointBaseError = RioValidationMessage("endpoint", "URI", "")
-            val endpointMissingError = endpointBaseError.copy(errorType = "missing", fieldType = "string", reason = EMPTY_ERROR)
+            val endpointMissingError = endpointBaseError.copy(errorType = "missing", fieldType = "string", reason = emptyError)
             val endpointUriError = endpointBaseError.copy(errorType = "invalid_uri")
 
             ensureBrokerExists()
@@ -479,7 +487,7 @@ class RioClientTest {
                         },
                         RioHttpException::class.java,
                     )
-                assertRioResourceError(ex, RioResourceErrorMessage(DEVICE_RESOURCE_ERROR_FMT.format("bad-name"), 404, "bad-name", "DEVICE"))
+                assertRioResourceError(ex, RioResourceErrorMessage(deviceResourceErrorFmt.format("bad-name"), 404, "bad-name", "DEVICE"))
             } finally {
                 if (rioClient.headAgent(testBroker, divaAgentName)) {
                     rioClient.deleteAgent(testBroker, divaAgentName, true)
@@ -808,6 +816,11 @@ class RioClientTest {
                 assertThat(jobList.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(jobList.page.totalItems).isEqualTo(totalJobs - 2)
 
+                val allJobCount = rioClient.listJobs().page.totalItems
+                val spectraJobCount = rioClient.listJobs(createBy = 1L).page.totalItems
+                assertThat(spectraJobCount).isLessThanOrEqualTo(allJobCount)
+                // assertThat(spectraJobCount).isLessThan(allJobCount)  Not always true, but a better test
+
                 // TODO job unhappy path testing
             } finally {
                 removeBroker()
@@ -905,6 +918,94 @@ class RioClientTest {
                 removeBroker()
             }
         }
+
+    @Test
+    fun archiveFolderJobGroupTest(
+        @TempDir tempDir: Path,
+    ) = blockingTest {
+        val uuid = UUID.randomUUID()
+        val endpointName = "endpoint-$uuid"
+        val endpointPath = tempDir.resolve("endpoint")
+        endpointPath.toFile().mkdir()
+        val endpointDirs =
+            (1..3).map { idx ->
+                endpointPath
+                    .resolve("endpoint-dir-$idx")
+                    .also { it.toFile().mkdir() }
+            }
+        val endpointFiles: List<File> =
+            endpointDirs
+                .mapIndexed { epIdx, epDir ->
+                    (1..3).map { fileIdx ->
+                        epDir
+                            .resolve("Endpoint-file-$epIdx-$fileIdx.txt")
+                            .toFile()
+                            .also { it.writeText("This is an endpoint file ${it.name}") }
+                    }
+                }.flatten()
+        val files: List<File> =
+            (1..10).map { idx ->
+                endpointPath
+                    .resolve("file-$idx.txt")
+                    .toFile()
+                    .also { it.writeText("This is a plain file") }
+            }
+        val req =
+            ArchiveFolderRequest(
+                jobName = "ArchiveFolder $uuid",
+                prefix = "$uuid/",
+                files = files.map { FileToArchive(it.name, it.toURI(), null) },
+                folders = endpointDirs.map { FolderToArchive(it.toUri()) },
+            )
+
+        try {
+            ensureBrokerExists()
+
+            rioClient
+                .createUriEndpointDevice(
+                    UriEndpointDeviceCreateRequest(endpointName, endpointPath.toUri().toString()),
+                ).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                }
+
+            val jobGroupId: UUID =
+                rioClient.createArchiveFolderJob(testBroker, req).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                    UUID.fromString(resp.jobGroupId)
+                }
+            var tries = 100
+
+            do {
+                delay(20000)
+                val jgStatus = rioClient.jobGroupStatus(jobGroupId)
+                assertThat(jgStatus.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(jgStatus.jobs).isNotEmpty
+
+                val activeJobCount = jgStatus.jobs.filter { it.status.status == "ACTIVE" }.size
+
+                rioClient.listJobGroups().let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.jobGroups.map { it.groupId }).contains(jobGroupId.toString())
+                }
+            } while (--tries > 0 && activeJobCount > 0)
+            val jgJobCount: Int =
+                rioClient.listJobs(groupId = jobGroupId).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.page.totalItems).isGreaterThan(0)
+                    resp.page.totalItems.toInt()
+                }
+            rioClient.jobGroupStatus(jobGroupId).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.errorCount).isEqualTo(0)
+                assertThat(resp.failedFiles).isEmpty()
+                assertThat(resp.jobs).hasSize(jgJobCount)
+            }
+        } finally {
+            if (rioClient.headEndpointDevice(endpointName)) {
+                rioClient.deleteEndpointDevice(endpointName)
+            }
+        }
+    }
 
     @Test
     fun objectTest() =
@@ -1489,23 +1590,42 @@ class RioClientTest {
     fun userTest() =
         blockingTest {
             val username = "user-${uuid()}"
+            val password = "wordpass"
 
             assertThat(rioClient.headUserLogin(username)).isFalse()
             rioClient
                 .createUserLogin(
-                    UserCreateRequest(username, "password", true),
+                    UserCreateRequest(username, password, false, true, "Operator"),
                 ).let { resp ->
                     assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
                     assertThat(resp.username).isEqualTo(username)
-                    assertThat(resp.active).isTrue()
+                    assertThat(resp.active).isFalse()
                     assertThat(resp.local).isTrue()
+                    assertThat(resp.role).isEqualTo("Operator")
                 }
             assertThat(rioClient.headUserLogin(username)).isTrue()
+            assertThrows<RioHttpException> {
+                rioClient.getBearerToken(username, password)
+            }
             rioClient.getUserLogin(username).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.username).isEqualTo(username)
+                assertThat(resp.active).isFalse()
+                assertThat(resp.local).isTrue()
+                assertThat(resp.role).isEqualTo("Operator")
+            }
+            rioClient.updateUserLogin(username, UserUpdateRequest(true, "Operator")).let { resp ->
                 assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(resp.username).isEqualTo(username)
                 assertThat(resp.active).isTrue()
                 assertThat(resp.local).isTrue()
+                assertThat(resp.role).isEqualTo("Operator")
+            }
+            rioClient.getBearerToken(username, password).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                assertThat(resp.username).isEqualTo(username)
+                assertThat(resp.role).isEqualTo("Operator")
+                assertThat(resp.token).isNotBlank()
             }
             rioClient.listUserLogins().let { resp ->
                 assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
@@ -1514,23 +1634,94 @@ class RioClientTest {
             rioClient
                 .updateUserLogin(
                     username,
-                    UserUpdateRequest("new-password", true),
+                    UserUpdateRequest(true, "Administrator"),
                 ).let { resp ->
                     assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
                     assertThat(resp.username).isEqualTo(username)
                     assertThat(resp.active).isTrue()
                     assertThat(resp.local).isTrue()
+                    assertThat(resp.role).isEqualTo("Administrator")
                 }
-            rioClient.activateUser(username, false).let { resp ->
-                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
-                assertThat(resp.username).isEqualTo(username)
-                assertThat(resp.active).isFalse()
-                assertThat(resp.local).isTrue()
-            }
+            rioClient
+                .updateUserPassword(
+                    username,
+                    UserUpdatePasswordRequest("new-password"),
+                ).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.username).isEqualTo(username)
+                    assertThat(resp.active).isTrue()
+                    assertThat(resp.local).isTrue()
+                    assertThat(resp.role).isEqualTo("Administrator")
+                }
             rioClient.deleteUserLogin(username).let { resp ->
                 assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
             }
             assertThat(rioClient.headUserLogin(username)).isFalse()
+        }
+
+    @Test
+    fun configLdapTest() =
+        blockingTest {
+            val orig =
+                try {
+                    rioClient.getActiveDirectoryConfig()
+                } catch (_: Throwable) {
+                    null
+                }
+            listOf(true, false).forEach { tls ->
+                listOf(true, false).forEach { allow ->
+                    listOf("Operator", "Administrator").forEach { role ->
+                        val port = if (tls) 636 else 389
+                        val expectedRole = if (allow) role else "Operator"
+                        rioClient
+                            .setActiveDirectoryConfig(
+                                ActiveDirectoryRequest(ldapDomain, ldapHost, port, tls, allow, role),
+                            ).let { resp ->
+                                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                                assertThat(resp.domain).isEqualTo(ldapDomain)
+                                assertThat(resp.ldapServer).isEqualTo(ldapHost)
+                                assertThat(resp.port).isEqualTo(port)
+                                assertThat(resp.tls).isEqualTo(tls)
+                                assertThat(resp.allowAny).isEqualTo(allow)
+                                assertThat(resp.defaultRole).isEqualTo(expectedRole)
+                            }
+
+                        rioClient.getActiveDirectoryConfig().let { resp ->
+                            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                            assertThat(resp.domain).isEqualTo(ldapDomain)
+                            assertThat(resp.ldapServer).isEqualTo(ldapHost)
+                            assertThat(resp.port).isEqualTo(port)
+                            assertThat(resp.tls).isEqualTo(tls)
+                            assertThat(resp.allowAny).isEqualTo(allow)
+                            assertThat(resp.defaultRole).isEqualTo(expectedRole)
+                        }
+
+                        rioClient.deleteActiveDirectoryConfig().let { resp ->
+                            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
+                        }
+
+                        assertThrows<RioHttpException> {
+                            rioClient.getActiveDirectoryConfig()
+                        }
+                    }
+                }
+            }
+            orig?.let {
+                if (it.statusCode == HttpStatusCode.OK) {
+                    rioClient
+                        .setActiveDirectoryConfig(
+                            ActiveDirectoryRequest(it.domain, it.ldapServer, it.port, it.tls, it.allowAny, it.defaultRole),
+                        ).let { resp ->
+                            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                            assertThat(resp.domain).isEqualTo(it.domain)
+                            assertThat(resp.ldapServer).isEqualTo(it.ldapServer)
+                            assertThat(resp.port).isEqualTo(it.port)
+                            assertThat(resp.tls).isEqualTo(it.tls)
+                            assertThat(resp.allowAny).isEqualTo(it.allowAny)
+                            assertThat(resp.defaultRole).isEqualTo(it.defaultRole)
+                        }
+                }
+            }
         }
 
     private suspend fun ensureBrokerExists() {
