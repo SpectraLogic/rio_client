@@ -8,14 +8,13 @@ package com.spectralogic.rioclient
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonClassDiscriminator
 
-const val RioRequestDiscriminator = "rio_request_type"
+const val RIO_REQUEST_DISCRIMINATOR = "rio_request_type"
 
 @Serializable
-@JsonClassDiscriminator(RioRequestDiscriminator)
+@JsonClassDiscriminator(RIO_REQUEST_DISCRIMINATOR)
 sealed interface RioRequest
 
 @Serializable

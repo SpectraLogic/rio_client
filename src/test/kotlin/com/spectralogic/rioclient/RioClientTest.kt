@@ -22,7 +22,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 @Tag("test")
-class RioClient_Test {
+class RioClientTest {
     private companion object {
         private lateinit var rioClient: RioClient
         private lateinit var spectraDeviceCreateRequest: SpectraDeviceCreateRequest
@@ -46,11 +46,11 @@ class RioClient_Test {
         private lateinit var username: String
         private lateinit var password: String
 
-        private const val deviceResourceErrorFmt = "Resource of type DEVICE and name %s does not exist"
-        private const val invalidNameMsg = "names can only contain the characters: [a-z], [0-9], '-' and '_'"
-        private const val uriPathFormatErrorFmt = "URI is not properly formatted (Illegal character in path at index %s: %s)"
-        private const val uriAuthFormatErrorFmt = "URI is not properly formatted (Illegal character in authority at index %s: %s)"
-        private const val emptyError = "cannot be empty or consist only of whitespace"
+        private const val DEVICE_RESOURCE_ERROR_FMT = "Resource of type DEVICE and name %s does not exist"
+        private const val INVALID_NAME_MSG = "names can only contain the characters: [a-z], [0-9], '-' and '_'"
+        private const val URI_PATH_FORMAT_ERROR_FMT = "URI is not properly formatted (Illegal character in path at index %s: %s)"
+        private const val URI_AUTH_FORMAT_ERROR_FMT = "URI is not properly formatted (Illegal character in authority at index %s: %s)"
+        private const val EMPTY_ERROR = "cannot be empty or consist only of whitespace"
 
         @JvmStatic
         @BeforeAll
@@ -96,7 +96,7 @@ class RioClient_Test {
         blockingTest {
             val nameBaseError = RioValidationMessage("name", "string", "")
             val nameMissingError = nameBaseError.copy(errorType = "missing")
-            val nameInvalidError = nameBaseError.copy(errorType = "invalid_device_name", reason = invalidNameMsg)
+            val nameInvalidError = nameBaseError.copy(errorType = "invalid_device_name", reason = INVALID_NAME_MSG)
             val mgmtBaseError = RioValidationMessage("mgmtInterface", "URI", "")
             val mgmtHostError = mgmtBaseError.copy(errorType = "unknown_host")
             val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_format")
@@ -152,14 +152,14 @@ class RioClient_Test {
             listOf(
                 Pair(
                     updateRequest.copy(mgmtInterface = "bad uri"),
-                    listOf(mgmtUriError.copy(value = "bad uri", reason = uriPathFormatErrorFmt.format("3", "bad uri"))),
+                    listOf(mgmtUriError.copy(value = "bad uri", reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
                 ),
                 Pair(
                     updateRequest.copy(mgmtInterface = "badscheme://bad value"),
                     listOf(
                         mgmtUriError.copy(
                             value = "badscheme://bad value",
-                            reason = uriAuthFormatErrorFmt.format("12", "badscheme://bad value"),
+                            reason = URI_AUTH_FORMAT_ERROR_FMT.format("12", "badscheme://bad value"),
                         ),
                     ),
                 ),
@@ -229,14 +229,14 @@ class RioClient_Test {
                 ),
                 Pair(
                     createRequest.copy(mgmtInterface = "bad uri"),
-                    listOf(mgmtUriError.copy(value = "bad uri", reason = uriPathFormatErrorFmt.format("3", "bad uri"))),
+                    listOf(mgmtUriError.copy(value = "bad uri", reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
                 ),
                 Pair(
                     createRequest.copy(mgmtInterface = "badscheme://bad value"),
                     listOf(
                         mgmtUriError.copy(
                             value = "badscheme://bad value",
-                            reason = uriAuthFormatErrorFmt.format("12", "badscheme://bad value"),
+                            reason = URI_AUTH_FORMAT_ERROR_FMT.format("12", "badscheme://bad value"),
                         ),
                     ),
                 ),
@@ -262,7 +262,7 @@ class RioClient_Test {
                 ),
                 Pair(
                     createRequest.copy(name = "bad name", mgmtInterface = "bad uri"),
-                    listOf(mgmtUriError.copy(value = "bad uri", reason = uriPathFormatErrorFmt.format("3", "bad uri"))),
+                    listOf(mgmtUriError.copy(value = "bad uri", reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
                 ),
                 Pair(
                     createRequest.copy(name = "bad name", mgmtInterface = "https://badhost.eng.sldomain.com"),
@@ -282,7 +282,7 @@ class RioClient_Test {
                     },
                     RioHttpException::class.java,
                 )
-            assertRioResourceError(ex, RioResourceErrorMessage(deviceResourceErrorFmt.format("bad-name"), 404, "bad-name", "DEVICE"))
+            assertRioResourceError(ex, RioResourceErrorMessage(DEVICE_RESOURCE_ERROR_FMT.format("bad-name"), 404, "bad-name", "DEVICE"))
         }
 
     private fun assertSpectraDeviceCreateError(
@@ -328,9 +328,9 @@ class RioClient_Test {
         blockingTest {
             val nameBaseError = RioValidationMessage("name", "string", "")
             val nameMissingError = nameBaseError.copy(errorType = "missing")
-            val nameInvalidError = nameBaseError.copy(errorType = "invalid_device_name", reason = invalidNameMsg)
+            val nameInvalidError = nameBaseError.copy(errorType = "invalid_device_name", reason = INVALID_NAME_MSG)
             val endpointBaseError = RioValidationMessage("endpoint", "URI", "")
-            val endpointMissingError = endpointBaseError.copy(errorType = "missing", fieldType = "string", reason = emptyError)
+            val endpointMissingError = endpointBaseError.copy(errorType = "missing", fieldType = "string", reason = EMPTY_ERROR)
             val endpointUriError = endpointBaseError.copy(errorType = "invalid_uri")
 
             ensureBrokerExists()
@@ -479,7 +479,7 @@ class RioClient_Test {
                         },
                         RioHttpException::class.java,
                     )
-                assertRioResourceError(ex, RioResourceErrorMessage(deviceResourceErrorFmt.format("bad-name"), 404, "bad-name", "DEVICE"))
+                assertRioResourceError(ex, RioResourceErrorMessage(DEVICE_RESOURCE_ERROR_FMT.format("bad-name"), 404, "bad-name", "DEVICE"))
             } finally {
                 if (rioClient.headAgent(testBroker, divaAgentName)) {
                     rioClient.deleteAgent(testBroker, divaAgentName, true)
