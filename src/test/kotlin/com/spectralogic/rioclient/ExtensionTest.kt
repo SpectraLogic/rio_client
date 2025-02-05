@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
 @Tag("test")
-class Extension_Test {
+class ExtensionTest {
     @Test
     fun urlEncodeTest() {
         val plain = "abcdefghijklmnopqrstuvwxyz 01234567890 ~!@#$%^&()_+`-={}[]:;\"'<>,.?/'"
