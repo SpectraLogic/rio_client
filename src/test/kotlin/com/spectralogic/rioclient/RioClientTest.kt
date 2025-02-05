@@ -53,9 +53,9 @@ class RioClientTest {
 
         private const val DEVICE_RESOURCE_ERROR_FMT = "Resource of type DEVICE and name %s does not exist"
         private const val INVALID_NAME_MSG_FMT = "names can only contain the characters: [a-z], [0-9], '-' and '_'"
-        private const val URI_PATH_FORMAT_ERROR_FMT = "URI is not properly formatted (Illegal character in path at index %s: %s)"
+        private const val URI_PATH_FORMAT_ERROR_FMT= "URI is not properly formatted (Illegal character in path at index %s: %s)"
         private const val URI_AUTH_FORMAT_ERROR_FMT = "URI is not properly formatted (Illegal character in authority at index %s: %s)"
-        private const val emptyError = "cannot be empty or consist only of whitespace"
+        private const val EMPTY_ERROR = "cannot be empty or consist only of whitespace"
 
         @JvmStatic
         @BeforeAll
@@ -338,7 +338,7 @@ class RioClientTest {
             val nameMissingError = nameBaseError.copy(errorType = "missing")
             val nameInvalidError = nameBaseError.copy(errorType = "invalid_device_name", reason = INVALID_NAME_MSG_FMT)
             val endpointBaseError = RioValidationMessage("endpoint", "URI", "")
-            val endpointMissingError = endpointBaseError.copy(errorType = "missing", fieldType = "string", reason = emptyError)
+            val endpointMissingError = endpointBaseError.copy(errorType = "missing", fieldType = "string", reason = EMPTY_ERROR)
             val endpointUriError = endpointBaseError.copy(errorType = "invalid_uri")
 
             ensureBrokerExists()
