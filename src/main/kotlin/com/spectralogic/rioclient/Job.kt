@@ -10,25 +10,29 @@ import java.net.URI
 import java.util.Collections.emptyMap
 import java.util.UUID
 
-enum class JobStatusEnum(val isFinal: Boolean = false) {
+enum class JobStatusEnum(
+    val isFinal: Boolean = false,
+) {
     ACTIVE,
     COMPLETED(true),
     CANCELED(true),
     ERROR(true),
-    UNKNOWN;
+    UNKNOWN,
+    ;
 
     companion object {
-        fun parse(status: String): JobStatusEnum {
-            return try {
+        fun parse(status: String): JobStatusEnum =
+            try {
                 JobStatusEnum.valueOf(status)
             } catch (_: IllegalArgumentException) {
                 UNKNOWN
             }
-        }
     }
 }
 
-enum class FileStatusEnum(val isFinal: Boolean = false) {
+enum class FileStatusEnum(
+    val isFinal: Boolean = false,
+) {
     Completed(true),
     Error(true),
     Initializing,
@@ -36,16 +40,16 @@ enum class FileStatusEnum(val isFinal: Boolean = false) {
     Copying,
     Transferring,
     Rewrapping,
-    UNKNOWN;
+    UNKNOWN,
+    ;
 
     companion object {
-        fun parse(status: String): FileStatusEnum {
-            return try {
+        fun parse(status: String): FileStatusEnum =
+            try {
                 FileStatusEnum.valueOf(status)
             } catch (_: IllegalArgumentException) {
                 UNKNOWN
             }
-        }
     }
 }
 
@@ -53,14 +57,14 @@ enum class FileStatusEnum(val isFinal: Boolean = false) {
 data class JobStatus(
     val message: String,
     val status: String,
-    val reason: String? = null
+    val reason: String? = null,
 )
 
 @Serializable
 data class JobCallback(
     val url: String,
     val eventClass: String,
-    val eventType: String
+    val eventType: String,
 )
 
 @Serializable
@@ -77,9 +81,13 @@ open class DetailedJobResponse(
     val totalSizeInBytes: Long,
     val progress: Float,
     val files: List<FileStatus>,
-    val foreignJobs: Map<@Serializable(with = UUIDSerializer::class)UUID, ForeignJobDetails> = emptyMap(),
+    val foreignJobs: Map<
+        @Serializable(with = UUIDSerializer::class)
+        UUID,
+        ForeignJobDetails,
+    > = emptyMap(),
     val priority: String? = null,
-    val callbacks: List<JobCallback>? = null
+    val callbacks: List<JobCallback>? = null,
 ) : RioResponse()
 
 @Serializable
@@ -95,10 +103,14 @@ open class JobResponse(
     val filesTransferred: Long,
     val totalSizeInBytes: Long,
     val progress: Float,
-    val foreignJobs: Map<@Serializable(with = UUIDSerializer::class)UUID, ForeignJobDetails> = emptyMap(),
+    val foreignJobs: Map<
+        @Serializable(with = UUIDSerializer::class)
+        UUID,
+        ForeignJobDetails,
+    > = emptyMap(),
     val priority: String? = null,
     val sessionId: String? = null,
-    val callbacks: List<JobCallback>? = null
+    val callbacks: List<JobCallback>? = null,
 ) : RioResponse()
 
 @Serializable
@@ -114,28 +126,35 @@ data class JobData(
     val filesTransferred: Long,
     val totalSizeInBytes: Long,
     val progress: Float,
-    val foreignJobs: Map<@Serializable(with = UUIDSerializer::class)UUID, ForeignJobDetails> = emptyMap(),
+    val foreignJobs: Map<
+        @Serializable(with = UUIDSerializer::class)
+        UUID,
+        ForeignJobDetails,
+    > = emptyMap(),
     val priority: String? = null,
-    val callbacks: List<JobCallback>? = null
+    val callbacks: List<JobCallback>? = null,
 )
 
 @Serializable
 enum class JobType {
-    ARCHIVE, RESTORE
+    ARCHIVE,
+    RESTORE,
 }
 
 @Serializable
 data class ForeignJobDetails(
     val id: String,
-    val type: String
+    val type: String,
 )
 
 @Serializable
 data class JobListResponse(
     val jobs: List<JobData>,
-    val page: PageInfo
-) : RioResponse(), RioListResponse<JobData> {
+    val page: PageInfo,
+) : RioResponse(),
+    RioListResponse<JobData> {
     override fun page() = page
+
     override fun results() = jobs
 }
 
@@ -152,13 +171,13 @@ data class FileStatus(
     val lastUpdated: String,
     val broker: String?,
     val agent: String?,
-    val fileId: String
+    val fileId: String,
 )
 
 @Serializable
 data class FileStatusLogResponse(
     val page: PageInfo,
-    val fileStatus: List<FileStatusResponse>
+    val fileStatus: List<FileStatusResponse>,
 ) : RioResponse()
 
 @Serializable
@@ -171,5 +190,5 @@ data class FileStatusResponse(
     val statusMessage: String,
     val lastUpdated: String,
     @Serializable(with = UUIDSerializer::class)
-    val foreignJob: UUID?
+    val foreignJob: UUID?,
 ) : RioResponse()

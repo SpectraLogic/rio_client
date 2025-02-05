@@ -13,7 +13,7 @@ data class ArchiveRequest(
     val name: String? = null,
     val files: List<FileToArchive>,
     val metadata: Map<String, String>? = null,
-    val callbacks: List<JobCallback>? = null
+    val callbacks: List<JobCallback>? = null,
 ) : RioRequest
 
 @Serializable
@@ -24,5 +24,5 @@ data class FileToArchive(
     val size: Long?,
     val metadata: Map<String, String>? = null,
     val indexMedia: Boolean = false,
-    val deleteAfterArchive: Boolean = false
+    val deleteAfterArchive: Boolean = false,
 )

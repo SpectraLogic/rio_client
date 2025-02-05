@@ -16,21 +16,21 @@ data class BrokerCreateRequest(
     val name: String,
     val agentName: String,
     val agentConfig: Map<String, String>,
-    @EncodeDefault val agentType: String = "bp_agent"
+    @EncodeDefault val agentType: String = "bp_agent",
 ) : RioRequest
 
 @Serializable
 data class BrokerResponse(
     val name: String,
     val creationDate: String,
-    val objectCount: Long
+    val objectCount: Long,
 ) : RioResponse()
 
 @Serializable
 data class BrokerData(
     val name: String,
     val creationDate: String,
-    val objectCount: Long
+    val objectCount: Long,
 )
 
 @Serializable
@@ -48,7 +48,7 @@ data class BpAgentConfig(
     @Serializable(with = UUIDSerializer::class)
     val dataPolicyUUID: UUID? = null,
     @EncodeDefault val https: Boolean = false,
-    @EncodeDefault val protect: Boolean = false
+    @EncodeDefault val protect: Boolean = false,
 ) : AgentConfig() {
     override fun toConfigMap(): Map<String, String> =
         buildMap {
@@ -65,7 +65,7 @@ data class BpAgentConfig(
 @Serializable
 data class VailAgentConfig(
     val vailDeviceName: String,
-    val bucket: String
+    val bucket: String,
 ) : AgentConfig() {
     override fun toConfigMap(): Map<String, String> =
         buildMap {
@@ -77,7 +77,7 @@ data class VailAgentConfig(
 @Serializable
 data class S3CAgentConfig(
     val s3cDeviceName: String,
-    val bucket: String
+    val bucket: String,
 ) : AgentConfig() {
     override fun toConfigMap(): Map<String, String> =
         buildMap {
@@ -91,7 +91,7 @@ data class DivaAgentConfig(
     val divaDeviceName: String,
     val category: String,
     val qos: Int?,
-    val priority: Int?
+    val priority: Int?,
 ) : AgentConfig() {
     override fun toConfigMap(): Map<String, String> =
         buildMap {
@@ -106,7 +106,7 @@ data class DivaAgentConfig(
 data class FlashnetAgentConfig(
     val flashnetDeviceName: String,
     val applicationName: String,
-    val storageGroupName: String
+    val storageGroupName: String,
 ) : AgentConfig() {
     override fun toConfigMap(): Map<String, String> =
         buildMap {
@@ -120,7 +120,7 @@ data class FlashnetAgentConfig(
 data class SglLtfsAgentConfig(
     val bucket: String,
     val blackPearlName: String,
-    val username: String
+    val username: String,
 ) : AgentConfig() {
     override fun toConfigMap(): Map<String, String> =
         buildMap {
@@ -134,12 +134,12 @@ data class SglLtfsAgentConfig(
 data class AgentCreateRequest(
     val name: String,
     val type: String,
-    val agentConfig: Map<String, String>
+    val agentConfig: Map<String, String>,
 ) : RioRequest
 
 @Serializable
 data class AgentUpdateRequest(
-    val agentConfig: Map<String, String>
+    val agentConfig: Map<String, String>,
 ) : RioRequest
 
 @Serializable
@@ -150,7 +150,7 @@ data class AgentResponse(
     val lastIndexDate: String? = null,
     val writable: Boolean,
     val agentConfig: Map<String, String>,
-    val indexState: String? = null
+    val indexState: String? = null,
 ) : RioResponse()
 
 @Serializable
@@ -161,7 +161,7 @@ data class AgentData(
     val lastIndexDate: String? = null,
     val writable: Boolean,
     val agentConfig: Map<String, String>,
-    val indexState: String? = null
+    val indexState: String? = null,
 )
 
 @Serializable
@@ -172,7 +172,7 @@ data class ObjectResponse(
     val broker: String,
     val checksum: Checksum,
     val metadata: Map<String, String>,
-    val internalMetadata: Map<String, String>? = null
+    val internalMetadata: Map<String, String>? = null,
 ) : RioResponse()
 
 @Serializable
@@ -183,67 +183,76 @@ data class ObjectData(
     val broker: String,
     val checksum: Checksum,
     val metadata: Map<String, String>,
-    val internalMetadata: Map<String, String>? = null
+    val internalMetadata: Map<String, String>? = null,
 )
 
 @Serializable
 data class ObjectBatchUpdateRequest(
-    val objects: List<ObjectUpdateRequest>
+    val objects: List<ObjectUpdateRequest>,
 ) : RioRequest
 
 @Serializable
 data class ObjectUpdateRequest(
     val name: String,
-    val metadata: Map<String, String>
+    val metadata: Map<String, String>,
 ) : RioRequest
 
 @Serializable
-data class Checksum(val hash: String, val type: String)
+data class Checksum(
+    val hash: String,
+    val type: String,
+)
 
 @Serializable
 data class ObjectListResponse(
     val objects: List<ObjectData>,
-    val page: PageInfo
-) : RioResponse(), RioListResponse<ObjectData> {
+    val page: PageInfo,
+) : RioResponse(),
+    RioListResponse<ObjectData> {
     override fun page() = page
+
     override fun results() = objects
 }
 
 @Serializable
 data class ObjectCountResponse(
-    val objectCount: Long
+    val objectCount: Long,
 ) : RioResponse()
 
 @Serializable
 data class ObjectBatchHeadRequest(
-    val objects: List<String>
+    val objects: List<String>,
 ) : RioRequest
 
 @Serializable
 data class ObjectBatchHeadResponse(
-    val objects: List<ObjectHeadData>
+    val objects: List<ObjectHeadData>,
 ) : RioResponse()
 
 @Serializable
 data class ObjectHeadData(
     val name: String,
-    val found: Boolean
+    val found: Boolean,
 )
 
 @Serializable
 data class BrokerListResponse(
     val brokers: List<BrokerData>,
-    val page: PageInfo
-) : RioResponse(), RioListResponse<BrokerData> {
+    val page: PageInfo,
+) : RioResponse(),
+    RioListResponse<BrokerData> {
     override fun page() = page
+
     override fun results() = brokers
 }
 
 @Serializable
 data class AgentListResponse(
     val agents: List<AgentData>,
-    val page: PageInfo
-) : RioResponse(), RioListResponse<AgentData> {
+    val page: PageInfo,
+) : RioResponse(),
+    RioListResponse<AgentData> {
     override fun page() = page
+
     override fun results() = agents
 }

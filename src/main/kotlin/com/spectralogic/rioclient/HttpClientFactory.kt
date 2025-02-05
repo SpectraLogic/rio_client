@@ -20,8 +20,13 @@ import kotlinx.serialization.json.Json
 import org.eclipse.jetty.util.ssl.SslContextFactory
 
 object HttpClientFactory {
-    fun createHttpClient(username: String, password: String, verbose: Boolean, requestTimeout: Long): HttpClient {
-        return HttpClient(Jetty) {
+    fun createHttpClient(
+        username: String,
+        password: String,
+        verbose: Boolean,
+        requestTimeout: Long,
+    ): HttpClient =
+        HttpClient(Jetty) {
             engine {
                 sslContextFactory = SslContextFactory.Client(true)
                 clientCacheSize = 12
@@ -33,7 +38,7 @@ object HttpClientFactory {
                 json(
                     Json {
                         ignoreUnknownKeys = true
-                    }
+                    },
                 )
             }
             install(Auth) {
@@ -43,21 +48,23 @@ object HttpClientFactory {
                         val host = url.host
                         val port = url.port
                         val protocol = url.protocol.name
-                        val response: ShortTokenResponse = client.post("$protocol://$host:$port/api/tokens") {
-                            contentType(ContentType.Application.Json)
-                            setBody(UserLoginCredentials(username, password))
-                        }.body()
+                        val response: ShortTokenResponse =
+                            client
+                                .post("$protocol://$host:$port/api/tokens") {
+                                    contentType(ContentType.Application.Json)
+                                    setBody(UserLoginCredentials(username, password))
+                                }.body()
                         BearerTokens(response.token, "")
                     }
                 }
             }
             install(Logging) {
-                level = if (verbose) {
-                    LogLevel.ALL
-                } else {
-                    LogLevel.NONE
-                }
+                level =
+                    if (verbose) {
+                        LogLevel.ALL
+                    } else {
+                        LogLevel.NONE
+                    }
             }
         }
-    }
 }

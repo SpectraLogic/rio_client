@@ -11,14 +11,14 @@ import java.net.URI
 @Serializable
 data class ByteRange(
     val startingIndex: Long,
-    val endingIndex: Long
+    val endingIndex: Long,
 )
 
 @Serializable
 data class RestoreRequest(
     val name: String? = null,
     val files: List<FileToRestore>,
-    val callbacks: List<JobCallback>? = null
+    val callbacks: List<JobCallback>? = null,
 ) : RioRequest
 
 @Serializable
@@ -27,5 +27,5 @@ data class FileToRestore(
     @Serializable(with = URISerializer::class)
     val uri: URI,
     val timeCodeRange: String? = null,
-    val byteRange: ByteRange? = null
+    val byteRange: ByteRange? = null,
 )

@@ -17,13 +17,13 @@ data class SystemResponse(
     val server: ServerData,
     val runtimeStats: ProcessStatsData,
     val buildNumber: String,
-    val buildType: String
+    val buildType: String,
 ) : RioResponse()
 
 @Serializable
 data class ServerData(
     val jvm: JvmData,
-    val operatingSystem: OsData
+    val operatingSystem: OsData,
 )
 
 @Serializable
@@ -31,7 +31,7 @@ data class JvmData(
     val version: String,
     val vendor: String,
     val vmVersion: String,
-    val vmName: String
+    val vmName: String,
 )
 
 @Serializable
@@ -39,7 +39,7 @@ data class OsData(
     val name: String,
     val arch: String,
     val version: String,
-    val cores: Int
+    val cores: Int,
 )
 
 @Serializable
@@ -47,7 +47,7 @@ data class ProcessStatsData(
     val uptime: Long,
     val totalMemory: Long,
     val usedMemory: Long,
-    val freeMemory: Long
+    val freeMemory: Long,
 )
 
 @Serializable
@@ -55,7 +55,7 @@ data class ClientDataRequest(
     val clientDataId: String,
     val clientName: String,
     val tag: String,
-    val mapData: Map<String, String>
+    val mapData: Map<String, String>,
 ) : RioRequest
 
 @Serializable
@@ -66,15 +66,17 @@ data class ClientDataResponse(
     val clientDataId: String,
     val clientName: String,
     val tag: String,
-    val mapData: Map<String, String>
+    val mapData: Map<String, String>,
 ) : RioResponse()
 
 @Serializable
 data class ClientDataListResponse(
     val result: List<ClientData>,
-    val page: PageInfo
-) : RioResponse(), RioListResponse<ClientData> {
+    val page: PageInfo,
+) : RioResponse(),
+    RioListResponse<ClientData> {
     override fun page() = page
+
     override fun results() = result
 }
 
@@ -86,7 +88,7 @@ data class ClientData(
     val clientDataId: String,
     val clientName: String,
     val tag: String,
-    val mapData: Map<String, String>
+    val mapData: Map<String, String>,
 )
 
 @Serializable
@@ -95,14 +97,14 @@ data class RioClientApplicationRequest(
     val macAddress: String,
     val ipUrl: String,
     val fqdnUrl: String,
-    val version: String
+    val version: String,
 ) : RioRequest
 
 @Serializable
 data class RioClientApplicationUpdateRequest(
     val name: String,
     val ipUrl: String,
-    val fqdnUrl: String
+    val fqdnUrl: String,
 ) : RioRequest
 
 @Serializable
@@ -116,19 +118,21 @@ data class RioClientApplicationResponse(
     val fqdnUrl: String,
     val version: String,
     val createDate: String,
-    val accessDate: String
+    val accessDate: String,
 ) : RioResponse()
 
 @Serializable
 data class RioClientApplicationListResponse(
     val result: List<RioClientApplicationResponse>,
-    val page: PageInfo
-) : RioResponse(), RioListResponse<RioClientApplicationResponse> {
+    val page: PageInfo,
+) : RioResponse(),
+    RioListResponse<RioClientApplicationResponse> {
     override fun page() = page
+
     override fun results() = result
 }
 
 @Serializable
 data class RioClientApplicationsListResponse(
-    val applications: List<String>
+    val applications: List<String>,
 ) : RioResponse()

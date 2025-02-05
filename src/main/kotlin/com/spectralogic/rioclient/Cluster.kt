@@ -18,22 +18,24 @@ data class CreateClusterRequest(
     val dboLogin: String,
     val dboPassword: String,
     val queryLogin: String,
-    val queryPassword: String
+    val queryPassword: String,
 ) : RioRequest
 
 @Serializable
 data class ClusterResponse(
-    val clusterName: String
+    val clusterName: String,
 ) : RioResponse()
 
 @Serializable
 data class ClusterMembersListResponse(
-    val members: List<ClusterMemberData>
-) : RioResponse(), RioListResponse<ClusterMemberData> {
+    val members: List<ClusterMemberData>,
+) : RioResponse(),
+    RioListResponse<ClusterMemberData> {
     override fun page(): PageInfo {
         val count = members.size.toLong()
         return PageInfo(0, count, 1L, count)
     }
+
     override fun results() = members
 }
 
@@ -43,7 +45,7 @@ data class ClusterMemberResponse(
     val ipAddress: String,
     val clusterPort: Int,
     val httpPort: Int,
-    val role: String
+    val role: String,
 ) : RioResponse()
 
 @Serializable
@@ -52,5 +54,5 @@ data class ClusterMemberData(
     val ipAddress: String,
     val clusterPort: Int,
     val httpPort: Int,
-    val role: String
+    val role: String,
 )
