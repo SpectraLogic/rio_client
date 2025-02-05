@@ -10,7 +10,7 @@ import java.util.UUID
 
 @Serializable
 data class TokenCreateRequest(
-    val expirationDate: String? = null
+    val expirationDate: String? = null,
 ) : RioRequest
 
 @Serializable
@@ -20,7 +20,7 @@ data class TokenResponse(
     val creationDate: String,
     val userName: String,
     @Serializable(with = UUIDSerializer::class)
-    val id: UUID
+    val id: UUID,
 ) : RioResponse()
 
 @Serializable
@@ -29,7 +29,7 @@ open class TokenKeyResponse(
     val creationDate: String,
     val userName: String,
     @Serializable(with = UUIDSerializer::class)
-    val id: UUID
+    val id: UUID,
 ) : RioResponse()
 
 @Serializable
@@ -38,7 +38,7 @@ open class TokenKeyData(
     val creationDate: String,
     val userName: String,
     @Serializable(with = UUIDSerializer::class)
-    val id: UUID
+    val id: UUID,
 )
 
 @Serializable
@@ -46,20 +46,22 @@ open class LoginTokenResponse(
     val token: String,
     val username: String? = null,
     val userId: Long? = null,
-    val role: String? = null
+    val role: String? = null,
 ) : RioResponse()
 
 @Serializable
 data class TokenListResponse(
     val data: List<TokenKeyData>,
-    val page: PageInfo
-) : RioResponse(), RioListResponse<TokenKeyData> {
+    val page: PageInfo,
+) : RioResponse(),
+    RioListResponse<TokenKeyData> {
     override fun page() = page
+
     override fun results() = data
 }
 
 @Serializable
 data class UserLoginCredentials(
     val username: String,
-    val password: String
+    val password: String,
 ) : RioRequest

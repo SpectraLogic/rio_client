@@ -9,10 +9,6 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-fun String.urlEncode(): String {
-    return URLEncoder.encode(this, StandardCharsets.UTF_8.toString()).replace("+", "%20")
-}
+fun String.urlEncode(): String = URLEncoder.encode(this, StandardCharsets.UTF_8.toString()).replace("+", "%20")
 
-fun String.urlDecode(): String {
-    return URLDecoder.decode(this, "utf-8")
-}
+fun String.urlDecode(): String = URLDecoder.decode(this, "utf-8")

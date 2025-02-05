@@ -19,7 +19,7 @@ data class MessageResponse(
     val read: Boolean,
     val subject: MessageSubjectResponse,
     val details: MessageDetailsResponse,
-    val severity: String
+    val severity: String,
 ) : RioResponse()
 
 @Serializable
@@ -32,33 +32,35 @@ data class MessageData(
     val read: Boolean,
     val subject: MessageSubjectResponse,
     val details: MessageDetailsResponse,
-    val severity: String
+    val severity: String,
 )
 
 @Serializable
 data class MessageSubjectResponse(
     val key: String,
     val parameters: Map<String, String>?,
-    val text: String
+    val text: String,
 ) : RioResponse()
 
 @Serializable
 data class MessageDetailsResponse(
     val key: String,
     val parameters: Map<String, String>?,
-    val text: String
+    val text: String,
 ) : RioResponse()
 
 @Serializable
 data class MessageUpdateRequest(
-    val read: Boolean
+    val read: Boolean,
 ) : RioRequest
 
 @Serializable
 data class MessageListResponse(
     val data: List<MessageData>,
-    val page: PageInfo
-) : RioResponse(), RioListResponse<MessageData> {
+    val page: PageInfo,
+) : RioResponse(),
+    RioListResponse<MessageData> {
     override fun page() = page
+
     override fun results() = data
 }

@@ -2,7 +2,7 @@ package com.spectralogic.rioclient
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.jetty.Jetty
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
@@ -17,14 +17,19 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import org.eclipse.jetty.util.ssl.SslContextFactory
 
 object HttpClientFactory {
-    fun createHttpClient(username: String, password: String, verbose: Boolean, requestTimeout: Long): HttpClient {
-        return HttpClient(CIO) {
+    fun createHttpClient(
+        username: String,
+        password: String,
+        verbose: Boolean,
+        requestTimeout: Long,
+    ): HttpClient =
+        HttpClient(Jetty) {
             engine {
-                https {
-                    this.trustManager = TrustManager
-                }
+                sslContextFactory = SslContextFactory.Client(true)
+                clientCacheSize = 12
             }
             install(HttpTimeout) {
                 requestTimeoutMillis = requestTimeout
@@ -33,7 +38,7 @@ object HttpClientFactory {
                 json(
                     Json {
                         ignoreUnknownKeys = true
-                    }
+                    },
                 )
             }
             install(Auth) {
@@ -43,21 +48,23 @@ object HttpClientFactory {
                         val host = url.host
                         val port = url.port
                         val protocol = url.protocol.name
-                        val response: LoginTokenResponse = client.post("$protocol://$host:$port/api/tokens") {
-                            contentType(ContentType.Application.Json)
-                            setBody(UserLoginCredentials(username, password))
-                        }.body()
+                        val response: LoginTokenResponse =
+                            client
+                                .post("$protocol://$host:$port/api/tokens") {
+                                    contentType(ContentType.Application.Json)
+                                    setBody(UserLoginCredentials(username, password))
+                                }.body()
                         BearerTokens(response.token, "")
                     }
                 }
             }
             install(Logging) {
-                level = if (verbose) {
-                    LogLevel.ALL
-                } else {
-                    LogLevel.NONE
-                }
+                level =
+                    if (verbose) {
+                        LogLevel.ALL
+                    } else {
+                        LogLevel.NONE
+                    }
             }
         }
-    }
 }

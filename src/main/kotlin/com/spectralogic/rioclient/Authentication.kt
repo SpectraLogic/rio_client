@@ -13,26 +13,28 @@ data class UserCreateRequest(
     val password: String,
     val active: Boolean,
     val local: Boolean,
-    val role: String
+    val role: String,
 ) : RioRequest
 
 @Serializable
 data class UserUpdateRequest(
     val active: Boolean,
-    val role: String
+    val role: String,
 ) : RioRequest
 
 @Serializable
 data class UserUpdatePasswordRequest(
-    val password: String
+    val password: String,
 ) : RioRequest
 
 @Serializable
 data class UserListResponse(
     val users: List<UserResponse>,
-    val page: PageInfo
-) : RioResponse(), RioListResponse<UserResponse> {
+    val page: PageInfo,
+) : RioResponse(),
+    RioListResponse<UserResponse> {
     override fun page() = page
+
     override fun results() = users
 }
 
@@ -43,5 +45,5 @@ data class UserResponse(
     val local: Boolean,
     val role: String,
     val createDate: String,
-    val updateDate: String
+    val updateDate: String,
 ) : RioResponse()

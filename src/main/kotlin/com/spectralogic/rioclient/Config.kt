@@ -14,7 +14,7 @@ data class ActiveDirectoryRequest(
     val port: Int,
     val tls: Boolean,
     val allowAny: Boolean,
-    val defaultRole: String
+    val defaultRole: String,
 ) : RioRequest
 
 @Serializable
@@ -24,5 +24,5 @@ data class ActiveDirectoryResponse(
     val port: Int,
     val tls: Boolean,
     val allowAny: Boolean,
-    val defaultRole: String
+    val defaultRole: String,
 ) : RioResponse()
