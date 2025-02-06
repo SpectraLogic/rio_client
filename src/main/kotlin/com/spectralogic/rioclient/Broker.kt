@@ -131,6 +131,16 @@ data class SglLtfsAgentConfig(
 }
 
 @Serializable
+data class NasAgentConfig(
+    val uri: String
+) : AgentConfig() {
+    override fun toConfigMap(): Map<String, String> =
+        buildMap {
+            put("uri", uri)
+        }
+}
+
+@Serializable
 data class AgentCreateRequest(
     val name: String,
     val type: String,

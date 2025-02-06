@@ -23,7 +23,7 @@ import java.nio.file.Path
 import java.time.ZonedDateTime
 import java.util.UUID
 
-@Tag("test")
+@Tag("RioClientTest")
 class RioClientTest {
     private companion object {
         private lateinit var rioClient: RioClient
@@ -490,7 +490,7 @@ class RioClientTest {
                 assertRioResourceError(ex, RioResourceErrorMessage(DEVICE_RESOURCE_ERROR_FMT.format("bad-name"), 404, "bad-name", "DEVICE"))
             } finally {
                 if (rioClient.headAgent(testBroker, divaAgentName)) {
-                    rioClient.deleteAgent(testBroker, divaAgentName, true)
+                    removeAgent(testBroker, divaAgentName)
                 }
                 if (rioClient.headDivaDevice(divaDeviceName)) {
                     rioClient.deleteDivaDevice(divaDeviceName)
@@ -529,6 +529,32 @@ class RioClientTest {
                 RioHttpException::class.java,
             )
         assertRioValidationError(ex, expected)
+    }
+
+    @Test
+    fun nasBrokerTest(@TempDir tempDir: Path) = blockingTest {
+        val uuid = UUID.randomUUID()
+        val tempPath = tempDir.toFile().absolutePath.toString().split(File.separator).joinToString("/")
+        val firstFile = tempDir.resolve("first.txt").toFile()
+        firstFile.writeText("abc".repeat(10))
+        val brokerName = "nas-broker-$uuid"
+        val agentConfig = NasAgentConfig(
+            URI("file:///$tempPath").toString()
+        )
+        rioClient.createBroker(
+            BrokerCreateRequest(
+                brokerName,
+                "nas-agent",
+                agentConfig.toConfigMap(),
+                "nas_agent"
+            )
+        )
+        rioClient.listObjects(brokerName).let { resp ->
+            assertThat(resp.page.totalItems).isEqualTo(1)
+            assertThat(resp.objects.firstOrNull()?.name).isEqualTo("first.txt")
+        }
+        firstFile.delete()
+        tempDir.toFile().delete()
     }
 
     @Test
@@ -607,7 +633,7 @@ class RioClientTest {
     fun brokerTest() =
         blockingTest {
             try {
-                removeBroker()
+                removeBroker(testBroker)
 
                 val agentConfig =
                     BpAgentConfig(
@@ -700,7 +726,7 @@ class RioClientTest {
                 // TODO broker unhappy path testing
                 // TODO agent unhappy path testing
             } finally {
-                removeBroker()
+                removeBroker(testBroker)
             }
         }
 
@@ -823,7 +849,7 @@ class RioClientTest {
 
                 // TODO job unhappy path testing
             } finally {
-                removeBroker()
+                removeBroker(testBroker)
             }
         }
 
@@ -915,7 +941,7 @@ class RioClientTest {
                 assertThat(restoreJobStatus.progress).isEqualTo(1.0f)
                 assertThat(restoreJobStatus.callbacks).isEqualTo(restoreJobCallbacks)
             } finally {
-                removeBroker()
+                removeBroker(testBroker)
             }
         }
 
@@ -1093,7 +1119,7 @@ class RioClientTest {
 
                 // TODO: object unhappy path testing
             } finally {
-                removeBroker()
+                removeBroker(testBroker)
             }
         }
 
@@ -1225,9 +1251,7 @@ class RioClientTest {
                 }
             } finally {
                 // TODO: remove bucket or objects from bucket
-                if (rioClient.headBroker(objectBroker)) {
-                    rioClient.deleteBroker(objectBroker, true)
-                }
+                removeBroker(objectBroker)
             }
         }
 
@@ -1595,10 +1619,11 @@ class RioClientTest {
             assertThat(rioClient.headUserLogin(username)).isFalse()
             rioClient
                 .createUserLogin(
-                    UserCreateRequest(username, password, false, true, "Operator"),
+                    UserCreateRequest(username, username, password, false, true, "Operator"),
                 ).let { resp ->
                     assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
                     assertThat(resp.username).isEqualTo(username)
+                    assertThat(resp.f).isEqualTo(username)
                     assertThat(resp.active).isFalse()
                     assertThat(resp.local).isTrue()
                     assertThat(resp.role).isEqualTo("Operator")
@@ -1733,10 +1758,40 @@ class RioClientTest {
         }
     }
 
-    private suspend fun removeBroker() {
-        if (rioClient.headBroker(testBroker)) {
-            val deleteBrokerResponse = rioClient.deleteBroker(testBroker, true)
-            assertThat(deleteBrokerResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
+    private suspend fun removeBroker(broker: String) {
+        if (rioClient.headBroker(broker)) {
+            var retry = 10
+            do {
+                try {
+                    val deleteBrokerResponse = rioClient.deleteBroker(broker, true)
+                    assertThat(deleteBrokerResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
+                    retry = 0
+                } catch (e: RioHttpException) {
+                    if (e.message?.contains("running jobs") == true) {
+                        println("DWL: retry=$retry")
+                        delay(1000)
+                    }
+                }
+            } while (--retry > 0)
+
+        }
+    }
+
+    private suspend fun removeAgent(broker: String, agent: String) {
+        if (rioClient.headAgent(broker, agent)) {
+            var retry = 10
+            do {
+                try {
+                    val deleteAgentResponse = rioClient.deleteAgent(testBroker, agent, true)
+                    assertThat(deleteAgentResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
+                    retry = 0
+                } catch (e: RioHttpException) {
+                    if (e.message?.contains("running jobs") == true) {
+                        println("DWL: retry=$retry")
+                        delay(1000)
+                    }
+                }
+            } while (--retry > 0)
         }
     }
 

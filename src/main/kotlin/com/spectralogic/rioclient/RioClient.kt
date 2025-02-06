@@ -1061,6 +1061,6 @@ data class ListMetadataValuesDistinct(
 
 private inline fun <reified T> encodeRioRequest(obj: T): JsonElement {
     val json = Json.encodeToJsonElement(obj)
-    val jsonWithoutDiscriminator = json.jsonObject.filterNot { it.key == RioRequestDiscriminator }
+    val jsonWithoutDiscriminator = json.jsonObject.filterNot { it.key == RIO_REQUEST_DISCRIMINATOR }
     return Json.encodeToJsonElement(jsonWithoutDiscriminator)
 }

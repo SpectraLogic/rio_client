@@ -56,7 +56,9 @@ tasks.named("compileKotlin", org.jetbrains.kotlin.gradle.tasks.KotlinCompilation
 }
 
 tasks.test {
-    useJUnitPlatform()
+    useJUnitPlatform() {
+        includeTags("RioClientTest")
+    }
 }
 
 publishing {

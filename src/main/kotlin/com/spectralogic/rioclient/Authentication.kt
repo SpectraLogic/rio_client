@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UserCreateRequest(
     val username: String,
+    val fullName: String,
     val password: String,
     val active: Boolean,
     val local: Boolean,
@@ -41,6 +42,7 @@ data class UserListResponse(
 @Serializable
 data class UserResponse(
     val username: String,
+    val fullName: String,
     val active: Boolean,
     val local: Boolean,
     val role: String,
