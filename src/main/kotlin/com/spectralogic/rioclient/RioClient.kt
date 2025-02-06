@@ -457,7 +457,7 @@ class RioClient(
     suspend fun objectBatchHead(
         brokerName: String,
         objectBatchHeadRequest: ObjectBatchHeadRequest,
-    ): ObjectBatchHeadResponse = client.myGet("$api/brokers/$brokerName/objectbatch", request = objectBatchHeadRequest)
+    ): ObjectBatchHeadResponse = client.myPost("$api/brokers/$brokerName/objectbatch", request = objectBatchHeadRequest)
 
     suspend fun deleteObject(
         brokerName: String,

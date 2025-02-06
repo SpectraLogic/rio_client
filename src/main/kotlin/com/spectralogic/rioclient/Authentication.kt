@@ -21,6 +21,7 @@ data class UserCreateRequest(
 data class UserUpdateRequest(
     val active: Boolean,
     val role: String,
+    val fullName: String? = null,
 ) : RioRequest
 
 @Serializable
