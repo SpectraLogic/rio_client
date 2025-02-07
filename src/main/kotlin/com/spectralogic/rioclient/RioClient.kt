@@ -457,7 +457,7 @@ class RioClient(
     suspend fun objectBatchHead(
         brokerName: String,
         objectBatchHeadRequest: ObjectBatchHeadRequest,
-    ): ObjectBatchHeadResponse = client.myGet("$api/brokers/$brokerName/objectbatch", request = objectBatchHeadRequest)
+    ): ObjectBatchHeadResponse = client.myPost("$api/brokers/$brokerName/objectbatch", request = objectBatchHeadRequest)
 
     suspend fun deleteObject(
         brokerName: String,
@@ -1061,6 +1061,6 @@ data class ListMetadataValuesDistinct(
 
 private inline fun <reified T> encodeRioRequest(obj: T): JsonElement {
     val json = Json.encodeToJsonElement(obj)
-    val jsonWithoutDiscriminator = json.jsonObject.filterNot { it.key == RioRequestDiscriminator }
+    val jsonWithoutDiscriminator = json.jsonObject.filterNot { it.key == RIO_REQUEST_DISCRIMINATOR }
     return Json.encodeToJsonElement(jsonWithoutDiscriminator)
 }

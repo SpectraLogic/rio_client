@@ -2,7 +2,8 @@ package com.spectralogic.rioclient
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.jetty.Jetty
+//import io.ktor.client.engine.jetty.Jetty
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
@@ -17,7 +18,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import org.eclipse.jetty.util.ssl.SslContextFactory
+// import org.eclipse.jetty.util.ssl.SslContextFactory
 
 object HttpClientFactory {
     fun createHttpClient(
@@ -26,10 +27,11 @@ object HttpClientFactory {
         verbose: Boolean,
         requestTimeout: Long,
     ): HttpClient =
-        HttpClient(Jetty) {
+        HttpClient(CIO) {
             engine {
-                sslContextFactory = SslContextFactory.Client(true)
-                clientCacheSize = 12
+                //sslContextFactory = SslContextFactory.Client(true)
+                //clientCacheSize = 12
+                // dwl this.trustManager = TrustManager
             }
             install(HttpTimeout) {
                 requestTimeoutMillis = requestTimeout

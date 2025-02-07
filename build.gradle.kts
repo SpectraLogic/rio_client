@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "com.spectralogic.rio"
-version = "3.1.0"
+version = "3.1.1"
 
 dependencies {
     implementation(platform(libs.kotlinBom))
@@ -56,7 +56,9 @@ tasks.named("compileKotlin", org.jetbrains.kotlin.gradle.tasks.KotlinCompilation
 }
 
 tasks.test {
-    useJUnitPlatform()
+    useJUnitPlatform() {
+        includeTags("RioClientTest")
+    }
 }
 
 publishing {
