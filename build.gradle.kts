@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "com.spectralogic.rio"
-version = "3.1.1"
+version = "3.1.2"
 
 dependencies {
     implementation(platform(libs.kotlinBom))
@@ -23,7 +23,7 @@ dependencies {
 
     implementation(libs.kotlinxCoroutinesCore)
     implementation(libs.ktorClientCore)
-    implementation(libs.ktorClientCio)
+    implementation(libs.ktorClientJetty)
     implementation(libs.ktorClientJson)
     implementation(libs.ktorClientLogging)
     implementation(libs.ktorClientContentNegotiation)
