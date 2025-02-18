@@ -104,14 +104,14 @@ class RioClientTest {
     fun spectraDeviceTest() =
         blockingTest {
             val nameBaseError = RioValidationMessage("name", "string", "")
-            val nameMissingError = nameBaseError.copy(errorType = "missing")
+            val nameBlankError = nameBaseError.copy(errorType = "invalid_string_value", reason = EMPTY_ERROR)
             val nameInvalidError = nameBaseError.copy(errorType = "invalid_device_name", reason = INVALID_NAME_MSG_FMT)
             val mgmtBaseError = RioValidationMessage("mgmtInterface", "URI", "")
             val mgmtHostError = mgmtBaseError.copy(errorType = "unknown_host")
             val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_uri")
             val mgmtUsernameError = mgmtBaseError.copy("username", "string", errorType = "invalid_credentials")
             val mgmtPasswordError = mgmtBaseError.copy("password", "password", errorType = "invalid_credentials")
-            val credsUserError = RioValidationMessage("username", "string", "missing", "", EMPTY_ERROR)
+            val credsUserError = RioValidationMessage("username", "string", "invalid_string_value", "", EMPTY_ERROR)
             val credsPassError = RioValidationMessage("password", "password", errorType = "invalid_credentials")
 
             val spectraDeviceName = "bp-${uuid()}"
@@ -222,11 +222,11 @@ class RioClientTest {
             listOf(
                 Pair(
                     createRequest.copy(name = ""),
-                    listOf(nameMissingError),
+                    listOf(nameBlankError.copy(value = "")),
                 ),
                 Pair(
                     createRequest.copy(name = "  "),
-                    listOf(nameInvalidError.copy(value = "  ")),
+                    listOf(nameBlankError.copy(value = "  ")),
                 ),
                 Pair(
                     createRequest.copy(name = "bad name"),
@@ -332,7 +332,7 @@ class RioClientTest {
     // TODO: flashnetDeviceTest
     // TODO: tbpfrDeviceTest
 
-    // DWL @Test
+    @Test
     fun divaTest() =
         blockingTest {
             val nameBaseError = RioValidationMessage("name", "string", "")
