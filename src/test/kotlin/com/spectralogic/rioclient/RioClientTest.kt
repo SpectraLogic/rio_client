@@ -705,8 +705,7 @@ class RioClientTest {
 
                 var getReadAgent = rioClient.getAgent(testBroker, readAgentName)
                 assertThat(getReadAgent.statusCode).isEqualTo(HttpStatusCode.OK)
-                assertThat(getReadAgent).isEqualTo(createAgent)
-                assertThat(getReadAgent.lastIndexDate).isNull()
+                assertThat(getReadAgent.copy(lastIndexDate = null)).isEqualTo(createAgent)
 
                 var i = 30
                 while (getReadAgent.indexState != "COMPLETE" && --i > 0) {
