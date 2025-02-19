@@ -371,7 +371,8 @@ class RioClient(
                 Pair("re-index", reIndex),
                 Pair("overwrite-index", overWriteIndex),
             )
-        return client.myPut("$api/brokers/$brokerName/agents/$agentName", paramMap = paramMap)
+        val emptyRequest = AgentUpdateRequest(emptyMap())
+        return client.myPut("$api/brokers/$brokerName/agents/$agentName", emptyRequest, paramMap)
     }
 
     /**

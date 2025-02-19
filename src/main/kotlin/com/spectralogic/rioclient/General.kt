@@ -19,7 +19,7 @@ sealed interface RioRequest
 
 @Serializable
 data class RioEmptyRequest(
-    val rioEmptyRequest: String = ""
+    val contentLength: Long = 0
 ) : RioRequest
 
 @Serializable
