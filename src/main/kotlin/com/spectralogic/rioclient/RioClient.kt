@@ -371,8 +371,7 @@ class RioClient(
                 Pair("re-index", reIndex),
                 Pair("overwrite-index", overWriteIndex),
             )
-        val emptyRequest = AgentUpdateRequest(emptyMap())
-        return client.myPut("$api/brokers/$brokerName/agents/$agentName", emptyRequest, paramMap)
+        return client.myPut("$api/brokers/$brokerName/agents/$agentName", paramMap = paramMap)
     }
 
     /**
@@ -916,12 +915,11 @@ class RioClient(
         paramMap: Map<String, Any?>? = null,
     ): T {
         val urlStr = "$url${paramMap.queryString()}"
-        val requestBody: RioRequest = request ?: RioEmptyRequest()
         val response: HttpResponse =
             try {
                 get(urlStr) {
                     contentType(jsonContentType)
-                    setBody(encodeRioRequest(requestBody))
+                    request?.let { setBody(encodeRioRequest(it)) }
                 }
             } catch (t: Throwable) {
                 throw RioHttpException(HttpMethod.Get, urlStr, t)
@@ -949,11 +947,10 @@ class RioClient(
         url: String,
         request: RioRequest?,
     ): Boolean {
-        val requestBody: RioRequest = request ?: RioEmptyRequest()
         return try {
             patch(url) {
                 contentType(jsonContentType)
-                setBody(encodeRioRequest(requestBody))
+                request?.let { setBody(encodeRioRequest(it)) }
             } as HttpResponse
             true
         } catch (t: ClientRequestException) {
@@ -981,12 +978,11 @@ class RioClient(
         paramMap: Map<String, Any?>? = null,
     ): T {
         val urlStr = "$url${paramMap.queryString()}"
-        val requestBody: RioRequest = request ?: RioEmptyRequest()
         val response: HttpResponse =
             try {
                 post(urlStr) {
                     contentType(jsonContentType)
-                    setBody(encodeRioRequest(requestBody))
+                    request?.let { setBody(encodeRioRequest(it)) }
                 }
             } catch (t: Throwable) {
                 throw RioHttpException(HttpMethod.Post, urlStr, t)
@@ -1000,12 +996,11 @@ class RioClient(
         paramMap: Map<String, Any?>? = null,
     ): T {
         val urlStr = "$url${paramMap.queryString()}"
-        val requestBody: RioRequest = request ?: RioEmptyRequest()
         val response: HttpResponse =
             try {
                 put(urlStr) {
                     contentType(jsonContentType)
-                    setBody(encodeRioRequest(requestBody))
+                    request?.let { setBody(encodeRioRequest(it)) }
                 }
             } catch (t: Throwable) {
                 throw RioHttpException(HttpMethod.Put, urlStr, t)

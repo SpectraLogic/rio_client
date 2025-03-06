@@ -18,11 +18,6 @@ const val RIO_REQUEST_DISCRIMINATOR = "rio_request_type"
 sealed interface RioRequest
 
 @Serializable
-data class RioEmptyRequest(
-    val contentLength: Long = 0
-) : RioRequest
-
-@Serializable
 open class RioResponse {
     @Serializable(with = HttpStatusCodeSerializer::class)
     var statusCode = HttpStatusCode.Processing
