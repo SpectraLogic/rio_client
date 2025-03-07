@@ -374,6 +374,22 @@ class RioClient(
         return client.myPut("$api/brokers/$brokerName/agents/$agentName", paramMap = paramMap)
     }
 
+    // Lifecycle
+    suspend fun saveLifeCyclePolicy(
+        brokerName: String,
+        saveLifeCyclePolicyRequest: SaveLifeCyclePolicyRequest
+    ): LifeCyclePolicyResponse =
+        client.myPost("$api/brokers/$brokerName/policy", saveLifeCyclePolicyRequest)
+
+    suspend fun getLifeCyclePolicy(brokerName: String): LifeCyclePolicyResponse =
+        client.myGet("$api/brokers/$brokerName/policy")
+
+    suspend fun deleteLifeCyclePolicy(brokerName: String): EmptyResponse =
+        client.myDelete("$api/brokers/$brokerName/policy")
+
+    suspend fun headLifeCyclePolicy(brokerName: String): Boolean =
+        client.myHead("$api/brokers/$brokerName/policy")
+
     /**
      * Object
      */

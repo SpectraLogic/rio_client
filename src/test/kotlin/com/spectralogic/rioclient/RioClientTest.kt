@@ -21,7 +21,6 @@ import java.net.URI
 import java.net.URL
 import java.nio.file.Path
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 @Tag("RioClientTest")
@@ -1749,6 +1748,187 @@ class RioClientTest {
             }
         }
 
+    @Test
+    fun lifeCyclePolicyTest(@TempDir tempDir: Path) = blockingTest {
+        val uuid = UUID.randomUUID()
+        val tempPath = tempDir.toFile().absolutePath.toString().split(File.separator).joinToString("/")
+        val brokerName = "lifecycle-broker-$uuid"
+        val agentCount = 3
+
+        // TODO: create lifecycles using agentCount
+        val lifeCycleUuids = listOf(
+            "470e76c6-8446-4423-a6da-002025255fb3",
+            "7432a59b-306b-4472-bf03-e089da9402c6",
+            "13e503ae-ac34-451a-a274-0bb9ca1031c9"
+        )
+
+        val createPolicies = (0..agentCount - 1).map { idx ->
+            AgentLifeCyclePolicyRequest(
+                "lifecycle-agent-$idx",
+                lifeCycleUuids[idx],
+                idx + 1,
+                (0..6).map {
+                    DailyPeakHoursRequest(60 * (idx+1), 60 * (idx+1) + it)
+                }
+            )
+        }
+        val updatePolicies = (0..agentCount - 1).map { idx ->
+            AgentLifeCyclePolicyRequest(
+                "lifecycle-agent-$idx",
+                lifeCycleUuids[idx],
+                agentCount - idx,
+                (0..6).map {
+                    DailyPeakHoursRequest(60 * (idx+2), 60 * (idx+2) + it)
+                }
+            )
+        }
+        val agentConfig = NasAgentConfig(
+            URI("file:///$tempPath").toString()
+        )
+        rioClient.createBroker(
+            BrokerCreateRequest(
+                brokerName,
+                "lifecycle-agent-0",
+                agentConfig.toConfigMap(),
+                "nas_agent"
+            )
+        )
+        try {
+            (1..agentCount - 1).forEach { idx ->
+                rioClient.createAgent(
+                    brokerName,
+                    AgentCreateRequest(
+                        createPolicies[idx].agentName,
+                        "nas_agent",
+                        agentConfig.toConfigMap()
+                    )
+                )
+            }
+
+            assertThat(rioClient.headLifeCyclePolicy(brokerName)).isFalse
+
+            rioClient.saveLifeCyclePolicy(brokerName, SaveLifeCyclePolicyRequest(createPolicies)).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                assertThat(resp.agentLifeCycles).hasSize(agentCount)
+                compareLifeCyclePolicies(createPolicies, resp.agentLifeCycles)
+            }
+
+            assertThat(rioClient.headLifeCyclePolicy(brokerName)).isTrue
+
+            rioClient.getLifeCyclePolicy(brokerName).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.agentLifeCycles).hasSize(agentCount)
+                compareLifeCyclePolicies(createPolicies, resp.agentLifeCycles)
+            }
+
+            rioClient.saveLifeCyclePolicy(brokerName, SaveLifeCyclePolicyRequest(updatePolicies)).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                assertThat(resp.agentLifeCycles).hasSize(agentCount)
+                compareLifeCyclePolicies(updatePolicies, resp.agentLifeCycles)
+            }
+
+            rioClient.getLifeCyclePolicy(brokerName).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.agentLifeCycles).hasSize(agentCount)
+                compareLifeCyclePolicies(updatePolicies, resp.agentLifeCycles)
+            }
+            rioClient.deleteLifeCyclePolicy(brokerName).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
+            }
+
+            assertThat(rioClient.headLifeCyclePolicy(brokerName)).isFalse
+
+        } finally {
+            if (rioClient.headLifeCyclePolicy(brokerName)) {
+                rioClient.deleteLifeCyclePolicy(brokerName)
+            }
+            removeBroker(brokerName)
+        }
+    }
+
+    private fun compareLifeCyclePolicies(
+        reqList: List<AgentLifeCyclePolicyRequest>,
+        respList: List<AgentLifeCyclePolicyResponse>
+    ) {
+        reqList.forEach { req ->
+            respList.firstOrNull { it.agentName == req.agentName }?.let { resp ->
+                assertThat(resp.lifeCycleUuid).isEqualTo(req.lifeCycleUuid)
+                assertThat(resp.restorePriority).isEqualTo(req.restorePriority)
+                assertThat(resp.peakHours).hasSize(7)
+                (0..6).forEach { peakIdx ->
+                    assertThat(resp.peakHours?.get(peakIdx)?.startMinuteOfDay).isEqualTo(req.peakHours[peakIdx].startMinuteOfDay)
+                    assertThat(resp.peakHours?.get(peakIdx)?.endMinuteOfDay).isEqualTo(req.peakHours[peakIdx].endMinuteOfDay)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun lifeCyclePolicyErrorTest(@TempDir tempDir: Path) = blockingTest {
+        val uuid = UUID.randomUUID()
+        val tempPath = tempDir.toFile().absolutePath.toString().split(File.separator).joinToString("/")
+        val brokerName = "lifecycle-broker-$uuid"
+        val agentConfig = NasAgentConfig(
+            URI("file:///$tempPath").toString()
+        )
+        rioClient.createBroker(
+            BrokerCreateRequest(
+                brokerName,
+                "nas-agent-$uuid",
+                agentConfig.toConfigMap(),
+                "nas_agent"
+            )
+        )
+
+        // TODO get a valid life cycle uuid
+        val lifeCycleUuid = "470e76c6-8446-4423-a6da-002025255fb3"
+
+        val goodRequest = AgentLifeCyclePolicyRequest(
+            "nas-agent-$uuid",
+            lifeCycleUuid,
+            1,
+            (0..6).map { DailyPeakHoursRequest(600, 700) }
+        )
+
+        assertThat(rioClient.headLifeCyclePolicy(brokerName)).isFalse
+
+        assertThrows<RioHttpException> {
+            rioClient.getLifeCyclePolicy(brokerName)
+        }.let { ex ->
+            assertThat(ex.statusCode).isEqualTo(HttpStatusCode.NotFound.value)
+            assertThat(ex.errorMessage().message).isEqualTo("Resource of type LIFE_CYCLE_POLICY and name $brokerName does not exist")
+        }
+
+        assertThrows<RioHttpException> {
+            rioClient.saveLifeCyclePolicy("bad-broker-$uuid", SaveLifeCyclePolicyRequest(listOf(goodRequest)))
+        }.let { ex ->
+            assertThat(ex.statusCode).isEqualTo(HttpStatusCode.NotFound.value)
+            assertThat(ex.errorMessage().message).isEqualTo("Resource of type BROKER and name bad-broker-$uuid does not exist")
+        }
+
+        assertThrows<RioHttpException> {
+            rioClient.saveLifeCyclePolicy(brokerName, SaveLifeCyclePolicyRequest(listOf(goodRequest.copy(agentName = "bad-agent-$uuid"))))
+        }.let { ex ->
+            assertThat(ex.statusCode).isEqualTo(HttpStatusCode.NotFound.value)
+            assertThat(ex.errorMessage().message).isEqualTo("Resource of type AGENT and name bad-agent-$uuid does not exist")
+        }
+
+        val badUuid = UUID.randomUUID().toString()
+        assertThrows<RioHttpException> {
+            rioClient.saveLifeCyclePolicy(brokerName, SaveLifeCyclePolicyRequest(listOf(goodRequest.copy(lifeCycleUuid = badUuid))))
+        }.let { ex ->
+            assertThat(ex.statusCode).isEqualTo(HttpStatusCode.NotFound.value)
+            assertThat(ex.errorMessage().message).isEqualTo("Resource of type LIFE_CYCLE and name $badUuid does not exist")
+        }
+
+        // TODO conflicting restore priority
+        // TODO peak end before start
+        // TODO too many/few peak
+    }
+
+    // TODO fun lifeCycleTest() = blockingTest {}
+    // TODO fun lifeCycleErrorTest() = blockingTest {}
+
     private suspend fun ensureBrokerExists() {
         if (!rioClient.headBroker(testBroker)) {
             val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
@@ -1768,7 +1948,6 @@ class RioClientTest {
                     retry = 0
                 } catch (e: RioHttpException) {
                     if (e.message?.contains("running jobs") == true) {
-                        println("DWL: retry=$retry")
                         delay(1000)
                     }
                 }
