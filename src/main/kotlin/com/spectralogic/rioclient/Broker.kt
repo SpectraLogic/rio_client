@@ -266,3 +266,43 @@ data class AgentListResponse(
 
     override fun results() = agents
 }
+
+@Serializable
+data class SaveLifeCyclePolicyRequest(
+    val agentLifeCyclePolicies: List<AgentLifeCyclePolicyRequest>,
+) : RioRequest
+
+@Serializable
+data class AgentLifeCyclePolicyRequest(
+    val agentName: String,
+    val lifeCycleUuid: String,
+    val restorePriority: Int,
+    val peakHours: List<DailyPeakHoursRequest>,
+) : RioRequest
+
+@Serializable
+data class DailyPeakHoursRequest(
+    val startMinuteOfDay: Int,
+    val endMinuteOfDay: Int,
+) : RioRequest
+
+@Serializable
+data class LifeCyclePolicyResponse(
+    val broker: String,
+    val agentLifeCycles: List<AgentLifeCyclePolicyResponse>,
+) : RioResponse()
+
+@Serializable
+data class AgentLifeCyclePolicyResponse(
+    val agentName: String,
+    val lifeCycleUuid: String,
+    val restorePriority: Int,
+    val peakHours: List<DailyPeakHoursResponse>? = null,
+) : RioResponse()
+
+@Serializable
+data class DailyPeakHoursResponse(
+    val startMinuteOfDay: Int,
+    val endMinuteOfDay: Int,
+) : RioResponse()
+
