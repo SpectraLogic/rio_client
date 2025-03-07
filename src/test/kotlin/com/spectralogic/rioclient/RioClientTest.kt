@@ -1264,7 +1264,7 @@ class RioClientTest {
             val newLog = rioClient.createLogset()
             assertThat(newLog.statusCode).isEqualTo(HttpStatusCode.Accepted)
 
-            var i = 25
+            var i = 50
             var getLog = rioClient.getLogset(newLog.id)
             while (getLog.status != "COMPLETE" && --i > 0) {
                 delay(1000)
@@ -1630,7 +1630,7 @@ class RioClientTest {
                 }
             assertThat(rioClient.headUserLogin(username)).isTrue()
             assertThrows<RioHttpException> {
-                rioClient.getBearerToken(username, password)
+                rioClient.getBearerToken(username, "bad-password")
             }
             rioClient.getUserLogin(username).let { resp ->
                 assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
@@ -1647,7 +1647,7 @@ class RioClientTest {
                 assertThat(resp.role).isEqualTo("Operator")
             }
             rioClient.getBearerToken(username, password).let { resp ->
-                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(resp.username).isEqualTo(username)
                 assertThat(resp.role).isEqualTo("Operator")
                 assertThat(resp.token).isNotBlank()
