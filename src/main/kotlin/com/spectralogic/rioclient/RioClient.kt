@@ -377,36 +377,29 @@ class RioClient(
     // Lifecycle
     suspend fun saveLifeCyclePolicy(
         brokerName: String,
-        saveLifeCyclePolicyRequest: SaveLifeCyclePolicyRequest
-    ): LifeCyclePolicyResponse =
-        client.myPost("$api/brokers/$brokerName/policy", saveLifeCyclePolicyRequest)
+        saveLifeCyclePolicyRequest: SaveLifeCyclePolicyRequest,
+    ): LifeCyclePolicyResponse = client.myPost("$api/brokers/$brokerName/policy", saveLifeCyclePolicyRequest)
 
-    suspend fun getLifeCyclePolicy(brokerName: String): LifeCyclePolicyResponse =
-        client.myGet("$api/brokers/$brokerName/policy")
+    suspend fun getLifeCyclePolicy(brokerName: String): LifeCyclePolicyResponse = client.myGet("$api/brokers/$brokerName/policy")
 
-    suspend fun deleteLifeCyclePolicy(brokerName: String): EmptyResponse =
-        client.myDelete("$api/brokers/$brokerName/policy")
+    suspend fun deleteLifeCyclePolicy(brokerName: String): EmptyResponse = client.myDelete("$api/brokers/$brokerName/policy")
 
-    suspend fun headLifeCyclePolicy(brokerName: String): Boolean =
-        client.myHead("$api/brokers/$brokerName/policy")
+    suspend fun headLifeCyclePolicy(brokerName: String): Boolean = client.myHead("$api/brokers/$brokerName/policy")
 
-    suspend fun createLifeCycle(lifeCycleRequest: LifeCycleRequest): LifeCycleResponse =
-        client.myPost("$api/lifecycle", lifeCycleRequest)
+    suspend fun createLifeCycle(lifeCycleRequest: LifeCycleRequest): LifeCycleResponse = client.myPost("$api/lifecycle", lifeCycleRequest)
 
-    suspend fun updateLifeCycle(lifecycleId: String, lifeCycleRequest: LifeCycleRequest): LifeCycleResponse =
-        client.myPut("$api/lifecycle/$lifecycleId", lifeCycleRequest)
+    suspend fun updateLifeCycle(
+        lifecycleId: String,
+        lifeCycleRequest: LifeCycleRequest,
+    ): LifeCycleResponse = client.myPut("$api/lifecycle/$lifecycleId", lifeCycleRequest)
 
-    suspend fun deleteLifeCycle(lifecycleId: String): EmptyResponse =
-        client.myDelete("$api/lifecycle/$lifecycleId")
+    suspend fun deleteLifeCycle(lifecycleId: String): EmptyResponse = client.myDelete("$api/lifecycle/$lifecycleId")
 
-    suspend fun getLifeCycle(lifecycleId: String): LifeCycleResponse =
-            client.myGet("$api/lifecycle/$lifecycleId")
+    suspend fun getLifeCycle(lifecycleId: String): LifeCycleResponse = client.myGet("$api/lifecycle/$lifecycleId")
 
-    suspend fun headLifeCycle(lifecycleId: String): Boolean =
-        client.myHead("$api/lifecycle/$lifecycleId")
+    suspend fun headLifeCycle(lifecycleId: String): Boolean = client.myHead("$api/lifecycle/$lifecycleId")
 
-    suspend fun listLifeCycle(): ListLifeCycleResponse =
-        client.myGet("$api/lifecycle")
+    suspend fun listLifeCycle(): ListLifeCycleResponse = client.myGet("$api/lifecycle")
 
     /**
      * Object
@@ -980,8 +973,8 @@ class RioClient(
     private suspend inline fun HttpClient.myPatch(
         url: String,
         request: RioRequest?,
-    ): Boolean {
-        return try {
+    ): Boolean =
+        try {
             patch(url) {
                 contentType(jsonContentType)
                 request?.let { setBody(encodeRioRequest(it)) }
@@ -997,7 +990,6 @@ class RioClient(
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Patch, url, t)
         }
-    }
 
     private suspend inline fun <reified T : RioResponse> HttpClient.myPost(
         url: String,

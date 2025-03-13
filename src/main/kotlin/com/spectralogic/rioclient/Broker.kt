@@ -132,7 +132,7 @@ data class SglLtfsAgentConfig(
 
 @Serializable
 data class NasAgentConfig(
-    val uri: String
+    val uri: String,
 ) : AgentConfig() {
     override fun toConfigMap(): Map<String, String> =
         buildMap {
