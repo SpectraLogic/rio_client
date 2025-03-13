@@ -1837,10 +1837,11 @@ class RioClientTest {
                 .split(File.separator)
                 .joinToString("/")
         val brokerName = "lifecycle-broker-$uuid"
-        val agentCount = 2
+        val agentCount = 3
+        val agentEndIdx = agentCount - 1
 
         val lifeCycleIds: List<String> =
-            (0..agentCount).map {
+            (0..agentEndIdx).map {
                 val createResponse =
                     rioClient.createLifeCycle(LifeCycleRequest("create-$it-$uuid", it, it * 10)).also { resp ->
                         assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
@@ -1865,9 +1866,9 @@ class RioClientTest {
             }
 
         val createPolicies =
-            (0..agentCount).map { idx ->
+            (0..agentEndIdx).map { idx ->
                 AgentLifeCyclePolicyRequest(
-                    "lifecycle-agent-$idx",
+                    "agent-$idx-$uuid",
                     lifeCycleIds[idx],
                     idx + 1,
                     (0..6).map {
@@ -1876,9 +1877,9 @@ class RioClientTest {
                 )
             }
         val updatePolicies =
-            (0..agentCount).map { idx ->
+            (0..agentEndIdx).map { idx ->
                 AgentLifeCyclePolicyRequest(
-                    "lifecycle-agent-$idx",
+                    "agent-$idx-$uuid",
                     lifeCycleIds[idx],
                     agentCount - idx,
                     (0..6).map {
@@ -1893,13 +1894,13 @@ class RioClientTest {
         rioClient.createBroker(
             BrokerCreateRequest(
                 brokerName,
-                "lifecycle-agent-0",
+                createPolicies[0].agentName,
                 agentConfig.toConfigMap(),
                 "nas_agent",
             ),
         )
         try {
-            (1..agentCount).forEach { idx ->
+            (1..agentEndIdx).forEach { idx ->
                 rioClient.createAgent(
                     brokerName,
                     AgentCreateRequest(
@@ -2001,13 +2002,15 @@ class RioClientTest {
             ),
         )
 
-        // TODO get a valid life cycle uuid
-        val lifeCycleUuid = "470e76c6-8446-4423-a6da-002025255fb3"
+        val lifeCycleId = rioClient.createLifeCycle(LifeCycleRequest("test-$uuid", -1, -1)).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+            resp.uuid
+        }
 
         val goodRequest =
             AgentLifeCyclePolicyRequest(
                 "nas-agent-$uuid",
-                lifeCycleUuid,
+                lifeCycleId,
                 1,
                 (0..6).map { DailyPeakHoursRequest(600, 700) },
             )
