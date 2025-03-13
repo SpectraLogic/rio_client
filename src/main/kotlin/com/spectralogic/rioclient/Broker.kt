@@ -144,8 +144,8 @@ data class NasAgentConfig(
 data class AgentCreateRequest(
     val name: String,
     val type: String,
-    val writable: Boolean,
     val agentConfig: Map<String, String>,
+    val writable: Boolean = false
 ) : RioRequest
 
 @Serializable
