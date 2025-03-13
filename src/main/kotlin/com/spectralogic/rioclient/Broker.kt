@@ -144,6 +144,7 @@ data class NasAgentConfig(
 data class AgentCreateRequest(
     val name: String,
     val type: String,
+    val writable: Boolean,
     val agentConfig: Map<String, String>,
 ) : RioRequest
 
@@ -159,6 +160,7 @@ data class AgentResponse(
     val creationDate: String,
     val lastIndexDate: String? = null,
     val writable: Boolean,
+    val archiveAgent: Boolean,
     val agentConfig: Map<String, String>,
     val indexState: String? = null,
 ) : RioResponse()
@@ -170,6 +172,7 @@ data class AgentData(
     val creationDate: String,
     val lastIndexDate: String? = null,
     val writable: Boolean,
+    val archiveAgent: Boolean,
     val agentConfig: Map<String, String>,
     val indexState: String? = null,
 )
@@ -306,3 +309,24 @@ data class DailyPeakHoursResponse(
     val endMinuteOfDay: Int,
 ) : RioResponse()
 
+@Serializable
+data class LifeCycleRequest(
+    val name: String,
+    val deferDays: Int,
+    val deleteDays: Int,
+) : RioRequest
+
+@Serializable
+data class LifeCycleResponse(
+    val name: String,
+    val uuid: String,
+    val deferDays: Int,
+    val deleteDays: Int,
+    val brokersUsing: List<String>? = null,
+) : RioResponse()
+
+@Serializable
+data class ListLifeCycleResponse(
+    val page: PageInfo,
+    val lifeCycles: List<LifeCycleResponse>,
+) : RioResponse()

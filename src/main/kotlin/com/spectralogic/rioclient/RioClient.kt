@@ -390,6 +390,24 @@ class RioClient(
     suspend fun headLifeCyclePolicy(brokerName: String): Boolean =
         client.myHead("$api/brokers/$brokerName/policy")
 
+    suspend fun createLifeCycle(lifeCycleRequest: LifeCycleRequest): LifeCycleResponse =
+        client.myPost("$api/lifecycle", lifeCycleRequest)
+
+    suspend fun updateLifeCycle(lifecycleId: String, lifeCycleRequest: LifeCycleRequest): LifeCycleResponse =
+        client.myPut("$api/lifecycle/$lifecycleId", lifeCycleRequest)
+
+    suspend fun deleteLifeCycle(lifecycleId: String): EmptyResponse =
+        client.myDelete("$api/lifecycle/$lifecycleId")
+
+    suspend fun getLifeCycle(lifecycleId: String): LifeCycleResponse =
+            client.myGet("$api/lifecycle/$lifecycleId")
+
+    suspend fun headLifeCycle(lifecycleId: String): Boolean =
+        client.myHead("$api/lifecycle/$lifecycleId")
+
+    suspend fun listLifeCycle(): ListLifeCycleResponse =
+        client.myGet("$api/lifecycle")
+
     /**
      * Object
      */
