@@ -2002,10 +2002,11 @@ class RioClientTest {
             ),
         )
 
-        val lifeCycleId = rioClient.createLifeCycle(LifeCycleRequest("test-$uuid", -1, -1)).let { resp ->
-            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
-            resp.uuid
-        }
+        val lifeCycleId =
+            rioClient.createLifeCycle(LifeCycleRequest("test-$uuid", -1, -1)).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                resp.uuid
+            }
 
         val goodRequest =
             AgentLifeCyclePolicyRequest(
