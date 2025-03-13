@@ -83,7 +83,7 @@ class RioClientTest {
             brokerBucket = getenvValue("DEFAULT_BUCKET", "rioclient-testbucket")
             brokerObjectBucket = getenvValue("DEFAULT_OBJECT_BUCKET", "rioclient-objectbucket")
 
-            divaEndpoint = getenvValue("DIVA_ENDPOINT", "http://10.85.41.92:9763/services/DIVArchiveWS_SOAP_2.1?wsdl")
+            divaEndpoint = getenvValue("DIVA_ENDPOINT", "http://10.85.45.164:9763/services/DIVArchiveWS_SOAP_2.1?wsdl")
             divaUsername = getenvValue("DIVA_USERNAME", "user")
             divaPassword = getenvValue("DIVA_PASSWORD", "pass")
             divaCategory = getenvValue("DIVA_CATEGORY", "DVT-10")
@@ -372,7 +372,7 @@ class RioClientTest {
                 assertThat(listResponse.page.totalItems).isEqualTo(totalDivaDevices + 1)
 
                 val divaAgentConfig = DivaAgentConfig(divaDeviceName, divaCategory, null, null)
-                val createAgentRequest = AgentCreateRequest(divaAgentName, "diva_agent", false, divaAgentConfig.toConfigMap())
+                val createAgentRequest = AgentCreateRequest(divaAgentName, "diva_agent", divaAgentConfig.toConfigMap(), false)
                 val createAgentResponse = rioClient.createAgent(testBroker, createAgentRequest)
                 assertThat(createAgentResponse.statusCode).isEqualTo(HttpStatusCode.Created)
                 assertThat(createAgentResponse.name).isEqualTo(createAgentRequest.name)
@@ -597,8 +597,8 @@ class RioClientTest {
                 AgentCreateRequest(
                     "writable-agent",
                     "nas_agent",
-                    true,
                     writableAgentConfig.toConfigMap(),
+                    true,
                 ),
             ).let { resp ->
                 assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
@@ -770,7 +770,7 @@ class RioClientTest {
                 val readAgentName = "test-read-agent"
                 assertThat(rioClient.headAgent(testBroker, readAgentName)).isFalse
 
-                val agentCreateRequest = AgentCreateRequest(readAgentName, "bp_agent", false, agentConfig.toConfigMap())
+                val agentCreateRequest = AgentCreateRequest(readAgentName, "bp_agent", agentConfig.toConfigMap(), false)
                 val createAgent = rioClient.createAgent(testBroker, agentCreateRequest)
                 assertThat(createAgent.statusCode).isEqualTo(HttpStatusCode.Created)
                 assertThat(createAgent.name).isEqualTo(readAgentName)
@@ -1906,8 +1906,8 @@ class RioClientTest {
                     AgentCreateRequest(
                         createPolicies[idx].agentName,
                         "nas_agent",
-                        false,
                         agentConfig.toConfigMap(),
+                        false,
                     ),
                 )
             }
