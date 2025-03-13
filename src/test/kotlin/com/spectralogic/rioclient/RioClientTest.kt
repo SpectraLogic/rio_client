@@ -21,7 +21,6 @@ import java.net.URI
 import java.net.URL
 import java.nio.file.Path
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 @Tag("RioClientTest")
@@ -180,7 +179,7 @@ class RioClientTest {
                     updateRequest.copy(username = ""),
                     listOf(
                         credsUserError,
-                        //credsPassError,
+                        // credsPassError,
                     ),
                 ),
                 Pair(
@@ -373,7 +372,7 @@ class RioClientTest {
                 assertThat(listResponse.page.totalItems).isEqualTo(totalDivaDevices + 1)
 
                 val divaAgentConfig = DivaAgentConfig(divaDeviceName, divaCategory, null, null)
-                val createAgentRequest = AgentCreateRequest(divaAgentName, "diva_agent", divaAgentConfig.toConfigMap())
+                val createAgentRequest = AgentCreateRequest(divaAgentName, "diva_agent", false, divaAgentConfig.toConfigMap())
                 val createAgentResponse = rioClient.createAgent(testBroker, createAgentRequest)
                 assertThat(createAgentResponse.statusCode).isEqualTo(HttpStatusCode.Created)
                 assertThat(createAgentResponse.name).isEqualTo(createAgentRequest.name)
@@ -533,28 +532,104 @@ class RioClientTest {
     }
 
     @Test
-    fun nasBrokerTest(@TempDir tempDir: Path) = blockingTest {
+    fun nasBrokerTest(
+        @TempDir tempDir: Path,
+    ) = blockingTest {
         val uuid = UUID.randomUUID()
-        val tempPath = tempDir.toFile().absolutePath.toString().split(File.separator).joinToString("/")
-        val firstFile = tempDir.resolve("first.txt").toFile()
+        val archiveAgentPath = tempDir.resolve("archiveAgent").also { it.toFile().mkdir() }
+        val writableAgentPath = tempDir.resolve("writeAgent").also { it.toFile().mkdir() }
+        val archivePath =
+            archiveAgentPath
+                .toFile()
+                .absolutePath
+                .toString()
+                .split(File.separator)
+                .joinToString("/")
+        val writablePath =
+            writableAgentPath
+                .toFile()
+                .absolutePath
+                .toString()
+                .split(File.separator)
+                .joinToString("/")
+        val firstFile = archiveAgentPath.resolve("first.txt").toFile()
+        val secondFile = writableAgentPath.resolve("second.txt").toFile()
         firstFile.writeText("abc".repeat(10))
+        secondFile.writeText("abc".repeat(10))
         val brokerName = "nas-broker-$uuid"
-        val agentConfig = NasAgentConfig(
-            URI("file:///$tempPath").toString()
-        )
-        rioClient.createBroker(
-            BrokerCreateRequest(
-                brokerName,
-                "nas-agent",
-                agentConfig.toConfigMap(),
-                "nas_agent"
+        val archiveAgentConfig =
+            NasAgentConfig(
+                URI("file:///$archivePath").toString(),
             )
-        )
+        val writableAgentConfig =
+            NasAgentConfig(
+                URI("file:///$writablePath").toString(),
+            )
+        rioClient
+            .createBroker(
+                BrokerCreateRequest(
+                    brokerName,
+                    "archive-agent",
+                    archiveAgentConfig.toConfigMap(),
+                    "nas_agent",
+                ),
+            ).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                assertThat(resp.name).isEqualTo(brokerName)
+            }
+        rioClient.listAgents(brokerName).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.agents).hasSize(1)
+            resp.agents[0].let { agent ->
+                assertThat(agent.name).isEqualTo("archive-agent")
+                assertThat(agent.type).isEqualTo("nas_agent")
+                assertThat(agent.writable).isTrue
+                assertThat(agent.archiveAgent).isTrue
+            }
+        }
         rioClient.listObjects(brokerName).let { resp ->
             assertThat(resp.page.totalItems).isEqualTo(1)
-            assertThat(resp.objects.firstOrNull()?.name).isEqualTo("first.txt")
+            assertThat(resp.objects.firstOrNull()?.name).isEqualTo(firstFile.name)
+        }
+        rioClient
+            .createAgent(
+                brokerName,
+                AgentCreateRequest(
+                    "writable-agent",
+                    "nas_agent",
+                    true,
+                    writableAgentConfig.toConfigMap(),
+                ),
+            ).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                assertThat(resp.name).isEqualTo("writable-agent")
+                assertThat(resp.type).isEqualTo("nas_agent")
+                assertThat(resp.writable).isTrue
+                assertThat(resp.archiveAgent).isFalse
+            }
+        rioClient.listAgents(brokerName).let { resp ->
+            assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(resp.agents).hasSize(2)
+            resp.agents.firstOrNull { it.name == "archive-agent" }?.let { agent ->
+                assertThat(agent.name).isEqualTo("archive-agent")
+                assertThat(agent.type).isEqualTo("nas_agent")
+                assertThat(agent.writable).isTrue
+                assertThat(agent.archiveAgent).isTrue
+            }
+            resp.agents.firstOrNull { it.name == "writable-agent" }?.let { agent ->
+                assertThat(agent.name).isEqualTo("writable-agent")
+                assertThat(agent.type).isEqualTo("nas_agent")
+                assertThat(agent.writable).isTrue
+                assertThat(agent.archiveAgent).isFalse
+            }
+        }
+        rioClient.listObjects(brokerName).let { resp ->
+            assertThat(resp.page.totalItems).isEqualTo(2)
         }
         firstFile.delete()
+        secondFile.delete()
+        archiveAgentPath.toFile().delete()
+        writableAgentPath.toFile().delete()
         tempDir.toFile().delete()
     }
 
@@ -695,7 +770,7 @@ class RioClientTest {
                 val readAgentName = "test-read-agent"
                 assertThat(rioClient.headAgent(testBroker, readAgentName)).isFalse
 
-                val agentCreateRequest = AgentCreateRequest(readAgentName, "bp_agent", agentConfig.toConfigMap())
+                val agentCreateRequest = AgentCreateRequest(readAgentName, "bp_agent", false, agentConfig.toConfigMap())
                 val createAgent = rioClient.createAgent(testBroker, agentCreateRequest)
                 assertThat(createAgent.statusCode).isEqualTo(HttpStatusCode.Created)
                 assertThat(createAgent.name).isEqualTo(readAgentName)
@@ -1749,6 +1824,237 @@ class RioClientTest {
             }
         }
 
+    @Test
+    fun lifeCyclePolicyTest(
+        @TempDir tempDir: Path,
+    ) = blockingTest {
+        val uuid = UUID.randomUUID()
+        val tempPath =
+            tempDir
+                .toFile()
+                .absolutePath
+                .toString()
+                .split(File.separator)
+                .joinToString("/")
+        val brokerName = "lifecycle-broker-$uuid"
+        val agentCount = 3
+        val agentEndIdx = agentCount - 1
+
+        val lifeCycleIds: List<String> =
+            (0..agentEndIdx).map {
+                val createResponse =
+                    rioClient.createLifeCycle(LifeCycleRequest("create-$it-$uuid", it, it * 10)).also { resp ->
+                        assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                        assertThat(resp.name).isEqualTo("create-$it-$uuid")
+                        assertThat(resp.deferDays).isEqualTo(it)
+                        assertThat(resp.deleteDays).isEqualTo(it * 10)
+                    }
+                rioClient.getLifeCycle(createResponse.uuid).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.name).isEqualTo("create-$it-$uuid")
+                    assertThat(resp.deferDays).isEqualTo(it)
+                    assertThat(resp.deleteDays).isEqualTo(it * 10)
+                }
+                assertThat(rioClient.headLifeCycle(createResponse.uuid)).isTrue
+                rioClient.updateLifeCycle(createResponse.uuid, LifeCycleRequest("update-$it-$uuid", it * 10, it * 100)).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.name).isEqualTo("update-$it-$uuid")
+                    assertThat(resp.deferDays).isEqualTo(it * 10)
+                    assertThat(resp.deleteDays).isEqualTo(it * 100)
+                }
+                createResponse.uuid
+            }
+
+        val createPolicies =
+            (0..agentEndIdx).map { idx ->
+                AgentLifeCyclePolicyRequest(
+                    "agent-$idx-$uuid",
+                    lifeCycleIds[idx],
+                    idx + 1,
+                    (0..6).map {
+                        DailyPeakHoursRequest(60 * (idx + 1), 60 * (idx + 1) + it)
+                    },
+                )
+            }
+        val updatePolicies =
+            (0..agentEndIdx).map { idx ->
+                AgentLifeCyclePolicyRequest(
+                    "agent-$idx-$uuid",
+                    lifeCycleIds[idx],
+                    agentCount - idx,
+                    (0..6).map {
+                        DailyPeakHoursRequest(60 * (idx + 2), 60 * (idx + 2) + it)
+                    },
+                )
+            }
+        val agentConfig =
+            NasAgentConfig(
+                URI("file:///$tempPath").toString(),
+            )
+        rioClient.createBroker(
+            BrokerCreateRequest(
+                brokerName,
+                createPolicies[0].agentName,
+                agentConfig.toConfigMap(),
+                "nas_agent",
+            ),
+        )
+        try {
+            (1..agentEndIdx).forEach { idx ->
+                rioClient.createAgent(
+                    brokerName,
+                    AgentCreateRequest(
+                        createPolicies[idx].agentName,
+                        "nas_agent",
+                        false,
+                        agentConfig.toConfigMap(),
+                    ),
+                )
+            }
+
+            assertThat(rioClient.headLifeCyclePolicy(brokerName)).isFalse
+
+            rioClient.saveLifeCyclePolicy(brokerName, SaveLifeCyclePolicyRequest(createPolicies)).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                assertThat(resp.agentLifeCycles).hasSize(agentCount)
+                compareLifeCyclePolicies(createPolicies, resp.agentLifeCycles)
+            }
+
+            assertThat(rioClient.headLifeCyclePolicy(brokerName)).isTrue
+
+            rioClient.getLifeCyclePolicy(brokerName).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.agentLifeCycles).hasSize(agentCount)
+                compareLifeCyclePolicies(createPolicies, resp.agentLifeCycles)
+            }
+
+            rioClient.saveLifeCyclePolicy(brokerName, SaveLifeCyclePolicyRequest(updatePolicies)).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                assertThat(resp.agentLifeCycles).hasSize(agentCount)
+                compareLifeCyclePolicies(updatePolicies, resp.agentLifeCycles)
+            }
+
+            rioClient.getLifeCyclePolicy(brokerName).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.agentLifeCycles).hasSize(agentCount)
+                compareLifeCyclePolicies(updatePolicies, resp.agentLifeCycles)
+            }
+            rioClient.deleteLifeCyclePolicy(brokerName).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
+            }
+
+            assertThat(rioClient.headLifeCyclePolicy(brokerName)).isFalse
+
+            lifeCycleIds.forEach { lifeCycleId ->
+                rioClient.deleteLifeCycle(lifeCycleId).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
+                }
+                assertThat(rioClient.headLifeCycle(lifeCycleId)).isFalse
+            }
+        } finally {
+            if (rioClient.headLifeCyclePolicy(brokerName)) {
+                rioClient.deleteLifeCyclePolicy(brokerName)
+            }
+            removeBroker(brokerName)
+        }
+    }
+
+    private fun compareLifeCyclePolicies(
+        reqList: List<AgentLifeCyclePolicyRequest>,
+        respList: List<AgentLifeCyclePolicyResponse>,
+    ) {
+        reqList.forEach { req ->
+            respList.firstOrNull { it.agentName == req.agentName }?.let { resp ->
+                assertThat(resp.lifeCycleUuid).isEqualTo(req.lifeCycleUuid)
+                assertThat(resp.restorePriority).isEqualTo(req.restorePriority)
+                assertThat(resp.peakHours).hasSize(7)
+                (0..6).forEach { peakIdx ->
+                    assertThat(resp.peakHours?.get(peakIdx)?.startMinuteOfDay).isEqualTo(req.peakHours[peakIdx].startMinuteOfDay)
+                    assertThat(resp.peakHours?.get(peakIdx)?.endMinuteOfDay).isEqualTo(req.peakHours[peakIdx].endMinuteOfDay)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun lifeCyclePolicyErrorTest(
+        @TempDir tempDir: Path,
+    ) = blockingTest {
+        val uuid = UUID.randomUUID()
+        val tempPath =
+            tempDir
+                .toFile()
+                .absolutePath
+                .toString()
+                .split(File.separator)
+                .joinToString("/")
+        val brokerName = "lifecycle-broker-$uuid"
+        val agentConfig =
+            NasAgentConfig(
+                URI("file:///$tempPath").toString(),
+            )
+        rioClient.createBroker(
+            BrokerCreateRequest(
+                brokerName,
+                "nas-agent-$uuid",
+                agentConfig.toConfigMap(),
+                "nas_agent",
+            ),
+        )
+
+        val lifeCycleId =
+            rioClient.createLifeCycle(LifeCycleRequest("test-$uuid", -1, -1)).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                resp.uuid
+            }
+
+        val goodRequest =
+            AgentLifeCyclePolicyRequest(
+                "nas-agent-$uuid",
+                lifeCycleId,
+                1,
+                (0..6).map { DailyPeakHoursRequest(600, 700) },
+            )
+
+        assertThat(rioClient.headLifeCyclePolicy(brokerName)).isFalse
+
+        assertThrows<RioHttpException> {
+            rioClient.getLifeCyclePolicy(brokerName)
+        }.let { ex ->
+            assertThat(ex.statusCode).isEqualTo(HttpStatusCode.NotFound.value)
+            assertThat(ex.errorMessage().message).isEqualTo("Resource of type LIFE_CYCLE_POLICY and name $brokerName does not exist")
+        }
+
+        assertThrows<RioHttpException> {
+            rioClient.saveLifeCyclePolicy("bad-broker-$uuid", SaveLifeCyclePolicyRequest(listOf(goodRequest)))
+        }.let { ex ->
+            assertThat(ex.statusCode).isEqualTo(HttpStatusCode.NotFound.value)
+            assertThat(ex.errorMessage().message).isEqualTo("Resource of type BROKER and name bad-broker-$uuid does not exist")
+        }
+
+        assertThrows<RioHttpException> {
+            rioClient.saveLifeCyclePolicy(brokerName, SaveLifeCyclePolicyRequest(listOf(goodRequest.copy(agentName = "bad-agent-$uuid"))))
+        }.let { ex ->
+            assertThat(ex.statusCode).isEqualTo(HttpStatusCode.NotFound.value)
+            assertThat(ex.errorMessage().message).isEqualTo("Resource of type AGENT and name bad-agent-$uuid does not exist")
+        }
+
+        val badUuid = UUID.randomUUID().toString()
+        assertThrows<RioHttpException> {
+            rioClient.saveLifeCyclePolicy(brokerName, SaveLifeCyclePolicyRequest(listOf(goodRequest.copy(lifeCycleUuid = badUuid))))
+        }.let { ex ->
+            assertThat(ex.statusCode).isEqualTo(HttpStatusCode.NotFound.value)
+            assertThat(ex.errorMessage().message).isEqualTo("Resource of type LIFE_CYCLE and name $badUuid does not exist")
+        }
+
+        // TODO conflicting restore priority
+        // TODO peak end before start
+        // TODO too many/few peak
+    }
+
+    // TODO fun lifeCycleTest() = blockingTest {}
+    // TODO fun lifeCycleErrorTest() = blockingTest {}
+
     private suspend fun ensureBrokerExists() {
         if (!rioClient.headBroker(testBroker)) {
             val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
@@ -1768,16 +2074,17 @@ class RioClientTest {
                     retry = 0
                 } catch (e: RioHttpException) {
                     if (e.message?.contains("running jobs") == true) {
-                        println("DWL: retry=$retry")
                         delay(1000)
                     }
                 }
             } while (--retry > 0)
-
         }
     }
 
-    private suspend fun removeAgent(broker: String, agent: String) {
+    private suspend fun removeAgent(
+        broker: String,
+        agent: String,
+    ) {
         if (rioClient.headAgent(broker, agent)) {
             var retry = 10
             do {

@@ -132,7 +132,7 @@ data class SglLtfsAgentConfig(
 
 @Serializable
 data class NasAgentConfig(
-    val uri: String
+    val uri: String,
 ) : AgentConfig() {
     override fun toConfigMap(): Map<String, String> =
         buildMap {
@@ -144,6 +144,7 @@ data class NasAgentConfig(
 data class AgentCreateRequest(
     val name: String,
     val type: String,
+    val writable: Boolean,
     val agentConfig: Map<String, String>,
 ) : RioRequest
 
@@ -159,6 +160,7 @@ data class AgentResponse(
     val creationDate: String,
     val lastIndexDate: String? = null,
     val writable: Boolean,
+    val archiveAgent: Boolean,
     val agentConfig: Map<String, String>,
     val indexState: String? = null,
 ) : RioResponse()
@@ -170,6 +172,7 @@ data class AgentData(
     val creationDate: String,
     val lastIndexDate: String? = null,
     val writable: Boolean,
+    val archiveAgent: Boolean,
     val agentConfig: Map<String, String>,
     val indexState: String? = null,
 )
@@ -266,3 +269,64 @@ data class AgentListResponse(
 
     override fun results() = agents
 }
+
+@Serializable
+data class SaveLifeCyclePolicyRequest(
+    val agentLifeCyclePolicies: List<AgentLifeCyclePolicyRequest>,
+) : RioRequest
+
+@Serializable
+data class AgentLifeCyclePolicyRequest(
+    val agentName: String,
+    val lifeCycleUuid: String,
+    val restorePriority: Int,
+    val peakHours: List<DailyPeakHoursRequest>,
+) : RioRequest
+
+@Serializable
+data class DailyPeakHoursRequest(
+    val startMinuteOfDay: Int,
+    val endMinuteOfDay: Int,
+) : RioRequest
+
+@Serializable
+data class LifeCyclePolicyResponse(
+    val broker: String,
+    val agentLifeCycles: List<AgentLifeCyclePolicyResponse>,
+) : RioResponse()
+
+@Serializable
+data class AgentLifeCyclePolicyResponse(
+    val agentName: String,
+    val lifeCycleUuid: String,
+    val restorePriority: Int,
+    val peakHours: List<DailyPeakHoursResponse>? = null,
+) : RioResponse()
+
+@Serializable
+data class DailyPeakHoursResponse(
+    val startMinuteOfDay: Int,
+    val endMinuteOfDay: Int,
+) : RioResponse()
+
+@Serializable
+data class LifeCycleRequest(
+    val name: String,
+    val deferDays: Int,
+    val deleteDays: Int,
+) : RioRequest
+
+@Serializable
+data class LifeCycleResponse(
+    val name: String,
+    val uuid: String,
+    val deferDays: Int,
+    val deleteDays: Int,
+    val brokersUsing: List<String>? = null,
+) : RioResponse()
+
+@Serializable
+data class ListLifeCycleResponse(
+    val page: PageInfo,
+    val lifeCycles: List<LifeCycleResponse>,
+) : RioResponse()
