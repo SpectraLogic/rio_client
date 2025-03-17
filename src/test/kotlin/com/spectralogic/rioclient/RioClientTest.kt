@@ -1849,11 +1849,12 @@ class RioClientTest {
                         assertThat(resp.deferDays).isEqualTo(it)
                         assertThat(resp.deleteDays).isEqualTo(it * 10)
                     }
-                rioClient.getLifeCycle(createResponse.uuid).let { resp ->
+                rioClient.getLifeCycle(createResponse.uuid, true).let { resp ->
                     assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
                     assertThat(resp.name).isEqualTo("create-$it-$uuid")
                     assertThat(resp.deferDays).isEqualTo(it)
                     assertThat(resp.deleteDays).isEqualTo(it * 10)
+                    assertThat(resp.brokersUsing).isNull()
                 }
                 assertThat(rioClient.headLifeCycle(createResponse.uuid)).isTrue
                 rioClient.updateLifeCycle(createResponse.uuid, LifeCycleRequest("update-$it-$uuid", it * 10, it * 100)).let { resp ->
@@ -1926,6 +1927,14 @@ class RioClientTest {
                 assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(resp.agentLifeCycles).hasSize(agentCount)
                 compareLifeCyclePolicies(createPolicies, resp.agentLifeCycles)
+            }
+
+            (0..agentEndIdx).forEach { idx ->
+                rioClient.getLifeCycle(lifeCycleIds[idx], true).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.brokersUsing).hasSize(1)
+                    assertThat(resp.brokersUsing?.get(0)).isNotNull.isEqualTo(brokerName)
+                }
             }
 
             rioClient.saveLifeCyclePolicy(brokerName, SaveLifeCyclePolicyRequest(updatePolicies)).let { resp ->
