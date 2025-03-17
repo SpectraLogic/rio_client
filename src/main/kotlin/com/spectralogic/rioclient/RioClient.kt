@@ -395,11 +395,17 @@ class RioClient(
 
     suspend fun deleteLifeCycle(lifecycleId: String): EmptyResponse = client.myDelete("$api/lifecycle/$lifecycleId")
 
-    suspend fun getLifeCycle(lifecycleId: String): LifeCycleResponse = client.myGet("$api/lifecycle/$lifecycleId")
+    suspend fun getLifeCycle(lifecycleId: String, showUsing: Boolean? = null): LifeCycleResponse {
+        val paramMap: Map<String, Any?> = mapOf(Pair("showUsing", showUsing))
+        return client.myGet("$api/lifecycle/$lifecycleId", paramMap = paramMap)
+    }
 
     suspend fun headLifeCycle(lifecycleId: String): Boolean = client.myHead("$api/lifecycle/$lifecycleId")
 
-    suspend fun listLifeCycle(): ListLifeCycleResponse = client.myGet("$api/lifecycle")
+    suspend fun listLifeCycle(showUsing: Boolean? = null): ListLifeCycleResponse {
+        val paramMap: Map<String, Any?> = mapOf(Pair("showUsing", showUsing))
+        return client.myGet("$api/lifecycle", paramMap = paramMap)
+    }
 
     /**
      * Object
