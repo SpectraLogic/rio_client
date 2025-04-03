@@ -1170,6 +1170,18 @@ class RioClientTest {
                 assertThat(getObject.size).isEqualTo(archiveRequest.files[0].size)
                 assertThat(getObject.metadata).isEqualTo(metadata)
 
+                rioClient.getObject(testBroker, objectName, includeAgentCopies = true).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.broker).isEqualTo(testBroker)
+                    assertThat(resp.name).isEqualTo(objectName)
+                    assertThat(resp.size).isEqualTo(archiveRequest.files[0].size)
+                    assertThat(resp.metadata).isEqualTo(metadata)
+                    assertThat(resp.copies).hasSize(1)
+                    resp.copies?.get(0)?.agentName.let { copyAgentName ->
+                        assertThat(copyAgentName).isEqualTo(testAgent)
+                    }
+                }
+
                 val newMetadata = mapOf(Pair("key9", "val9"))
                 val updateObject = rioClient.updateObject(testBroker, objectName, newMetadata)
                 assertThat(updateObject.statusCode).isEqualTo(HttpStatusCode.OK)
@@ -2012,7 +2024,7 @@ class RioClientTest {
         )
 
         val lifeCycleId =
-            rioClient.createLifeCycle(LifeCycleRequest("test-$uuid", -1, -1)).let { resp ->
+            rioClient.createLifeCycle(LifeCycleRequest("test-$uuid", -1, 0)).let { resp ->
                 assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
                 resp.uuid
             }
@@ -2031,21 +2043,21 @@ class RioClientTest {
             rioClient.getLifeCyclePolicy(brokerName)
         }.let { ex ->
             assertThat(ex.statusCode).isEqualTo(HttpStatusCode.NotFound.value)
-            assertThat(ex.errorMessage().message).isEqualTo("Resource of type LIFE_CYCLE_POLICY and name $brokerName does not exist")
+            assertThat(ex.errorMessage().message).isEqualTo("Data of type LIFE_CYCLE_POLICY and name $brokerName does not exist")
         }
 
         assertThrows<RioHttpException> {
             rioClient.saveLifeCyclePolicy("bad-broker-$uuid", SaveLifeCyclePolicyRequest(listOf(goodRequest)))
         }.let { ex ->
             assertThat(ex.statusCode).isEqualTo(HttpStatusCode.NotFound.value)
-            assertThat(ex.errorMessage().message).isEqualTo("Resource of type BROKER and name bad-broker-$uuid does not exist")
+            assertThat(ex.errorMessage().message).isEqualTo("Data of type BROKER and name bad-broker-$uuid does not exist")
         }
 
         assertThrows<RioHttpException> {
             rioClient.saveLifeCyclePolicy(brokerName, SaveLifeCyclePolicyRequest(listOf(goodRequest.copy(agentName = "bad-agent-$uuid"))))
         }.let { ex ->
             assertThat(ex.statusCode).isEqualTo(HttpStatusCode.NotFound.value)
-            assertThat(ex.errorMessage().message).isEqualTo("Resource of type AGENT and name bad-agent-$uuid does not exist")
+            assertThat(ex.errorMessage().message).isEqualTo("Data of type AGENT and name bad-agent-$uuid does not exist")
         }
 
         val badUuid = UUID.randomUUID().toString()
@@ -2053,12 +2065,8 @@ class RioClientTest {
             rioClient.saveLifeCyclePolicy(brokerName, SaveLifeCyclePolicyRequest(listOf(goodRequest.copy(lifeCycleUuid = badUuid))))
         }.let { ex ->
             assertThat(ex.statusCode).isEqualTo(HttpStatusCode.NotFound.value)
-            assertThat(ex.errorMessage().message).isEqualTo("Resource of type LIFE_CYCLE and name $badUuid does not exist")
+            assertThat(ex.errorMessage().message).isEqualTo("Data of type LIFE_CYCLE and name $badUuid does not exist")
         }
-
-        // TODO conflicting restore priority
-        // TODO peak end before start
-        // TODO too many/few peak
     }
 
     // TODO fun lifeCycleTest() = blockingTest {}
