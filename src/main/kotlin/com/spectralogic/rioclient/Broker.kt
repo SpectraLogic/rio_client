@@ -186,6 +186,13 @@ data class ObjectResponse(
     val checksum: Checksum,
     val metadata: Map<String, String>,
     val internalMetadata: Map<String, String>? = null,
+    val copies: List<ObjectAgentCopyResponse>? = null,
+) : RioResponse()
+
+@Serializable
+data class ObjectAgentCopyResponse(
+    val agentName: String,
+    val copyDate: String,
 ) : RioResponse()
 
 @Serializable

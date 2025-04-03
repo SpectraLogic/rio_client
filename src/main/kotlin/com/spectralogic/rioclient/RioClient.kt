@@ -479,8 +479,16 @@ class RioClient(
         brokerName: String,
         objectName: String,
         includeInternalMetadata: Boolean? = null,
-    ): ObjectResponse =
-        client.myGet("$api/brokers/$brokerName/objects/${objectName.urlEncode()}", "includeInternalMetadata", includeInternalMetadata)
+        includeAgentCopies: Boolean? = null,
+
+    ): ObjectResponse {
+        val paramMap: Map<String, Any?> =
+            mapOf(
+                Pair("includeInternalMetadata", includeInternalMetadata),
+                Pair("includeAgentCopies", includeAgentCopies),
+            )
+        return client.myGet("$api/brokers/$brokerName/objects/${objectName.urlEncode()}", paramMap = paramMap)
+    }
 
     suspend fun objectExists(
         brokerName: String,
