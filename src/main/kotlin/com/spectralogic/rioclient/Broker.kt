@@ -196,17 +196,6 @@ data class ObjectAgentCopyResponse(
 ) : RioResponse()
 
 @Serializable
-data class ObjectData(
-    val name: String,
-    val size: Long,
-    val creationDate: String,
-    val broker: String,
-    val checksum: Checksum,
-    val metadata: Map<String, String>,
-    val internalMetadata: Map<String, String>? = null,
-)
-
-@Serializable
 data class ObjectBatchUpdateRequest(
     val objects: List<ObjectUpdateRequest>,
 ) : RioRequest
@@ -225,10 +214,10 @@ data class Checksum(
 
 @Serializable
 data class ObjectListResponse(
-    val objects: List<ObjectData>,
+    val objects: List<ObjectResponse>,
     val page: PageInfo,
 ) : RioResponse(),
-    RioListResponse<ObjectData> {
+    RioListResponse<ObjectResponse> {
     override fun page() = page
 
     override fun results() = objects
