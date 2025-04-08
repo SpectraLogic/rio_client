@@ -425,6 +425,7 @@ class RioClient(
         internalMetadataValue: String? = null,
         migration: Boolean? = null,
         paginationSetId: UUID? = null,
+        includeAgentCopies: Boolean? = null, // for internal tests only
     ): ObjectListResponse {
         val paramMap =
             pageParamMap(page, perPage)
@@ -439,6 +440,7 @@ class RioClient(
                         Pair("includeInternalMetadata", includeInternalMetadata),
                         Pair("migration", migration),
                         Pair("pagination_set_id", paginationSetId),
+                        Pair("includeAgentCopies", includeAgentCopies),
                     ),
                 ).let {
                     if (!internalMetadataKey.isNullOrBlank() && !internalMetadataValue.isNullOrBlank()) {
@@ -479,8 +481,7 @@ class RioClient(
         brokerName: String,
         objectName: String,
         includeInternalMetadata: Boolean? = null,
-        includeAgentCopies: Boolean? = null,
-
+        includeAgentCopies: Boolean? = null, // for internal tests only
     ): ObjectResponse {
         val paramMap: Map<String, Any?> =
             mapOf(
