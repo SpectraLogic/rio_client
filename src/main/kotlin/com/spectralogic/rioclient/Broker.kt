@@ -267,14 +267,14 @@ data class AgentListResponse(
 }
 
 @Serializable
-data class SaveLifeCyclePolicyRequest(
-    val agentLifeCyclePolicies: List<AgentLifeCyclePolicyRequest>,
+data class SaveLifecyclePolicyRequest(
+    val agentLifecyclePolicies: List<AgentLifecyclePolicyRequest>,
 ) : RioRequest
 
 @Serializable
-data class AgentLifeCyclePolicyRequest(
+data class AgentLifecyclePolicyRequest(
     val agentName: String,
-    val lifeCycleUuid: String,
+    val lifecycleUuid: String,
     val restorePriority: Int,
     val peakHours: List<DailyPeakHoursRequest>,
 ) : RioRequest
@@ -286,15 +286,15 @@ data class DailyPeakHoursRequest(
 ) : RioRequest
 
 @Serializable
-data class LifeCyclePolicyResponse(
+data class LifecyclePolicyResponse(
     val broker: String,
-    val agentLifeCycles: List<AgentLifeCyclePolicyResponse>,
+    val agentLifecycles: List<AgentLifecyclePolicyResponse>,
 ) : RioResponse()
 
 @Serializable
-data class AgentLifeCyclePolicyResponse(
+data class AgentLifecyclePolicyResponse(
     val agentName: String,
-    val lifeCycleUuid: String,
+    val lifecycleUuid: String,
     val restorePriority: Int,
     val peakHours: List<DailyPeakHoursResponse>? = null,
 ) : RioResponse()
@@ -306,14 +306,14 @@ data class DailyPeakHoursResponse(
 ) : RioResponse()
 
 @Serializable
-data class LifeCycleRequest(
+data class LifecycleRequest(
     val name: String,
     val deferDays: Int,
     val deleteDays: Int,
 ) : RioRequest
 
 @Serializable
-data class LifeCycleResponse(
+data class LifecycleResponse(
     val name: String,
     val uuid: String,
     val deferDays: Int,
@@ -322,7 +322,7 @@ data class LifeCycleResponse(
 ) : RioResponse()
 
 @Serializable
-data class ListLifeCycleResponse(
+data class ListLifecycleResponse(
     val page: PageInfo,
-    val lifeCycles: List<LifeCycleResponse>,
+    val lifecycles: List<LifecycleResponse>,
 ) : RioResponse()

@@ -375,34 +375,34 @@ class RioClient(
     }
 
     // Lifecycle
-    suspend fun saveLifeCyclePolicy(
+    suspend fun saveLifecyclePolicy(
         brokerName: String,
-        saveLifeCyclePolicyRequest: SaveLifeCyclePolicyRequest,
-    ): LifeCyclePolicyResponse = client.myPost("$api/brokers/$brokerName/policy", saveLifeCyclePolicyRequest)
+        saveLifecyclePolicyRequest: SaveLifecyclePolicyRequest,
+    ): LifecyclePolicyResponse = client.myPost("$api/brokers/$brokerName/policy", saveLifecyclePolicyRequest)
 
-    suspend fun getLifeCyclePolicy(brokerName: String): LifeCyclePolicyResponse = client.myGet("$api/brokers/$brokerName/policy")
+    suspend fun getLifecyclePolicy(brokerName: String): LifecyclePolicyResponse = client.myGet("$api/brokers/$brokerName/policy")
 
-    suspend fun deleteLifeCyclePolicy(brokerName: String): EmptyResponse = client.myDelete("$api/brokers/$brokerName/policy")
+    suspend fun deleteLifecyclePolicy(brokerName: String): EmptyResponse = client.myDelete("$api/brokers/$brokerName/policy")
 
-    suspend fun headLifeCyclePolicy(brokerName: String): Boolean = client.myHead("$api/brokers/$brokerName/policy")
+    suspend fun headLifecyclePolicy(brokerName: String): Boolean = client.myHead("$api/brokers/$brokerName/policy")
 
-    suspend fun createLifeCycle(lifeCycleRequest: LifeCycleRequest): LifeCycleResponse = client.myPost("$api/lifecycle", lifeCycleRequest)
+    suspend fun createLifecycle(lifecycleRequest: LifecycleRequest): LifecycleResponse = client.myPost("$api/lifecycle", lifecycleRequest)
 
-    suspend fun updateLifeCycle(
+    suspend fun updateLifecycle(
         lifecycleId: String,
-        lifeCycleRequest: LifeCycleRequest,
-    ): LifeCycleResponse = client.myPut("$api/lifecycle/$lifecycleId", lifeCycleRequest)
+        lifecycleRequest: LifecycleRequest,
+    ): LifecycleResponse = client.myPut("$api/lifecycle/$lifecycleId", lifecycleRequest)
 
-    suspend fun deleteLifeCycle(lifecycleId: String): EmptyResponse = client.myDelete("$api/lifecycle/$lifecycleId")
+    suspend fun deleteLifecycle(lifecycleId: String): EmptyResponse = client.myDelete("$api/lifecycle/$lifecycleId")
 
-    suspend fun getLifeCycle(lifecycleId: String, showUsing: Boolean? = null): LifeCycleResponse {
+    suspend fun getLifecycle(lifecycleId: String, showUsing: Boolean? = null): LifecycleResponse {
         val paramMap: Map<String, Any?> = mapOf(Pair("showUsing", showUsing))
         return client.myGet("$api/lifecycle/$lifecycleId", paramMap = paramMap)
     }
 
-    suspend fun headLifeCycle(lifecycleId: String): Boolean = client.myHead("$api/lifecycle/$lifecycleId")
+    suspend fun headLifecycle(lifecycleId: String): Boolean = client.myHead("$api/lifecycle/$lifecycleId")
 
-    suspend fun listLifeCycle(showUsing: Boolean? = null): ListLifeCycleResponse {
+    suspend fun listLifecycle(showUsing: Boolean? = null): ListLifecycleResponse {
         val paramMap: Map<String, Any?> = mapOf(Pair("showUsing", showUsing))
         return client.myGet("$api/lifecycle", paramMap = paramMap)
     }
