@@ -5,6 +5,7 @@
  */
 package com.spectralogic.rioclient
 
+import io.ktor.client.request.request
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -335,11 +336,8 @@ class RioClientTest {
     fun divaTest() =
         blockingTest {
             val nameBaseError = RioValidationMessage("name", "string", "")
-            val nameMissingError = nameBaseError.copy(errorType = "missing")
-            val nameInvalidError = nameBaseError.copy(errorType = "invalid_device_name", reason = INVALID_NAME_MSG_FMT)
-            val endpointBaseError = RioValidationMessage("endpoint", "URI", "")
-            val endpointMissingError = endpointBaseError.copy(errorType = "missing", fieldType = "string", reason = EMPTY_ERROR)
-            val endpointUriError = endpointBaseError.copy(errorType = "invalid_uri")
+            val nameInvalidError = nameBaseError.copy(fieldType = "DEVICE", errorType = "invalid_device_name")
+            val endpointBaseError = RioValidationMessage("endpoint", "URL", "invalid_url_value")
 
             ensureBrokerExists()
             val divaDeviceName = "diva-device-${uuid()}"
@@ -414,19 +412,19 @@ class RioClientTest {
                 listOf(
                     Pair(
                         updateRequest.copy(endpoint = ""),
-                        listOf(endpointMissingError),
+                        listOf(endpointBaseError.copy(value = "", reason = EMPTY_ERROR)),
                     ),
                     Pair(
                         updateRequest.copy(endpoint = "  "),
-                        listOf(endpointMissingError),
+                        listOf(endpointBaseError.copy(value = "  ", reason = EMPTY_ERROR)),
                     ),
                     Pair(
                         updateRequest.copy(endpoint = "bad endpoint"),
-                        listOf(endpointUriError.copy(value = "bad endpoint")),
+                        listOf(endpointBaseError.copy(value = "bad endpoint", reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad endpoint"))),
                     ),
                     Pair(
                         updateRequest.copy(endpoint = "badscheme://bad auth"),
-                        listOf(endpointUriError.copy(value = "badscheme://bad auth")),
+                        listOf(endpointBaseError.copy(value = "badscheme://bad auth", reason = URI_AUTH_FORMAT_ERROR_FMT.format("15", "badscheme://bad auth"))),
                     ),
                 ).forEach { (request, expected) ->
                     assertDivaDeviceUpdateError(divaDeviceName, request, expected)
@@ -447,31 +445,26 @@ class RioClientTest {
                 listOf(
                     Pair(
                         createRequest.copy(name = ""),
-                        listOf(nameMissingError),
+                        listOf(nameInvalidError.copy(value = "", reason = EMPTY_ERROR)),
                     ),
                     Pair(
                         createRequest.copy(name = "  "),
-                        listOf(nameInvalidError.copy(value = "  ")),
+                        listOf(nameInvalidError.copy(value = "  ", reason = EMPTY_ERROR)),
                     ),
                     Pair(
                         createRequest.copy(name = "bad name"),
-                        listOf(nameInvalidError.copy(value = "bad name")),
+                        listOf(nameInvalidError.copy(value = "bad name", reason = INVALID_NAME_MSG_FMT)),
                     ),
                     Pair(
                         createRequest.copy(name = "Bad&Name"),
-                        listOf(nameInvalidError.copy(value = "Bad&Name")),
-                    ),
-                    Pair(
-                        createRequest.copy(endpoint = ""),
-                        listOf(endpointMissingError),
-                    ),
-                    Pair(
-                        createRequest.copy(endpoint = "  "),
-                        listOf(endpointMissingError),
+                        listOf(nameInvalidError.copy(value = "Bad&Name", reason = INVALID_NAME_MSG_FMT)),
                     ),
                     Pair(
                         createRequest.copy(name = "", endpoint = ""),
-                        listOf(nameMissingError),
+                        listOf(
+                            nameInvalidError.copy(value = "", reason = EMPTY_ERROR),
+                            endpointBaseError.copy(value = "", reason = EMPTY_ERROR),
+                            ),
                     ),
                 ).forEach { (request, expected) ->
                     assertDivaDeviceCreateError(request, expected)
@@ -790,8 +783,8 @@ class RioClientTest {
                 assertThat(getReadAgent.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(getReadAgent.indexState).isEqualTo("COMPLETE")
                 assertThat(getReadAgent.lastIndexDate).isNotNull
-
-                rioClient.indexAgent(testBroker, readAgentName, index = true)
+                
+                rioClient.reindexAgent(testBroker, readAgentName)
 
                 assertThat(rioClient.headAgent(testBroker, readAgentName)).isTrue
                 val deleteAgentResponse = rioClient.deleteAgent(testBroker, readAgentName, true)
@@ -1865,38 +1858,42 @@ class RioClientTest {
                 .joinToString("/")
         val brokerName = "lifecycle-broker-$uuid"
         val agentCount = 3
-        val agentEndIdx = agentCount - 1
+        val agentRange = (0..(agentCount-1))
 
         val lifecycleIds: List<String> =
-            (0..agentEndIdx).map {
+            agentRange.map {
+                val deferDays = if (it == 0) -1 else it // need one lifecycle with deferDays = -1
+                val updateDeferDays = if (it == 0) -1 else it * 11
+                val deleteDays = if (it == 0) 0 else it * 12
+                val updateDeleteDays = if (it == 0) 0 else it * 13
                 val createResponse =
-                    rioClient.createLifecycle(LifecycleRequest("create-$it-$uuid", it, it * 10)).also { resp ->
+                    rioClient.createLifecycle(LifecycleRequest("create-$it-$uuid", deferDays, deleteDays)).also { resp ->
                         assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
                         assertThat(resp.name).isEqualTo("create-$it-$uuid")
-                        assertThat(resp.deferDays).isEqualTo(it)
-                        assertThat(resp.deleteDays).isEqualTo(it * 10)
+                        assertThat(resp.deferDays).isEqualTo(deferDays)
+                        assertThat(resp.deleteDays).isEqualTo(deleteDays)
                     }
                 rioClient.getLifecycle(createResponse.uuid, true).let { resp ->
                     assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
                     assertThat(resp.name).isEqualTo("create-$it-$uuid")
-                    assertThat(resp.deferDays).isEqualTo(it)
-                    assertThat(resp.deleteDays).isEqualTo(it * 10)
+                    assertThat(resp.deferDays).isEqualTo(deferDays)
+                    assertThat(resp.deleteDays).isEqualTo(deleteDays)
                     assertThat(resp.brokersUsing).isNull()
                 }
                 assertThat(rioClient.headLifecycle(createResponse.uuid)).isTrue
-                rioClient.updateLifecycle(createResponse.uuid, LifecycleRequest("update-$it-$uuid", it * 10, it * 100)).let { resp ->
+                rioClient.updateLifecycle(createResponse.uuid, LifecycleRequest("update-$it-$uuid", updateDeferDays, updateDeleteDays)).let { resp ->
                     assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
                     assertThat(resp.name).isEqualTo("update-$it-$uuid")
-                    assertThat(resp.deferDays).isEqualTo(it * 10)
-                    assertThat(resp.deleteDays).isEqualTo(it * 100)
+                    assertThat(resp.deferDays).isEqualTo(updateDeferDays)
+                    assertThat(resp.deleteDays).isEqualTo(updateDeleteDays)
                 }
                 createResponse.uuid
             }
 
         val createPolicies =
-            (0..agentEndIdx).map { idx ->
+            agentRange.map { idx ->
                 AgentLifecyclePolicyRequest(
-                    "agent-$idx-$uuid",
+                    "agent-$uuid-$idx",
                     lifecycleIds[idx],
                     idx + 1,
                     (0..6).map {
@@ -1905,9 +1902,9 @@ class RioClientTest {
                 )
             }
         val updatePolicies =
-            (0..agentEndIdx).map { idx ->
+            agentRange.map { idx ->
                 AgentLifecyclePolicyRequest(
-                    "agent-$idx-$uuid",
+                    "agent-$uuid-$idx",
                     lifecycleIds[idx],
                     agentCount - idx,
                     (0..6).map {
@@ -1928,7 +1925,8 @@ class RioClientTest {
             ),
         )
         try {
-            (1..agentEndIdx).forEach { idx ->
+            val subAgentStartIdx = agentRange.first() + 1
+            (subAgentStartIdx..agentRange.last).forEach { idx ->
                 rioClient.createAgent(
                     brokerName,
                     AgentCreateRequest(
@@ -1956,7 +1954,7 @@ class RioClientTest {
                 compareLifecyclePolicies(createPolicies, resp.agentLifecycles)
             }
 
-            (0..agentEndIdx).forEach { idx ->
+            agentRange.forEach { idx ->
                 rioClient.getLifecycle(lifecycleIds[idx], true).let { resp ->
                     assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
                     assertThat(resp.brokersUsing).hasSize(1)

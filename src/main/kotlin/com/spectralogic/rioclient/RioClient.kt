@@ -358,6 +358,7 @@ class RioClient(
         agentName: String,
     ): Boolean = client.myHead("$api/brokers/$brokerName/agents/$agentName")
 
+    // TODO ESCP-4911 & ESCP-5129 this will be deprecated in 4.3.0
     suspend fun indexAgent(
         brokerName: String,
         agentName: String,
@@ -372,6 +373,20 @@ class RioClient(
                 Pair("overwrite-index", overWriteIndex),
             )
         return client.myPut("$api/brokers/$brokerName/agents/$agentName", paramMap = paramMap)
+    }
+
+    suspend fun reindexAgent(
+        brokerName: String,
+        agentName: String,
+        reIndex: Boolean? = null,
+        overWriteIndex: Boolean? = null,
+    ): EmptyResponse {
+        val paramMap: Map<String, Any?> =
+            mapOf(
+                Pair("re-index", reIndex),
+                Pair("overwrite-index", overWriteIndex),
+            )
+        return client.myPut("$api/brokers/$brokerName/agents/$agentName/index", paramMap = paramMap)
     }
 
     // Lifecycle
