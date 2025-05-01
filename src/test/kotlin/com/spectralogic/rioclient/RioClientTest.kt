@@ -1450,13 +1450,16 @@ class RioClientTest {
     fun systemClientDataTest() =
         blockingTest {
             val total = 6L
+            val uuid = UUID.randomUUID()
+            val clientName = "clientName-$uuid"
+            val clientDataIdBase = "cdi-$uuid"
+            val tagBase = "tag-$uuid"
             var testNum = 0
             val cdtDescFmt = "ClientDataTest %d"
 
             (1..total).forEach { idx ->
-                val clientDataId = "clientDataId-$idx"
-                val clientName = "clientName"
-                val tag = "tag-${idx % 2}"
+                val clientDataId = "$clientDataIdBase-$idx"
+                val tag = "$tagBase-${idx % 2}"
                 val mapData =
                     mapOf(
                         Pair("key1-$idx", "val1-$idx"),
@@ -1471,11 +1474,11 @@ class RioClientTest {
                 assertThat(data.mapData).isEqualTo(mapData)
             }
 
-            var listData = rioClient.clientDataList(clientDataId = "clientDataId-*")
+            var listData = rioClient.clientDataList(clientDataId = "$clientDataIdBase-*")
             assertThat(listData.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
             assertThat(listData.page.totalItems).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(total)
             assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(total.toInt())
-            listData = rioClient.clientDataList(clientDataId = "clientDataId-1")
+            listData = rioClient.clientDataList(clientDataId = "$clientDataIdBase-1")
             assertThat(listData.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
             assertThat(listData.page.totalItems).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(1)
             assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(1)
@@ -1485,20 +1488,20 @@ class RioClientTest {
             assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(0)
 
             val half = total / 2
-            listData = rioClient.clientDataList(tag = "tag-*")
+            listData = rioClient.clientDataList(tag = "$tagBase-*")
             assertThat(listData.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
             assertThat(listData.page.totalItems).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(total)
             assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(total.toInt())
-            listData = rioClient.clientDataList(tag = "tag-0")
+            listData = rioClient.clientDataList(tag = "$tagBase-0")
             assertThat(listData.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
             assertThat(listData.page.totalItems).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(half)
             assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(half.toInt())
-            listData = rioClient.clientDataList(tag = "tag-1")
+            listData = rioClient.clientDataList(tag = "$tagBase-1")
             assertThat(listData.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
             assertThat(listData.page.totalItems).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(half)
             assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(half.toInt())
 
-            listData = rioClient.clientDataList(clientDataId = "clientDataId-*", page = 1, perPage = 2)
+            listData = rioClient.clientDataList(clientDataId = "$clientDataIdBase-*", page = 1, perPage = 2)
             assertThat(listData.statusCode).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
             assertThat(listData.page.totalItems).describedAs(cdtDescFmt.format(++testNum)).isEqualTo(total)
             assertThat(listData.result).describedAs(cdtDescFmt.format(++testNum)).hasSize(2)

@@ -573,6 +573,7 @@ class RioClient(
         return client.myPost("$api/brokers/$brokerName/archive", archiveRequest, paramMap)
     }
 
+    // TODO ESCP-4911 & ESCP-5129 this will be deprecated in 4.3.0
     suspend fun retryArchiveJob(
         brokerName: String,
         retry: UUID,
@@ -594,10 +595,26 @@ class RioClient(
         return client.myPost("$api/brokers/$brokerName/restore", restoreRequest, paramMap)
     }
 
+    // TODO ESCP-4911 & ESCP-5129 this will be deprecated in 4.3.0
     suspend fun retryRestoreJob(
         brokerName: String,
         retry: UUID,
     ): JobResponse = client.myPost("$api/brokers/$brokerName/restore?retry=$retry")
+
+    suspend fun retryJob(
+        jobId: UUID,
+        failFast: Boolean,
+        ignoreDuplicates: Boolean? = null,
+        uploadNewFilesOnly: Boolean? = null,
+    ): JobResponse {
+        val paramMap =
+            mapOf(
+                Pair("fail-fast", failFast),
+                Pair("ignore-duplicates", ignoreDuplicates),
+                Pair("upload-new-files-only", uploadNewFilesOnly),
+            )
+        return client.myPost("$api/jobs/retry/$jobId", paramMap = paramMap)
+    }
 
     suspend fun jobStatus(
         jobId: UUID,
