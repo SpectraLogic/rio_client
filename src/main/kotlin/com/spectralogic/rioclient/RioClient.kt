@@ -616,6 +616,20 @@ class RioClient(
         return client.myPost("$api/jobs/retry/$jobId", paramMap = paramMap)
     }
 
+    suspend fun createCopyJob(
+        brokerName: String,
+        copyRequest: CopyRequest,
+        jobPriority: String? = null,
+        failFast: Boolean? = null,
+    ): JobResponse {
+        val paramMap =
+            mapOf(
+                Pair("priority", jobPriority),
+                Pair("fail-fast", failFast),
+            )
+        return client.myPost("$api/brokers/$brokerName/copyobjects", copyRequest, paramMap)
+    }
+
     suspend fun jobStatus(
         jobId: UUID,
         withFileStatus: Boolean? = null,
