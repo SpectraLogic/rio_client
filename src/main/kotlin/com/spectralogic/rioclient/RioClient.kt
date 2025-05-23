@@ -630,6 +630,22 @@ class RioClient(
         return client.myPost("$api/brokers/$brokerName/copyobjects", copyRequest, paramMap)
     }
 
+    suspend fun createDeleteJob(
+        brokerName: String,
+        deleteRequest: DeleteRequest,
+        jobPriority: String? = null,
+        failFast: Boolean? = null,
+    ): JobResponse {
+        val paramMap =
+            mapOf(
+                Pair("priority", jobPriority),
+                Pair("fail-fast", failFast),
+            )
+        return client.myPost("$api/brokers/$brokerName/deleteobjects", deleteRequest, paramMap)
+    }
+
+
+
     suspend fun jobStatus(
         jobId: UUID,
         withFileStatus: Boolean? = null,
