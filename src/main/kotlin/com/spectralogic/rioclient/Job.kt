@@ -139,6 +139,8 @@ data class JobData(
 enum class JobType {
     ARCHIVE,
     RESTORE,
+    COPY,
+    DELETE,
 }
 
 @Serializable
