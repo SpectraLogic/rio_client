@@ -326,3 +326,18 @@ data class ListLifecycleResponse(
     val page: PageInfo,
     val lifecycles: List<LifecycleResponse>,
 ) : RioResponse()
+
+
+@Serializable
+data class ObjectEventHistoryResponse(
+    val brokerName: String,
+    val agentName: String,
+    val fileName: String,
+    val action: String,
+    val eventDate: String,
+) : RioResponse()
+
+@Serializable
+data class ListObjectHistoryResponse(
+    val events: List<ObjectEventHistoryResponse>,
+) : RioResponse()
