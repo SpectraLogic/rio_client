@@ -554,6 +554,18 @@ class RioClient(
         return client.myPut("$api/brokers/$brokerName/objects", updateRequest, paraMap)
     }
 
+    suspend fun objectHistory(
+        brokerName: String,
+        objectName: String,
+    ): ListObjectHistoryResponse {
+        val paramMap: Map<String, Any?> =
+            mapOf(
+                "brokername" to brokerName,
+                "filename" to objectName,
+            )
+        return client.myGet("$api/objecthistory", paramMap = paramMap)
+    }
+
     /**
      * Job
      */

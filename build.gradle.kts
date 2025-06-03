@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "com.spectralogic.rio"
-version = "3.1.15"
+version = "3.1.16"
 
 dependencies {
     implementation(platform(libs.kotlinBom))
