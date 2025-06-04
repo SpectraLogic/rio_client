@@ -26,3 +26,30 @@ data class ActiveDirectoryResponse(
     val allowAny: Boolean,
     val defaultRole: String,
 ) : RioResponse()
+
+@Serializable
+data class CacheConfigRequest(
+    val uri: String,
+    val maximumBytes: Long,
+) : RioRequest
+
+@Serializable
+data class CacheConfigResponse(
+    val uri: String,
+    val maximumBytes: Long,
+) : RioResponse()
+
+@Serializable
+data class CacheStatusResponse(
+    val size: Long,
+    val required: Long,
+    val reserved: Long,
+    val available: Long,
+    val hits: Long,
+    val misses: Long,
+    val free: Long,
+    val remaining: Long,
+    val isFull: Boolean,
+    val used: Long,
+    val efficiency: Double,
+) : RioResponse()
