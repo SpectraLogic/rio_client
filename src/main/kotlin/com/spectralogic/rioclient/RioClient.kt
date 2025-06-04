@@ -975,6 +975,16 @@ class RioClient(
 
     suspend fun deleteActiveDirectoryConfig(): EmptyResponse = client.myDelete("$api/config/ldap")
 
+    suspend fun getCacheConfig(): CacheConfigResponse = client.myGet("$api/config/cache")
+
+    suspend fun setCacheConfig(cacheConfigRequest: CacheConfigRequest): CacheConfigResponse =
+        client.myPut("$api/config/cache", cacheConfigRequest)
+
+    suspend fun deleteCacheConfig(): EmptyResponse = client.myDelete("$api/config/cache")
+
+    suspend fun clearCache(aggressive: Boolean?): EmptyResponse =
+        client.myDelete("$api/cache", mapOf("aggressive" to aggressive))
+
     /**
      * Private worker methods
      */
