@@ -201,9 +201,16 @@ data class ArchiveFolderResponse(
 ) : RioResponse()
 
 @Serializable
+data class JobGroupRequest(
+    val groupName: String,
+    val groupType: String,
+) : RioRequest
+
+@Serializable
 data class JobGroupResponse(
     val groupName: String,
     val groupId: String,
+    val groupType: String,
     val errorCount: Int,
     val jobGroupStatus: JobStatus,
     val createBy: String,

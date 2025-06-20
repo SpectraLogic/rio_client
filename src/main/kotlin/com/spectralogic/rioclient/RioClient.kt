@@ -575,12 +575,14 @@ class RioClient(
         uploadNewOnly: Boolean? = null,
         jobPriority: String? = null,
         failFast: Boolean? = null,
+        jobGroupUuid: String? = null,
     ): JobResponse {
         val paramMap =
             mapOf(
                 Pair("upload-new-files-only", uploadNewOnly),
                 Pair("priority", jobPriority),
                 Pair("fail-fast", failFast),
+                Pair("jobGroup", jobGroupUuid),
             )
         return client.myPost("$api/brokers/$brokerName/archive", archiveRequest, paramMap)
     }
@@ -597,12 +599,14 @@ class RioClient(
         jobPriority: String? = null,
         sessionId: String? = null,
         failFast: Boolean? = null,
+        jobGroupUuid: String? = null,
     ): JobResponse {
         val paramMap =
             mapOf(
                 Pair("priority", jobPriority),
                 Pair("sessionId", sessionId),
                 Pair("fail-fast", failFast),
+                Pair("jobGroup", jobGroupUuid),
             )
         return client.myPost("$api/brokers/$brokerName/restore", restoreRequest, paramMap)
     }
@@ -753,6 +757,12 @@ class RioClient(
                 )
         return client.myGet("$api/jobgroup", paramMap = paramMap)
     }
+
+    suspend fun createJobGroup(groupName: String, groupType: String): JobGroupResponse =
+        client.myPost("$api/jobgroup", JobGroupRequest(groupName, groupType))
+
+    suspend fun cancelJobGroup(jobGroupUuid: String): EmptyResponse =
+        client.myPut("$api/jobgroup/$jobGroupUuid/cancel", null)
 
     /**
      * Log
