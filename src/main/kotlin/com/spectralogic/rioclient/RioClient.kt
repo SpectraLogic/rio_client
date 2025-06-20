@@ -428,7 +428,7 @@ class RioClient(
         client.myHead("$api/brokers/$brokerName/objects/${objectName.urlEncode()}")
 
     suspend fun objectBatchHead(brokerName: String, objectBatchHeadRequest: ObjectBatchHeadRequest): ObjectBatchHeadResponse =
-        client.myGet("$api/brokers/$brokerName/objectbatch", request = objectBatchHeadRequest)
+        client.myPost("$api/brokers/$brokerName/objectbatch", request = objectBatchHeadRequest)
 
     suspend fun deleteObject(brokerName: String, objName: String): EmptyResponse =
         client.myDelete("$api/brokers/$brokerName/objects/${objName.urlEncode()}")
