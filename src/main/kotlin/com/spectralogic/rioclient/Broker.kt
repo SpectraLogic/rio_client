@@ -145,7 +145,7 @@ data class AgentCreateRequest(
     val name: String,
     val type: String,
     val agentConfig: Map<String, String>,
-    val writable: Boolean = false
+    val writable: Boolean = false,
 ) : RioRequest
 
 @Serializable
@@ -326,7 +326,6 @@ data class ListLifecycleResponse(
     val page: PageInfo,
     val lifecycles: List<LifecycleResponse>,
 ) : RioResponse()
-
 
 @Serializable
 data class ObjectEventHistoryResponse(

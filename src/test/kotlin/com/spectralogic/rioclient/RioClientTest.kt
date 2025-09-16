@@ -420,11 +420,18 @@ class RioClientTest {
                     ),
                     Pair(
                         updateRequest.copy(endpoint = "bad endpoint"),
-                        listOf(endpointBaseError.copy(value = "bad endpoint", reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad endpoint"))),
+                        listOf(
+                            endpointBaseError.copy(value = "bad endpoint", reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad endpoint")),
+                        ),
                     ),
                     Pair(
                         updateRequest.copy(endpoint = "badscheme://bad auth"),
-                        listOf(endpointBaseError.copy(value = "badscheme://bad auth", reason = URI_AUTH_FORMAT_ERROR_FMT.format("15", "badscheme://bad auth"))),
+                        listOf(
+                            endpointBaseError.copy(
+                                value = "badscheme://bad auth",
+                                reason = URI_AUTH_FORMAT_ERROR_FMT.format("15", "badscheme://bad auth"),
+                            ),
+                        ),
                     ),
                 ).forEach { (request, expected) ->
                     assertDivaDeviceUpdateError(divaDeviceName, request, expected)
@@ -464,7 +471,7 @@ class RioClientTest {
                         listOf(
                             nameInvalidError.copy(value = "", reason = EMPTY_ERROR),
                             endpointBaseError.copy(value = "", reason = EMPTY_ERROR),
-                            ),
+                        ),
                     ),
                 ).forEach { (request, expected) ->
                     assertDivaDeviceCreateError(request, expected)
@@ -783,7 +790,7 @@ class RioClientTest {
                 assertThat(getReadAgent.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(getReadAgent.indexState).isEqualTo("COMPLETE")
                 assertThat(getReadAgent.lastIndexDate).isNotNull
-                
+
                 rioClient.reindexAgent(testBroker, readAgentName)
 
                 assertThat(rioClient.headAgent(testBroker, readAgentName)).isTrue
@@ -1861,7 +1868,7 @@ class RioClientTest {
                 .joinToString("/")
         val brokerName = "lifecycle-broker-$uuid"
         val agentCount = 3
-        val agentRange = (0..(agentCount-1))
+        val agentRange = (0..(agentCount - 1))
 
         val lifecycleIds: List<String> =
             agentRange.map {
@@ -1884,12 +1891,16 @@ class RioClientTest {
                     assertThat(resp.brokersUsing).isNull()
                 }
                 assertThat(rioClient.headLifecycle(createResponse.uuid)).isTrue
-                rioClient.updateLifecycle(createResponse.uuid, LifecycleRequest("update-$it-$uuid", updateDeferDays, updateDeleteDays)).let { resp ->
-                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
-                    assertThat(resp.name).isEqualTo("update-$it-$uuid")
-                    assertThat(resp.deferDays).isEqualTo(updateDeferDays)
-                    assertThat(resp.deleteDays).isEqualTo(updateDeleteDays)
-                }
+                rioClient
+                    .updateLifecycle(
+                        createResponse.uuid,
+                        LifecycleRequest("update-$it-$uuid", updateDeferDays, updateDeleteDays),
+                    ).let { resp ->
+                        assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                        assertThat(resp.name).isEqualTo("update-$it-$uuid")
+                        assertThat(resp.deferDays).isEqualTo(updateDeferDays)
+                        assertThat(resp.deleteDays).isEqualTo(updateDeleteDays)
+                    }
                 createResponse.uuid
             }
 
