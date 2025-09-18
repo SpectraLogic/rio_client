@@ -5,7 +5,7 @@
  */
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention").version("0.9.0")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
 
 rootProject.name="rio-client"
@@ -16,12 +16,13 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            version("assertj", "3.23.1")
-            version("junit", "5.11.4")
-            version("kotlin", "2.1.10")
-            version("kotlinLogging", "7.0.3")
-            version("kotlinxCoroutines", "1.10.1")
-            version("ktor", "3.0.3")
+            version("assertj", "3.27.3")
+            version("junit", "5.13.4")
+            version("junitPlatform", "1.12.1")
+            version("kotlin", "2.2.20")
+            version("kotlinLogging", "7.0.13")
+            version("kotlinxCoroutines", "1.10.2")
+            version("ktor", "3.3.0")
 
             library("kotlinBom", "org.jetbrains.kotlin", "kotlin-bom").versionRef("kotlin")
             library("kotlinLogging", "io.github.oshai", "kotlin-logging").versionRef("kotlinLogging")
@@ -39,11 +40,12 @@ dependencyResolutionManagement {
             library("assertjCore", "org.assertj", "assertj-core").versionRef("assertj")
             library("junitJupiterApi", "org.junit.jupiter", "junit-jupiter-api").versionRef("junit")
             library("junitJupiterEngine", "org.junit.jupiter", "junit-jupiter-engine").versionRef("junit")
+            library("junitPlatformlauncher", "org.junit.platform", "junit-platform-launcher").versionRef("junitPlatform")
 
             plugin("kotlinJvm", "org.jetbrains.kotlin.jvm").versionRef("kotlin")
             plugin("kotlinPluginSerialization", "org.jetbrains.kotlin.plugin.serialization").versionRef("kotlin")
-            plugin("kotlinter", "org.jmailen.kotlinter").version("5.0.1")
-            plugin("owaspDepCheck","org.owasp.dependencycheck").version("12.0.2")
+            plugin("kotlinter", "org.jmailen.kotlinter").version("5.2.0")
+            plugin("owaspDepCheck","org.owasp.dependencycheck").version("12.1.3")
             plugin("versions", "com.github.ben-manes.versions").version("0.52.0")
         }
     }

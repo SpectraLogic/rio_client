@@ -410,7 +410,10 @@ class RioClient(
 
     suspend fun deleteLifecycle(lifecycleId: String): EmptyResponse = client.myDelete("$api/lifecycle/$lifecycleId")
 
-    suspend fun getLifecycle(lifecycleId: String, showUsing: Boolean? = null): LifecycleResponse {
+    suspend fun getLifecycle(
+        lifecycleId: String,
+        showUsing: Boolean? = null,
+    ): LifecycleResponse {
         val paramMap: Map<String, Any?> = mapOf(Pair("showUsing", showUsing))
         return client.myGet("$api/lifecycle/$lifecycleId", paramMap = paramMap)
     }
@@ -660,8 +663,6 @@ class RioClient(
         return client.myPost("$api/brokers/$brokerName/deleteobjects", deleteRequest, paramMap)
     }
 
-
-
     suspend fun jobStatus(
         jobId: UUID,
         withFileStatus: Boolean? = null,
@@ -758,11 +759,12 @@ class RioClient(
         return client.myGet("$api/jobgroup", paramMap = paramMap)
     }
 
-    suspend fun createJobGroup(groupName: String, groupType: String): JobGroupResponse =
-        client.myPost("$api/jobgroup", JobGroupRequest(groupName, groupType))
+    suspend fun createJobGroup(
+        groupName: String,
+        groupType: String,
+    ): JobGroupResponse = client.myPost("$api/jobgroup", JobGroupRequest(groupName, groupType))
 
-    suspend fun cancelJobGroup(jobGroupUuid: String): EmptyResponse =
-        client.myPut("$api/jobgroup/$jobGroupUuid/cancel", null)
+    suspend fun cancelJobGroup(jobGroupUuid: String): EmptyResponse = client.myPut("$api/jobgroup/$jobGroupUuid/cancel", null)
 
     /**
      * Log
@@ -992,8 +994,7 @@ class RioClient(
 
     suspend fun deleteCacheConfig(): EmptyResponse = client.myDelete("$api/config/cache")
 
-    suspend fun clearCache(aggressive: Boolean?): EmptyResponse =
-        client.myDelete("$api/cache", mapOf("aggressive" to aggressive))
+    suspend fun clearCache(aggressive: Boolean?): EmptyResponse = client.myDelete("$api/cache", mapOf("aggressive" to aggressive))
 
     /**
      * Private worker methods

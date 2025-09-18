@@ -35,7 +35,8 @@ dependencies {
     testImplementation(libs.assertjCore)
     testImplementation(libs.junitJupiterApi)
 
-    testRuntimeOnly(libs.junitJupiterEngine)
+    testImplementation(libs.junitJupiterEngine)
+    testRuntimeOnly(libs.junitPlatformlauncher)
 }
 
 kotlin {
