@@ -6,6 +6,7 @@
 package com.spectralogic.rioclient
 
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 @Serializable
 data class UserCreateRequest(
@@ -42,6 +43,8 @@ data class UserListResponse(
 
 @Serializable
 data class UserResponse(
+    @Serializable(with = UUIDSerializer::class)
+    val userUuid: UUID,
     val username: String,
     val fullName: String,
     val active: Boolean,
