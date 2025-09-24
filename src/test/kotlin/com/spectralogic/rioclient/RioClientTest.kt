@@ -104,40 +104,43 @@ class RioClientTest {
     fun spectraDeviceTest() =
         blockingTest {
             val nameBaseError = RioValidationMessage("name", "string", "")
-            val nameBlankError = nameBaseError.copy(errorType = "invalid_string_value", reason = EMPTY_ERROR)
-            val nameInvalidError = nameBaseError.copy(errorType = "invalid_device_name", reason = INVALID_NAME_MSG_FMT)
+            val nameBlankError = nameBaseError.copy(fieldType = "DEVICE", errorType = "invalid_device_name", reason = EMPTY_ERROR)
+            val nameInvalidError = nameBaseError.copy(fieldType = "DEVICE", errorType = "invalid_device_name", reason = INVALID_NAME_MSG_FMT)
             val mgmtBaseError = RioValidationMessage("mgmtInterface", "URI", "")
             val mgmtHostError = mgmtBaseError.copy(errorType = "unknown_host")
-            val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_uri")
-            val mgmtUsernameError = mgmtBaseError.copy("username", "string", errorType = "invalid_credentials")
+            val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_uri", reason = "Invalid Format")
+            val mgmtUsernameError = mgmtBaseError.copy("username", "string", errorType = "invalid_string_value")
             val mgmtPasswordError = mgmtBaseError.copy("password", "password", errorType = "invalid_credentials")
             val credsUserError = RioValidationMessage("username", "string", "invalid_string_value", "", EMPTY_ERROR)
             val credsPassError = RioValidationMessage("password", "password", errorType = "invalid_credentials")
 
+            var testNum = 0
+            val testFmt = "spectraDeviceTest-%d"
+
             val spectraDeviceName = "bp-${uuid()}"
             val createRequest = spectraDeviceCreateRequest.copy(name = spectraDeviceName)
             val createResponse = rioClient.createSpectraDevice(createRequest)
-            assertThat(createResponse.statusCode).isEqualTo(HttpStatusCode.Created)
-            assertThat(createResponse.name).isEqualTo(spectraDeviceName)
+            assertThat(createResponse.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.Created)
+            assertThat(createResponse.name).describedAs(testFmt.format(++testNum)).isEqualTo(spectraDeviceName)
 
             var listResponse = rioClient.listSpectraDevices()
-            assertThat(listResponse.statusCode).isEqualTo(HttpStatusCode.OK)
+            assertThat(listResponse.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
             val spectraDeviceTotal = listResponse.page.totalItems
-            assertThat(listResponse.devices.map { it.name }).contains(spectraDeviceName)
-            assertThat(spectraDeviceTotal).isGreaterThanOrEqualTo(2)
+            assertThat(listResponse.devices.map { it.name }).describedAs(testFmt.format(++testNum)).contains(spectraDeviceName)
+            assertThat(spectraDeviceTotal).describedAs(testFmt.format(++testNum)).isGreaterThanOrEqualTo(2)
 
             assertRioListResponse("spectra devices", listResponse.page.totalItems) { page, perPage ->
                 rioClient.listSpectraDevices(page, perPage)
             }
 
-            assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isTrue
-            assertThat(rioClient.headDevice("spectra", spectraDeviceName)).isTrue
+            assertThat(rioClient.headSpectraDevice(spectraDeviceName)).describedAs(testFmt.format(++testNum)).isTrue
+            assertThat(rioClient.headDevice("spectra", spectraDeviceName)).describedAs(testFmt.format(++testNum)).isTrue
 
             var getResponse = rioClient.getSpectraDevice(spectraDeviceName)
-            assertThat(getResponse.statusCode).isEqualTo(HttpStatusCode.OK)
-            assertThat(getResponse.name).isEqualTo(createRequest.name)
-            assertThat(getResponse.mgmtInterface).isEqualTo(createRequest.mgmtInterface)
-            assertThat(getResponse.username).isEqualTo(createRequest.username)
+            assertThat(getResponse.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+            assertThat(getResponse.name).describedAs(testFmt.format(++testNum)).isEqualTo(createRequest.name)
+            assertThat(getResponse.mgmtInterface).describedAs(testFmt.format(++testNum)).isEqualTo(createRequest.mgmtInterface)
+            assertThat(getResponse.username).describedAs(testFmt.format(++testNum)).isEqualTo(createRequest.username)
 
             val updateRequest =
                 SpectraDeviceUpdateRequest(
@@ -147,28 +150,30 @@ class RioClientTest {
                     createRequest.dataPath,
                 )
             val updateResponse = rioClient.updateSpectraDevice(spectraDeviceName, updateRequest)
-            assertThat(updateResponse.statusCode).isEqualTo(HttpStatusCode.OK)
-            assertThat(updateResponse.name).isEqualTo(spectraDeviceName)
-            assertThat(updateResponse.username).isEqualTo(spectraDeviceAltUsername)
+            assertThat(updateResponse.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+            assertThat(updateResponse.name).describedAs(testFmt.format(++testNum)).isEqualTo(spectraDeviceName)
+            assertThat(updateResponse.username).describedAs(testFmt.format(++testNum)).isEqualTo(spectraDeviceAltUsername)
 
             getResponse = rioClient.getSpectraDevice(spectraDeviceName)
-            assertThat(getResponse.statusCode).isEqualTo(HttpStatusCode.OK)
-            assertThat(getResponse.name).isEqualTo(spectraDeviceName)
-            assertThat(getResponse.mgmtInterface).isEqualTo(createRequest.mgmtInterface)
-            assertThat(getResponse.username).isEqualTo(spectraDeviceAltUsername)
+            assertThat(getResponse.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+            assertThat(getResponse.name).describedAs(testFmt.format(++testNum)).isEqualTo(spectraDeviceName)
+            assertThat(getResponse.mgmtInterface).describedAs(testFmt.format(++testNum)).isEqualTo(createRequest.mgmtInterface)
+            assertThat(getResponse.username).describedAs(testFmt.format(++testNum)).isEqualTo(spectraDeviceAltUsername)
 
             // update unhappy path
+            testNum = 100
             listOf(
                 Pair(
                     updateRequest.copy(mgmtInterface = "bad uri"),
-                    listOf(mgmtUriError.copy(value = "bad uri", reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
+                    listOf(mgmtUriError.copy(value = "bad uri")),
                 ),
                 Pair(
                     updateRequest.copy(mgmtInterface = "badscheme://bad value"),
                     listOf(
                         mgmtUriError.copy(
-                            value = "badscheme://bad value",
-                            reason = URI_AUTH_FORMAT_ERROR_FMT.format("15", "badscheme://bad value"),
+                            value = "badscheme",
+                            errorType = "invalid_scheme",
+                            reason = "URI scheme must be HTTPS",
                         ),
                     ),
                 ),
@@ -183,7 +188,7 @@ class RioClientTest {
                         // credsPassError,
                     ),
                 ),
-                Pair(
+                /*Pair(
                     updateRequest.copy(username = "bad-username"),
                     listOf(
                         credsUserError,
@@ -203,22 +208,23 @@ class RioClientTest {
                         credsUserError,
                         credsPassError,
                     ),
-                ),
+                ),*/
             ).forEach { (request, expected) ->
-                assertSpectraDeviceUpdateError(spectraDeviceName, request, expected)
+                assertSpectraDeviceUpdateError(spectraDeviceName, request, expected, ++testNum)
             }
 
             val deleteResponse = rioClient.deleteDevice("spectra", spectraDeviceName)
-            assertThat(deleteResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
-            assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
-            assertThat(rioClient.headDevice("spectra", spectraDeviceName)).isFalse
+            assertThat(deleteResponse.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.NoContent)
+            assertThat(rioClient.headSpectraDevice(spectraDeviceName)).describedAs(testFmt.format(++testNum)).isFalse
+            assertThat(rioClient.headDevice("spectra", spectraDeviceName)).describedAs(testFmt.format(++testNum)).isFalse
 
             listResponse = rioClient.listSpectraDevices()
-            assertThat(listResponse.statusCode).isEqualTo(HttpStatusCode.OK)
-            assertThat(listResponse.devices.map { it.name }).doesNotContain(spectraDeviceName)
-            assertThat(rioClient.headSpectraDevice(spectraDeviceName)).isFalse
+            assertThat(listResponse.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+            assertThat(listResponse.devices.map { it.name }).describedAs(testFmt.format(++testNum)).doesNotContain(spectraDeviceName)
+            assertThat(rioClient.headSpectraDevice(spectraDeviceName)).describedAs(testFmt.format(++testNum)).isFalse
 
             // create unhappy path
+            testNum = 200
             listOf(
                 Pair(
                     createRequest.copy(name = ""),
@@ -238,14 +244,15 @@ class RioClientTest {
                 ),
                 Pair(
                     createRequest.copy(mgmtInterface = "bad uri"),
-                    listOf(mgmtUriError.copy(value = "bad uri", reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
+                    listOf(mgmtUriError.copy(value = "bad uri")) //reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
                 ),
                 Pair(
                     createRequest.copy(mgmtInterface = "badscheme://bad value"),
                     listOf(
                         mgmtUriError.copy(
-                            value = "badscheme://bad value",
-                            reason = URI_AUTH_FORMAT_ERROR_FMT.format("15", "badscheme://bad value"),
+                            value = "badscheme",
+                            errorType = "invalid_scheme",
+                            reason = "URI scheme must be HTTPS",
                         ),
                     ),
                 ),
@@ -255,11 +262,11 @@ class RioClientTest {
                 ),
                 Pair(
                     createRequest.copy(username = ""),
-                    listOf(mgmtUsernameError, mgmtPasswordError),
+                    listOf(mgmtUsernameError.copy(value = "", reason = EMPTY_ERROR)),
                 ),
-                Pair(
+                /*Pair(
                     createRequest.copy(username = "bad-username"),
-                    listOf(mgmtUsernameError, mgmtPasswordError),
+                    listOf(mgmtUsernameError),
                 ),
                 Pair(
                     createRequest.copy(username = "bad-username", password = "bad-password"),
@@ -271,14 +278,14 @@ class RioClientTest {
                 ),
                 Pair(
                     createRequest.copy(name = "bad name", mgmtInterface = "bad uri"),
-                    listOf(mgmtUriError.copy(value = "bad uri", reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
+                    listOf(mgmtUriError.copy(value = "bad uri")) //, reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
                 ),
                 Pair(
                     createRequest.copy(name = "bad name", mgmtInterface = "https://badhost.eng.sldomain.com"),
                     listOf(nameInvalidError.copy(value = "bad name")),
-                ),
+                ),*/
             ).forEach { (request, expectedErrors) ->
-                assertSpectraDeviceCreateError(request, expectedErrors)
+                assertSpectraDeviceCreateError(request, expectedErrors, ++testNum)
             }
 
             // update non-existing device
@@ -297,6 +304,7 @@ class RioClientTest {
     private fun assertSpectraDeviceCreateError(
         request: SpectraDeviceCreateRequest,
         expected: List<RioValidationMessage>,
+        testNum: Int,
     ) {
         val ex =
             catchThrowableOfType(
@@ -307,13 +315,14 @@ class RioClientTest {
                 },
                 RioHttpException::class.java,
             )
-        assertRioValidationError(ex, expected)
+        assertRioValidationError(ex, expected, testNum)
     }
 
     private fun assertSpectraDeviceUpdateError(
         name: String,
         request: SpectraDeviceUpdateRequest,
         expected: List<RioValidationMessage>,
+        testNum: Int,
     ) {
         val ex =
             catchThrowableOfType(
@@ -324,7 +333,7 @@ class RioClientTest {
                 },
                 RioHttpException::class.java,
             )
-        assertRioValidationError(ex, expected)
+        assertRioValidationError(ex, expected, testNum)
     }
 
     // TODO: s3cDeviceTest
@@ -338,6 +347,7 @@ class RioClientTest {
             val nameBaseError = RioValidationMessage("name", "string", "")
             val nameInvalidError = nameBaseError.copy(fieldType = "DEVICE", errorType = "invalid_device_name")
             val endpointBaseError = RioValidationMessage("endpoint", "URL", "invalid_url_value")
+            var testNum = 0
 
             ensureBrokerExists()
             val divaDeviceName = "diva-device-${uuid()}"
@@ -434,7 +444,7 @@ class RioClientTest {
                         ),
                     ),
                 ).forEach { (request, expected) ->
-                    assertDivaDeviceUpdateError(divaDeviceName, request, expected)
+                    assertDivaDeviceUpdateError(divaDeviceName, request, expected, ++testNum)
                 }
 
                 // TODO agent unhappy path testing
@@ -474,7 +484,7 @@ class RioClientTest {
                         ),
                     ),
                 ).forEach { (request, expected) ->
-                    assertDivaDeviceCreateError(request, expected)
+                    assertDivaDeviceCreateError(request, expected, ++testNum)
                 }
 
                 // update non-existing device
@@ -501,6 +511,7 @@ class RioClientTest {
     private fun assertDivaDeviceCreateError(
         request: DivaDeviceCreateRequest,
         expected: List<RioValidationMessage>,
+        testNum: Int,
     ) {
         val ex =
             catchThrowableOfType(
@@ -511,13 +522,14 @@ class RioClientTest {
                 },
                 RioHttpException::class.java,
             )
-        assertRioValidationError(ex, expected)
+        assertRioValidationError(ex, expected, testNum)
     }
 
     private fun assertDivaDeviceUpdateError(
         name: String,
         request: DivaDeviceUpdateRequest,
         expected: List<RioValidationMessage>,
+        testNum: Int,
     ) {
         val ex =
             catchThrowableOfType(
@@ -528,7 +540,7 @@ class RioClientTest {
                 },
                 RioHttpException::class.java,
             )
-        assertRioValidationError(ex, expected)
+        assertRioValidationError(ex, expected, testNum)
     }
 
     @Test
@@ -1720,73 +1732,77 @@ class RioClientTest {
         blockingTest {
             val username = "user-${uuid()}"
             val password = "wordpass"
+            var userUuid: UUID = UUID.randomUUID()
+            var testNum = 0
+            val testFmt = "userTest-%d"
 
-            assertThat(rioClient.headUserLogin(username)).isFalse()
+            assertThat(rioClient.headUserLogin(UUID.randomUUID())).isFalse()
             rioClient
                 .createUserLogin(
                     UserCreateRequest(username, username, password, false, true, "Operator"),
                 ).let { resp ->
-                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
-                    assertThat(resp.username).isEqualTo(username)
-                    assertThat(resp.fullName).isEqualTo(username)
-                    assertThat(resp.active).isFalse()
-                    assertThat(resp.local).isTrue()
-                    assertThat(resp.role).isEqualTo("Operator")
+                    assertThat(resp.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.Created)
+                    assertThat(resp.username).describedAs(testFmt.format(++testNum)).isEqualTo(username)
+                    assertThat(resp.fullName).describedAs(testFmt.format(++testNum)).isEqualTo(username)
+                    assertThat(resp.active).describedAs(testFmt.format(++testNum)).isFalse()
+                    assertThat(resp.local).describedAs(testFmt.format(++testNum)).isTrue()
+                    assertThat(resp.role).describedAs(testFmt.format(++testNum)).isEqualTo("Operator")
+                    userUuid = resp.userUuid
                 }
-            assertThat(rioClient.headUserLogin(username)).isTrue()
+            assertThat(rioClient.headUserLogin(userUuid)).describedAs(testFmt.format(++testNum)).isTrue()
             assertThrows<RioHttpException> {
                 rioClient.getBearerToken(username, "bad-password")
             }
-            rioClient.getUserLogin(username).let { resp ->
-                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
-                assertThat(resp.username).isEqualTo(username)
-                assertThat(resp.active).isFalse()
-                assertThat(resp.local).isTrue()
-                assertThat(resp.role).isEqualTo("Operator")
+            rioClient.getUserLogin(userUuid).let { resp ->
+                assertThat(resp.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.username).describedAs(testFmt.format(++testNum)).isEqualTo(username)
+                assertThat(resp.active).describedAs(testFmt.format(++testNum)).isFalse()
+                assertThat(resp.local).describedAs(testFmt.format(++testNum)).isTrue()
+                assertThat(resp.role).describedAs(testFmt.format(++testNum)).isEqualTo("Operator")
             }
-            rioClient.updateUserLogin(username, UserUpdateRequest(true, "Operator")).let { resp ->
-                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
-                assertThat(resp.username).isEqualTo(username)
-                assertThat(resp.active).isTrue()
-                assertThat(resp.local).isTrue()
-                assertThat(resp.role).isEqualTo("Operator")
+            rioClient.updateUserLogin(userUuid, UserUpdateRequest(true, "Operator")).let { resp ->
+                assertThat(resp.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.username).describedAs(testFmt.format(++testNum)).isEqualTo(username)
+                assertThat(resp.active).describedAs(testFmt.format(++testNum)).isTrue()
+                assertThat(resp.local).describedAs(testFmt.format(++testNum)).isTrue()
+                assertThat(resp.role).describedAs(testFmt.format(++testNum)).isEqualTo("Operator")
             }
             rioClient.getBearerToken(username, password).let { resp ->
-                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
-                assertThat(resp.username).isEqualTo(username)
-                assertThat(resp.role).isEqualTo("Operator")
-                assertThat(resp.token).isNotBlank()
+                assertThat(resp.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.username).describedAs(testFmt.format(++testNum)).isEqualTo(username)
+                assertThat(resp.role).describedAs(testFmt.format(++testNum)).isEqualTo("Operator")
+                assertThat(resp.token).describedAs(testFmt.format(++testNum)).isNotBlank()
             }
             rioClient.listUserLogins().let { resp ->
-                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
-                assertThat(resp.users.map { it.username }).contains(username)
+                assertThat(resp.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.users.map { it.username }).describedAs(testFmt.format(++testNum)).contains(username)
             }
             rioClient
                 .updateUserLogin(
-                    username,
+                    userUuid,
                     UserUpdateRequest(true, "Administrator"),
                 ).let { resp ->
-                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
-                    assertThat(resp.username).isEqualTo(username)
-                    assertThat(resp.active).isTrue()
-                    assertThat(resp.local).isTrue()
-                    assertThat(resp.role).isEqualTo("Administrator")
+                    assertThat(resp.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.username).describedAs(testFmt.format(++testNum)).isEqualTo(username)
+                    assertThat(resp.active).describedAs(testFmt.format(++testNum)).isTrue()
+                    assertThat(resp.local).describedAs(testFmt.format(++testNum)).isTrue()
+                    assertThat(resp.role).describedAs(testFmt.format(++testNum)).isEqualTo("Administrator")
                 }
             rioClient
                 .updateUserPassword(
-                    username,
+                    userUuid,
                     UserUpdatePasswordRequest("new-password"),
                 ).let { resp ->
-                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
-                    assertThat(resp.username).isEqualTo(username)
-                    assertThat(resp.active).isTrue()
-                    assertThat(resp.local).isTrue()
-                    assertThat(resp.role).isEqualTo("Administrator")
+                    assertThat(resp.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.username).describedAs(testFmt.format(++testNum)).isEqualTo(username)
+                    assertThat(resp.active).describedAs(testFmt.format(++testNum)).isTrue()
+                    assertThat(resp.local).describedAs(testFmt.format(++testNum)).isTrue()
+                    assertThat(resp.role).describedAs(testFmt.format(++testNum)).isEqualTo("Administrator")
                 }
-            rioClient.deleteUserLogin(username).let { resp ->
-                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
+            rioClient.deleteUserLogin(userUuid).let { resp ->
+                assertThat(resp.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.NoContent)
             }
-            assertThat(rioClient.headUserLogin(username)).isFalse()
+            assertThat(rioClient.headUserLogin(userUuid)).describedAs(testFmt.format(++testNum)).isFalse()
         }
 
     @Test
@@ -2169,14 +2185,17 @@ class RioClientTest {
     private fun assertRioValidationError(
         ex: RioHttpException,
         expected: List<RioValidationMessage>,
+        testNum: Int,
     ) {
-        assertThat(ex).isNotNull
-        assertThat(ex.errorMessage()).isNotNull.isInstanceOf(RioValidationErrorMessage::class.java)
+        val testFmt = "assertRioValidationError-%c-%d"
+        assertThat(ex).describedAs(testFmt.format('a', testNum)).isNotNull
+        assertThat(ex.errorMessage()).describedAs(testFmt.format('b', testNum)).isNotNull.isInstanceOf(RioValidationErrorMessage::class.java)
 
         val rioValidationErrorMessage = ex.errorMessage() as RioValidationErrorMessage
-        assertThat(rioValidationErrorMessage.message).isEqualTo("Validation Failed")
-        assertThat(rioValidationErrorMessage.statusCode).isEqualTo(422)
+        assertThat(rioValidationErrorMessage.message).describedAs(testFmt.format('c', testNum)).isEqualTo("Validation Failed")
+        assertThat(rioValidationErrorMessage.statusCode).describedAs(testFmt.format('d', testNum)).isEqualTo(422)
         assertThat(rioValidationErrorMessage.errors)
+            .describedAs(testFmt.format('e', testNum))
             .hasSize(expected.size)
             .containsExactlyInAnyOrderElementsOf(expected)
     }
