@@ -43,6 +43,7 @@ data class UserListResponse(
 
 @Serializable
 data class UserResponse(
+    val userId: Long,
     @Serializable(with = UUIDSerializer::class)
     val userUuid: UUID,
     val username: String,
@@ -50,6 +51,9 @@ data class UserResponse(
     val active: Boolean,
     val local: Boolean,
     val role: String,
+    val displayName: String,
+    @Serializable(with = UUIDSerializer::class)
+    val domainUuid: UUID? = null,
     val createDate: String,
     val updateDate: String,
 ) : RioResponse()
