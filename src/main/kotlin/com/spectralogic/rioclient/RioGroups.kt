@@ -10,7 +10,7 @@ data class ListGroupsForRioUserResponse(
 
 @Serializable
 data class CreateRioGroupRequest(
-    val rioDomainGroupUuids: List<String>,
+    val rioDomainGroupUuids: List<String>?,
     val rioGroupDescription: String?,
     val rioGroupName: String,
     val rioUserUuids: List<String>,
