@@ -43,6 +43,7 @@ import java.net.NetworkInterface
 import java.net.URL
 import java.nio.file.Path
 import java.util.UUID
+import kotlin.collections.emptyMap
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -81,7 +82,18 @@ class RioClient(
     suspend fun getBearerToken(
         username: String,
         password: String,
-    ): LoginTokenResponse = client.myPost("$api/tokens", UserLoginCredentials(username, password))
+        domainControllerUUID: UUID? = null,
+    ): LoginTokenResponse =
+        client.myPost(
+            "$api/tokens${
+                if (domainControllerUUID != null) {
+                    "/$domainControllerUUID"
+                } else {
+                    ""
+                }
+            }",
+            UserLoginCredentials(username, password),
+        )
 
     /**
      * Keys
@@ -108,8 +120,6 @@ class RioClient(
     suspend fun joinCluster(url: String): ClusterResponse = client.myPost("$api/cluster/join", paramMap = paramMap("cluster_url", url))
 
     suspend fun getCluster(): ClusterResponse = client.myGet("$api/cluster")
-
-    suspend fun deleteCluster(): EmptyResponse = client.myPost("$api/cluster")
 
     suspend fun listClusterMembers(): ClusterMembersListResponse = client.myGet("$api/cluster/members")
 
@@ -151,6 +161,11 @@ class RioClient(
         page: Long? = null,
         perPage: Long? = null,
     ): SpectraDeviceListResponse = client.myGet("$api/devices/spectra", paramMap = pageParamMap(page, perPage))
+
+    suspend fun listSpectraVersions(
+        page: Long? = null,
+        perPage: Long? = null,
+    ): SpectraGenericDeviceVersionPagedResponse = client.myGet("$api/devices/spectra/listVersions", paramMap = pageParamMap(page, perPage))
 
     // Diva
     suspend fun createDivaDevice(divaDeviceCreateRequest: DivaDeviceCreateRequest): DivaDeviceResponse =
@@ -996,6 +1011,17 @@ class RioClient(
 
     suspend fun clearCache(aggressive: Boolean?): EmptyResponse = client.myDelete("$api/cache", mapOf("aggressive" to aggressive))
 
+    // System access cache clearing
+    suspend fun clearBrokerAccessCache(brokerName: String): EmptyResponse = client.myPut("$api/system/access/broker/$brokerName")
+
+    suspend fun clearDomainAccessCache(domainUuid: UUID): EmptyResponse = client.myPut("$api/system/access/domain/$domainUuid")
+
+    suspend fun clearEndpointAccessCache(endpointName: String): EmptyResponse = client.myPut("$api/system/access/endpoint/$endpointName")
+
+    suspend fun clearRioGroupAccessCache(rioGroupUuid: UUID): EmptyResponse = client.myPut("$api/system/access/rioGroup/$rioGroupUuid")
+
+    suspend fun clearRioUserAccessCache(userUuid: UUID): EmptyResponse = client.myPut("$api/system/access/user/$userUuid")
+
     /**
      * Private worker methods
      */
@@ -1175,6 +1201,88 @@ class RioClient(
             client.get(urlStr) { }.body()
         } catch (t: Throwable) {
             throw RioHttpException(HttpMethod.Get, urlStr, t)
+        }
+    }
+
+    // Rio Group functions
+    suspend fun createRioGroup(createRequest: CreateRioGroupRequest): RioGroupDetails {
+        val urlStr = "$api/rioGroups"
+        return try {
+            client.myPost<RioGroupDetails>(urlStr, createRequest, emptyMap<String, Any?>())
+        } catch (t: Throwable) {
+            throw RioHttpException(HttpMethod.Post, urlStr, t)
+        }
+    }
+
+    suspend fun getRioGroup(rioGroupUuid: UUID): RioGroupDetails {
+        val urlStr = "$api/rioGroups/$rioGroupUuid"
+        return try {
+            client.myGet<RioGroupDetails>(urlStr)
+        } catch (t: Throwable) {
+            throw RioHttpException(HttpMethod.Get, urlStr, t)
+        }
+    }
+
+    suspend fun updateRioGroup(
+        rioGroupUuid: UUID,
+        createRequest: CreateRioGroupRequest,
+    ): RioGroupDetails {
+        val urlStr = "$api/rioGroups/$rioGroupUuid"
+        return try {
+            client.myPut<RioGroupDetails>(urlStr, createRequest, emptyMap<String, Any?>())
+        } catch (t: Throwable) {
+            throw RioHttpException(HttpMethod.Post, urlStr, t)
+        }
+    }
+
+    suspend fun deleteRioGroup(rioGroupUuid: UUID): RioResponse {
+        val urlStr = "$api/rioGroups/$rioGroupUuid"
+        return try {
+            client.myDelete<RioResponse>(urlStr)
+        } catch (t: Throwable) {
+            throw RioHttpException(HttpMethod.Delete, urlStr, t)
+        }
+    }
+
+    suspend fun headRioGroup(rioGroupUuid: UUID): Boolean {
+        val urlStr = "$api/rioGroups/$rioGroupUuid"
+        return try {
+            client.myHead(urlStr)
+        } catch (t: Throwable) {
+            throw RioHttpException(HttpMethod.Head, urlStr, t)
+        }
+    }
+
+    suspend fun listGroupsForUiser(userUuid: UUID): ListGroupsForRioUserResponse {
+        val urlStr = "$api/user/uuid/$userUuid/riogroups"
+        return try {
+            client.myGet<ListGroupsForRioUserResponse>(urlStr)
+        } catch (t: Throwable) {
+            throw RioHttpException(HttpMethod.Get, urlStr, t)
+        }
+    }
+
+    suspend fun getRioGroups(
+        page: Long = 0,
+        perPage: Long = 100,
+    ): ListRioGroups {
+        val urlStr = "$api/rioGroups?page=$page&per_page=$perPage"
+        return try {
+            client.myGet<ListRioGroups>(urlStr)
+        } catch (t: Throwable) {
+            throw RioHttpException(HttpMethod.Get, urlStr, t)
+        }
+    }
+
+    suspend fun updateGroupsForUser(
+        userUuid: UUID,
+        request: UpdateUserRioGroupRequest,
+    ): ListGroupsForRioUserResponse {
+        val urlStr = "$api/user/uuid/$userUuid/riogroups"
+        return try {
+            client.myPost<ListGroupsForRioUserResponse>(urlStr, request)
+        } catch (t: Throwable) {
+            throw RioHttpException(HttpMethod.Post, urlStr, t)
         }
     }
 }

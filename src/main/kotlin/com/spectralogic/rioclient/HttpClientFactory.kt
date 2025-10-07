@@ -29,11 +29,20 @@ object HttpClientFactory {
         HttpClient(CIO) {
             engine {
                 https {
-                    trustManager = object : X509TrustManager {
-                        override fun checkClientTrusted(p0: Array<out java.security.cert.X509Certificate>?, p1: String?) {}
-                        override fun checkServerTrusted(p0: Array<out java.security.cert.X509Certificate>?, p1: String?) {}
-                        override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate>? = arrayOf()
-                    }
+                    trustManager =
+                        object : X509TrustManager {
+                            override fun checkClientTrusted(
+                                p0: Array<out java.security.cert.X509Certificate>?,
+                                p1: String?,
+                            ) {}
+
+                            override fun checkServerTrusted(
+                                p0: Array<out java.security.cert.X509Certificate>?,
+                                p1: String?,
+                            ) {}
+
+                            override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate>? = arrayOf()
+                        }
                 }
             }
             install(HttpTimeout) {
