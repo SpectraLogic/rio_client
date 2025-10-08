@@ -21,6 +21,7 @@ import java.io.File
 import java.net.URI
 import java.net.URL
 import java.nio.file.Path
+import java.time.Instant
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -105,7 +106,12 @@ class RioClientTest {
         blockingTest {
             val nameBaseError = RioValidationMessage("name", "string", "")
             val nameBlankError = nameBaseError.copy(fieldType = "DEVICE", errorType = "invalid_device_name", reason = EMPTY_ERROR)
-            val nameInvalidError = nameBaseError.copy(fieldType = "DEVICE", errorType = "invalid_device_name", reason = INVALID_NAME_MSG_FMT)
+            val nameInvalidError =
+                nameBaseError.copy(
+                    fieldType = "DEVICE",
+                    errorType = "invalid_device_name",
+                    reason = INVALID_NAME_MSG_FMT,
+                )
             val mgmtBaseError = RioValidationMessage("mgmtInterface", "URI", "")
             val mgmtHostError = mgmtBaseError.copy(errorType = "unknown_host")
             val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_uri", reason = "Invalid Format")
@@ -244,7 +250,7 @@ class RioClientTest {
                 ),
                 Pair(
                     createRequest.copy(mgmtInterface = "bad uri"),
-                    listOf(mgmtUriError.copy(value = "bad uri")) //reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
+                    listOf(mgmtUriError.copy(value = "bad uri")), // reason = URI_PATH_FORMAT_ERROR_FMT.format("3", "bad uri"))),
                 ),
                 Pair(
                     createRequest.copy(mgmtInterface = "badscheme://bad value"),
@@ -2115,6 +2121,125 @@ class RioClientTest {
     // TODO fun lifecycleTest() = blockingTest {}
     // TODO fun lifecycleErrorTest() = blockingTest {}
 
+    @Test
+    fun createUpdateDeleteRioGroup() =
+        blockingTest {
+            val description = "An informative description"
+            val description2 = "An even better description"
+            val groupName = "DELETE ME ${Instant.now().toEpochMilli()}"
+            val result = rioClient.createRioGroup(CreateRioGroupRequest(emptyList(), description, groupName, emptyList()))
+            assertThat(rioClient.headRioGroup(UUID.fromString(result.rioGroupUuid))).isTrue()
+            assertThat(result.rioGroupDescription).isEqualTo(description)
+            assertThat(result.rioGroupName).isEqualTo(groupName)
+            val updateResponse =
+                rioClient.updateRioGroup(
+                    UUID.fromString(result.rioGroupUuid),
+                    CreateRioGroupRequest(emptyList(), description2, groupName, emptyList()),
+                )
+            val secondResult = rioClient.getRioGroup(UUID.fromString(updateResponse.rioGroupUuid))
+            assertThat(secondResult.rioGroupDescription).isEqualTo(description2)
+            rioClient.deleteRioGroup(UUID.fromString(result.rioGroupUuid))
+            assertThat(rioClient.headRioGroup(UUID.fromString(result.rioGroupUuid))).isFalse()
+        }
+
+    @Test
+    fun rioUserGroupsTest() =
+        blockingTest {
+            rioClient
+                .listUserLogins()
+                .users
+                .forEach {
+                    val results = rioClient.listGroupsForUiser(it.userUuid)
+                    assertThat(results.userUuid).isEqualTo(results.userUuid)
+                }
+        }
+
+    @Test
+    fun rioGroupsListTest() =
+        blockingTest {
+            // The everyone group should exist
+            val page = 0L
+            val perPage = 100L
+            val response = rioClient.getRioGroups(page, perPage)
+            assertThat(response.rioGroups).isNotEmpty()
+            assertThat(response.rioGroups.firstOrNull { it.rioGroupName == "Everyone" }).isNotNull()
+        }
+
+    @Test
+    fun updateUserRioGroupsTest() =
+        blockingTest {
+            // Create a temporary user
+            val username = "user-" + UUID.randomUUID()
+            val password = "wordpass"
+            val created =
+                rioClient.createUserLogin(
+                    UserCreateRequest(username, username, password, active = false, local = true, role = "Operator"),
+                )
+            val userUuid = created.userUuid
+
+            try {
+                val groups = rioClient.getRioGroups(0, 100)
+                assertThat(groups.rioGroups).isNotEmpty()
+                val targetGroupUuid = groups.rioGroups.first().rioGroupUuid
+
+                val updateResp = rioClient.updateGroupsForUser(userUuid, UpdateUserRioGroupRequest(listOf(targetGroupUuid)))
+                assertThat(updateResp.statusCode).isEqualTo(HttpStatusCode.Created)
+                assertThat(updateResp.userUuid).isEqualTo(userUuid.toString())
+                assertThat(updateResp.rioGroupUuids).contains(targetGroupUuid)
+
+                val verify = rioClient.listGroupsForUiser(userUuid)
+                assertThat(verify.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(verify.userUuid).isEqualTo(userUuid.toString())
+                assertThat(verify.rioGroupUuids).contains(targetGroupUuid)
+
+                val clearResp = rioClient.updateGroupsForUser(userUuid, UpdateUserRioGroupRequest(emptyList()))
+                assertThat(clearResp.statusCode).isEqualTo(HttpStatusCode.Created)
+                assertThat(clearResp.userUuid).isEqualTo(userUuid.toString())
+                assertThat(clearResp.rioGroupUuids).isEmpty()
+
+                val verifyCleared = rioClient.listGroupsForUiser(userUuid)
+                assertThat(verifyCleared.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(verifyCleared.rioGroupUuids).isEmpty()
+            } finally {
+                rioClient.deleteUserLogin(userUuid)
+            }
+        }
+
+    @Test
+    fun systemAccessCacheClearTest() =
+        blockingTest {
+            // Ensure a broker exists for clearing broker access cache
+            ensureBrokerExists()
+            run {
+                val resp = rioClient.clearBrokerAccessCache(testBroker)
+                assertThat(resp.statusCode).isIn(HttpStatusCode.OK, HttpStatusCode.NoContent)
+            }
+
+            // Create a temporary Rio Group and clear its access cache
+            val groupName = "rioclient-tmp-group-" + UUID.randomUUID()
+            val createGroup = rioClient.createRioGroup(CreateRioGroupRequest(emptyList(), "temp group", groupName, emptyList()))
+            try {
+                val resp = rioClient.clearRioGroupAccessCache(UUID.fromString(createGroup.rioGroupUuid))
+                assertThat(resp.statusCode).isIn(HttpStatusCode.OK, HttpStatusCode.NoContent)
+            } finally {
+                rioClient.deleteRioGroup(UUID.fromString(createGroup.rioGroupUuid))
+            }
+
+            // Create a temporary user and clear its access cache
+            val username = "user-" + UUID.randomUUID()
+            val password = "wordpass"
+            val created =
+                rioClient.createUserLogin(
+                    UserCreateRequest(username, username, password, active = false, local = true, role = "Operator"),
+                )
+            try {
+                val resp = rioClient.clearRioUserAccessCache(created.userUuid)
+                assertThat(resp.statusCode).isIn(HttpStatusCode.OK, HttpStatusCode.NoContent)
+            } finally {
+                rioClient.deleteUserLogin(created.userUuid)
+            }
+        }
+
     private suspend fun ensureBrokerExists() {
         if (!rioClient.headBroker(testBroker)) {
             val agentConfig = BpAgentConfig(brokerBucket, spectraDeviceCreateRequest.name, spectraDeviceCreateRequest.username)
@@ -2189,7 +2314,9 @@ class RioClientTest {
     ) {
         val testFmt = "assertRioValidationError-%c-%d"
         assertThat(ex).describedAs(testFmt.format('a', testNum)).isNotNull
-        assertThat(ex.errorMessage()).describedAs(testFmt.format('b', testNum)).isNotNull.isInstanceOf(RioValidationErrorMessage::class.java)
+        assertThat(
+            ex.errorMessage(),
+        ).describedAs(testFmt.format('b', testNum)).isNotNull.isInstanceOf(RioValidationErrorMessage::class.java)
 
         val rioValidationErrorMessage = ex.errorMessage() as RioValidationErrorMessage
         assertThat(rioValidationErrorMessage.message).describedAs(testFmt.format('c', testNum)).isEqualTo("Validation Failed")

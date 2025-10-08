@@ -317,3 +317,23 @@ data class DeviceObjectListResponse(
 
     override fun results() = objects
 }
+
+@Serializable
+data class SpectraGenericDeviceVersionResponse(
+    val deviceName: String,
+    val mgmtInterface: String,
+    val version: String,
+    val dataPath: String? = null,
+    val bpDashSupport: Boolean,
+)
+
+@Serializable
+data class SpectraGenericDeviceVersionPagedResponse(
+    val result: List<SpectraGenericDeviceVersionResponse>,
+    val page: PageInfo,
+) : RioResponse(),
+    RioListResponse<SpectraGenericDeviceVersionResponse> {
+    override fun page() = page
+
+    override fun results() = result
+}
