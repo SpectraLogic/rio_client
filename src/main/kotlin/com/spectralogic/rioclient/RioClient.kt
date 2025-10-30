@@ -45,6 +45,7 @@ import java.nio.file.Path
 import java.util.UUID
 import kotlin.collections.emptyMap
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.runBlocking
 
 /**
  * RioClient
@@ -896,20 +897,17 @@ class RioClient(
         return client.myPost("$api/system/rioclient", request)
     }
 
-    suspend fun saveRioClientSilent(
+    fun saveRioClientSilent(
         application: String,
         version: String,
         port: Int,
         urlPath: String,
         https: Boolean = false,
-        coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO + CoroutineName("RioClientRegister") + SupervisorJob()),
     ) {
-        coroutineScope.launch {
-            try {
-                saveRioClient(application, version, port, urlPath, https)
-            } catch (t: Throwable) {
-                logger.error(t) { "register failed" }
-            }
+        try {
+            runBlocking { saveRioClient(application, version, port, urlPath, https) }
+        } catch (t: Throwable) {
+            logger.error(t) { "register failed" }
         }
     }
 
