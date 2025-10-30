@@ -58,8 +58,8 @@ import kotlinx.coroutines.runBlocking
  */
 
 class RioClient(
-    rioUrl: URL,
-    username: String = "spectra",
+    val rioUrl: URL,
+    val username: String = "spectra",
     password: String = "spectra",
     requestTimeout: Long = 60.seconds.inWholeMilliseconds,
     verbose: Boolean = false,
@@ -70,12 +70,22 @@ class RioClient(
         private val jsonContentType = ContentType.Application.Json.withCharset(Charsets.UTF_8)
     }
 
+    init {
+        logger.info { "New RioClient for $username @ $rioUrl" }
+    }
+
     @Serializable
     private data class MyMetadata(
         val metadata: Map<String, String>,
     ) : RioRequest
 
     private val api by lazy { "$rioUrl/api" }
+
+
+    override fun close() {
+        logger.info { "Closing RioClient for $username @ $rioUrl" }
+        client.close()
+    }
 
     /**
      * Token
@@ -945,10 +955,6 @@ class RioClient(
     suspend fun getRioClient(id: UUID): RioClientApplicationResponse = client.myGet("$api/system/rioclient/$id")
 
     suspend fun deleteRioClient(id: UUID): EmptyResponse = client.myDelete("$api/system/rioclient/$id")
-
-    override fun close() {
-        client.close()
-    }
 
     /**
      * Authorization
