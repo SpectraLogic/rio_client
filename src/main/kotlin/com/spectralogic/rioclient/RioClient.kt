@@ -799,7 +799,16 @@ class RioClient(
 
     suspend fun deleteLogset(logsetId: UUID): EmptyResponse = client.myDelete("$api/logs/$logsetId")
 
-    suspend fun downloadLogset(logsetId: UUID): Path = client.myGet("$api/logs/$logsetId/download")
+    suspend fun downloadLogset(logsetId: UUID): Path {
+        /*
+        A refied type that causes an intersection between an interface and a JDK interface can't be inferred
+        As a workaround, we can use a data class to represent the response
+         */
+        @Serializable
+        data class LogsetDownloadResponse(val path: String) : RioResponse()
+        val response: LogsetDownloadResponse = client.myGet("$api/logs/$logsetId/download")
+        return Path.of(response.path)
+    }
 
     suspend fun getLogset(logsetId: String): LogsetResponse = client.myGet("$api/logs/$logsetId")
 

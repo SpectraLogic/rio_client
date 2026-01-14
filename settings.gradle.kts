@@ -16,13 +16,13 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            version("assertj", "3.27.3")
-            version("junit", "5.13.4")
+            version("assertj", "3.27.6")
+            version("junit", "5.14.2")
             version("junitPlatform", "1.12.1")
-            version("kotlin", "2.2.20")
-            version("kotlinLogging", "7.0.13")
+            version("kotlin", "2.3.0")
+            version("kotlinLogging", "7.0.14")
             version("kotlinxCoroutines", "1.10.2")
-            version("ktor", "3.3.0")
+            version("ktor", "3.3.3")
 
             library("kotlinBom", "org.jetbrains.kotlin", "kotlin-bom").versionRef("kotlin")
             library("kotlinLogging", "io.github.oshai", "kotlin-logging").versionRef("kotlinLogging")
@@ -44,9 +44,9 @@ dependencyResolutionManagement {
 
             plugin("kotlinJvm", "org.jetbrains.kotlin.jvm").versionRef("kotlin")
             plugin("kotlinPluginSerialization", "org.jetbrains.kotlin.plugin.serialization").versionRef("kotlin")
-            plugin("kotlinter", "org.jmailen.kotlinter").version("5.2.0")
-            plugin("owaspDepCheck","org.owasp.dependencycheck").version("12.1.3")
-            plugin("versions", "com.github.ben-manes.versions").version("0.52.0")
+            plugin("kotlinter", "org.jmailen.kotlinter").version("5.3.0")
+            plugin("owaspDepCheck","org.owasp.dependencycheck").version("12.2.0")
+            plugin("versions", "com.github.ben-manes.versions").version("0.53.0")
         }
     }
 }
