@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "com.spectralogic.rio"
-version = "3.2.8"
+version = "3.3.0"
 
 dependencies {
     implementation(platform(libs.kotlinBom))
@@ -98,9 +98,4 @@ dependencyCheck {
     // fail the build if any vulnerable dependencies are identified (CVSS score > 0)
     failBuildOnCVSS = 0f
     suppressionFile = "project_files/owasp/dependency-check-suppression.xml"
-}
-
-tasks.wrapper {
-    // to upgrade the gradle wrapper, bump the version below and run ./gradlew wrapper twice
-    gradleVersion = "8.3"
 }

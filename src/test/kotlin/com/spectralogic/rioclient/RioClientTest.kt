@@ -113,7 +113,7 @@ class RioClientTest {
                     reason = INVALID_NAME_MSG_FMT,
                 )
             val mgmtBaseError = RioValidationMessage("mgmtInterface", "URI", "")
-            val mgmtHostError = mgmtBaseError.copy(errorType = "unknown_host")
+            val mgmtHostError = mgmtBaseError.copy(errorType = "network_error")
             val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_uri", reason = "Invalid Format")
             val mgmtUsernameError = mgmtBaseError.copy("username", "string", errorType = "invalid_string_value")
             val mgmtPasswordError = mgmtBaseError.copy("password", "password", errorType = "invalid_credentials")
@@ -185,7 +185,7 @@ class RioClientTest {
                 ),
                 Pair(
                     updateRequest.copy(mgmtInterface = "https://badhost.eng.sldomain.com"),
-                    listOf(mgmtHostError.copy(value = "https://badhost.eng.sldomain.com")),
+                    listOf(mgmtHostError),
                 ),
                 Pair(
                     updateRequest.copy(username = ""),
@@ -264,7 +264,7 @@ class RioClientTest {
                 ),
                 Pair(
                     createRequest.copy(mgmtInterface = "https://badhost.eng.sldomain.com"),
-                    listOf(mgmtHostError.copy(value = "https://badhost.eng.sldomain.com")),
+                    listOf(mgmtHostError),
                 ),
                 Pair(
                     createRequest.copy(username = ""),
@@ -1774,7 +1774,7 @@ class RioClientTest {
                 assertThat(resp.role).describedAs(testFmt.format(++testNum)).isEqualTo("Operator")
             }
             rioClient.getBearerToken(username, password).let { resp ->
-                assertThat(resp.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.statusCode).describedAs(testFmt.format(++testNum)).isEqualTo(HttpStatusCode.Created)
                 assertThat(resp.username).describedAs(testFmt.format(++testNum)).isEqualTo(username)
                 assertThat(resp.role).describedAs(testFmt.format(++testNum)).isEqualTo("Operator")
                 assertThat(resp.token).describedAs(testFmt.format(++testNum)).isNotBlank()
