@@ -1229,8 +1229,9 @@ class RioClientTest {
                     assertThat(it.found).isEqualTo(objectName == it.name)
                 }
 
-                val deleteObjectResponse = rioClient.deleteObject(testBroker, objectName)
+                val deleteObjectResponse = rioClient.deleteFile(testBroker, objectName)
                 assertThat(deleteObjectResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
+                delay(10_000L)
                 assertThat(rioClient.objectExists(testBroker, objectName)).isFalse
 
                 listObjects = rioClient.listObjects(testBroker)
@@ -2279,7 +2280,6 @@ class RioClientTest {
                     retry = 0
                 } catch (e: RioHttpException) {
                     if (e.message?.contains("running jobs") == true) {
-                        println("DWL: retry=$retry")
                         delay(1000)
                     }
                 }
