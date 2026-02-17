@@ -340,3 +340,15 @@ data class ObjectEventHistoryResponse(
 data class ListObjectHistoryResponse(
     val events: List<ObjectEventHistoryResponse>,
 ) : RioResponse()
+
+@Serializable
+data class BulkDeleteRequest(
+    val name: String? = null,
+    val files: List<String>,
+) : RioRequest
+
+@Serializable
+data class BulkDeleteResponse(
+    val jobId: String?,
+    val jobGroupId: String?,
+) : RioResponse()

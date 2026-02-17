@@ -550,6 +550,19 @@ class RioClient(
         objName: String,
     ): EmptyResponse = client.myDelete("$api/brokers/$brokerName/objects/${objName.urlEncode()}")
 
+    suspend fun deleteFile(
+        brokerName: String,
+        objName: String,
+    ): BulkDeleteResponse = client.myPost("$api/brokers/$brokerName/objects/${objName.urlEncode()}")
+
+    suspend fun deleteObjects(
+        brokerName: String,
+        objList: List<String>,
+    ): BulkDeleteResponse {
+        val req = BulkDeleteRequest(files = objList)
+        return client.myPost("$api/brokers/$brokerName/bulkdelete", request = req)
+    }
+
     suspend fun updateObject(
         brokerName: String,
         objName: String,
