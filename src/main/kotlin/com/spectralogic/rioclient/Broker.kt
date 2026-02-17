@@ -349,6 +349,6 @@ data class BulkDeleteRequest(
 
 @Serializable
 data class BulkDeleteResponse(
-    val jobId: String?,
-    val jobGroupId: String?,
+    val jobId: String? = null,
+    val jobGroupId: String? = null,
 ) : RioResponse()
