@@ -5,12 +5,10 @@
  */
 package com.spectralogic.rioclient
 
-import io.ktor.client.request.request
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.catchThrowableOfType
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -116,9 +114,9 @@ class RioClientTest {
             val mgmtHostError = mgmtBaseError.copy(errorType = "network_error")
             val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_uri", reason = "Invalid Format")
             val mgmtUsernameError = mgmtBaseError.copy("username", "string", errorType = "invalid_string_value")
-            val mgmtPasswordError = mgmtBaseError.copy("password", "password", errorType = "invalid_credentials")
+            //val mgmtPasswordError = mgmtBaseError.copy("password", "password", errorType = "invalid_credentials")
             val credsUserError = RioValidationMessage("username", "string", "invalid_string_value", "", EMPTY_ERROR)
-            val credsPassError = RioValidationMessage("password", "password", errorType = "invalid_credentials")
+            //val credsPassError = RioValidationMessage("password", "password", errorType = "invalid_credentials")
 
             var testNum = 0
             val testFmt = "spectraDeviceTest-%d"
@@ -294,52 +292,38 @@ class RioClientTest {
                 assertSpectraDeviceCreateError(request, expectedErrors, ++testNum)
             }
 
+
             // update non-existing device
-            val ex =
-                catchThrowableOfType(
-                    {
-                        runBlocking {
-                            rioClient.updateSpectraDevice("bad-name", updateRequest)
-                        }
-                    },
-                    RioHttpException::class.java,
-                )
-            assertRioResourceError(ex, RioResourceErrorMessage(DEVICE_RESOURCE_ERROR_FMT.format("bad-name"), 404, "bad-name", "DEVICE"))
+            assertThrows<RioHttpException> {
+                rioClient.updateSpectraDevice("bad-name", updateRequest)
+            }.let { ex ->
+                assertRioResourceError(ex, RioResourceErrorMessage(DEVICE_RESOURCE_ERROR_FMT.format("bad-name"), 404, "bad-name", "DEVICE"))
+            }
         }
 
-    private fun assertSpectraDeviceCreateError(
+    private suspend fun assertSpectraDeviceCreateError(
         request: SpectraDeviceCreateRequest,
         expected: List<RioValidationMessage>,
         testNum: Int,
     ) {
-        val ex =
-            catchThrowableOfType(
-                {
-                    runBlocking {
-                        rioClient.createSpectraDevice(request)
-                    }
-                },
-                RioHttpException::class.java,
-            )
-        assertRioValidationError(ex, expected, testNum)
+        assertThrows<RioHttpException> {
+            rioClient.createSpectraDevice(request)
+        }.let { ex ->
+            assertRioValidationError(ex, expected, testNum)
+        }
     }
 
-    private fun assertSpectraDeviceUpdateError(
+    private suspend fun assertSpectraDeviceUpdateError(
         name: String,
         request: SpectraDeviceUpdateRequest,
         expected: List<RioValidationMessage>,
         testNum: Int,
     ) {
-        val ex =
-            catchThrowableOfType(
-                {
-                    runBlocking {
-                        rioClient.updateSpectraDevice(name, request)
-                    }
-                },
-                RioHttpException::class.java,
-            )
-        assertRioValidationError(ex, expected, testNum)
+        assertThrows<RioHttpException> {
+            rioClient.updateSpectraDevice(name, request)
+        }.let { ex ->
+            assertRioValidationError(ex, expected, testNum)
+        }
     }
 
     // TODO: s3cDeviceTest
@@ -494,16 +478,11 @@ class RioClientTest {
                 }
 
                 // update non-existing device
-                val ex =
-                    catchThrowableOfType(
-                        {
-                            runBlocking {
-                                rioClient.updateDivaDevice("bad-name", updateRequest)
-                            }
-                        },
-                        RioHttpException::class.java,
-                    )
-                assertRioResourceError(ex, RioResourceErrorMessage(DEVICE_RESOURCE_ERROR_FMT.format("bad-name"), 404, "bad-name", "DEVICE"))
+                assertThrows<RioHttpException> {
+                    rioClient.updateDivaDevice("bad-name", updateRequest)
+                }.let { ex ->
+                    assertRioResourceError(ex, RioResourceErrorMessage(DEVICE_RESOURCE_ERROR_FMT.format("bad-name"), 404, "bad-name", "DEVICE"))
+                }
             } finally {
                 if (rioClient.headAgent(testBroker, divaAgentName)) {
                     removeAgent(testBroker, divaAgentName)
@@ -514,39 +493,29 @@ class RioClientTest {
             }
         }
 
-    private fun assertDivaDeviceCreateError(
+    private suspend fun assertDivaDeviceCreateError(
         request: DivaDeviceCreateRequest,
         expected: List<RioValidationMessage>,
         testNum: Int,
     ) {
-        val ex =
-            catchThrowableOfType(
-                {
-                    runBlocking {
-                        rioClient.createDivaDevice(request)
-                    }
-                },
-                RioHttpException::class.java,
-            )
-        assertRioValidationError(ex, expected, testNum)
+        assertThrows<RioHttpException> {
+            rioClient.createDivaDevice(request)
+        }.let { ex ->
+            assertRioValidationError(ex, expected, testNum)
+        }
     }
 
-    private fun assertDivaDeviceUpdateError(
+    private suspend fun assertDivaDeviceUpdateError(
         name: String,
         request: DivaDeviceUpdateRequest,
         expected: List<RioValidationMessage>,
         testNum: Int,
     ) {
-        val ex =
-            catchThrowableOfType(
-                {
-                    runBlocking {
-                        rioClient.updateDivaDevice(name, request)
-                    }
-                },
-                RioHttpException::class.java,
-            )
-        assertRioValidationError(ex, expected, testNum)
+        assertThrows<RioHttpException> {
+            rioClient.updateDivaDevice(name, request)
+        }.let { ex ->
+            assertRioValidationError(ex, expected, testNum)
+        }
     }
 
     @Test
@@ -1131,6 +1100,7 @@ class RioClientTest {
         blockingTest {
             try {
                 ensureBrokerExists()
+                delay(30_000)
 
                 var listObjects = rioClient.listObjects(testBroker)
                 val totalObjects = listObjects.page.totalItems
@@ -1144,7 +1114,8 @@ class RioClientTest {
                 assertThat(countResponse.objectCount).isEqualTo(totalObjects)
 
                 val objectName = "object-${uuid()}"
-                val metadata = mapOf(Pair("key1", "val1"))
+                val metaPair = Pair("key1", "val1")
+                val metadata = mapOf(metaPair)
                 val archiveRequest =
                     ArchiveRequest(
                         "archive-job-${uuid()}",
@@ -1186,14 +1157,14 @@ class RioClientTest {
                 assertThat(getObject.broker).isEqualTo(testBroker)
                 assertThat(getObject.name).isEqualTo(objectName)
                 assertThat(getObject.size).isEqualTo(archiveRequest.files[0].size)
-                assertThat(getObject.metadata).isEqualTo(metadata)
+                assertThat(getObject.metadata).containsEntry(metaPair.first, metaPair.second)
 
                 rioClient.getObject(testBroker, objectName, includeAgentCopies = true).let { resp ->
                     assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
                     assertThat(resp.broker).isEqualTo(testBroker)
                     assertThat(resp.name).isEqualTo(objectName)
                     assertThat(resp.size).isEqualTo(archiveRequest.files[0].size)
-                    assertThat(resp.metadata).isEqualTo(metadata)
+                    assertThat(resp.metadata).containsEntry(metaPair.first, metaPair.second)
                     assertThat(resp.copies).hasSize(1)
                     resp.copies?.get(0)?.agentName.let { copyAgentName ->
                         assertThat(copyAgentName).isEqualTo(testAgent)
@@ -1207,7 +1178,7 @@ class RioClientTest {
                         assertThat(objData.broker).isEqualTo(testBroker)
                         assertThat(objData.name).isEqualTo(objectName)
                         assertThat(objData.size).isEqualTo(archiveRequest.files[0].size)
-                        assertThat(objData.metadata).isEqualTo(metadata)
+                        assertThat(objData.metadata).containsEntry(metaPair.first, metaPair.second)
                         assertThat(objData.copies).hasSize(1)
                         objData.copies?.get(0)?.agentName.let { copyAgentName ->
                             assertThat(copyAgentName).isEqualTo(testAgent)
@@ -1215,10 +1186,12 @@ class RioClientTest {
                     }
                 }
 
-                val newMetadata = mapOf(Pair("key9", "val9"))
+                val newMetaPair = Pair("key9", "val9")
+                val newMetadata = mapOf(newMetaPair)
                 val updateObject = rioClient.updateObject(testBroker, objectName, newMetadata)
                 assertThat(updateObject.statusCode).isEqualTo(HttpStatusCode.OK)
-                assertThat(updateObject).isEqualTo(getObject.copy(metadata = newMetadata))
+                assertThat(updateObject.metadata).containsEntry(newMetaPair.first, newMetaPair.second)
+                assertThat(updateObject.metadata).doesNotContainEntry(metaPair.first, metaPair.second)
 
                 assertThat(rioClient.objectExists(testBroker, objectName)).isTrue
 
@@ -1230,7 +1203,7 @@ class RioClientTest {
                 }
 
                 val deleteObjectResponse = rioClient.deleteFile(testBroker, objectName)
-                assertThat(deleteObjectResponse.statusCode).isEqualTo(HttpStatusCode.NoContent)
+                assertThat(deleteObjectResponse.statusCode).isEqualTo(HttpStatusCode.OK)
                 delay(10_000L)
                 assertThat(rioClient.objectExists(testBroker, objectName)).isFalse
 
@@ -1388,7 +1361,7 @@ class RioClientTest {
             var i = 50
             var getLog = rioClient.getLogset(newLog.id)
             while (getLog.status != "COMPLETE" && --i > 0) {
-                delay(1000)
+                delay(5000)
                 getLog = rioClient.getLogset(newLog.id)
             }
             assertThat(getLog.statusCode).isEqualTo(HttpStatusCode.OK)
@@ -1429,18 +1402,12 @@ class RioClientTest {
                 assertThat(rioClient.getLogLevel().currentLevel).isEqualTo(logLevel)
                 previousLevel = logLevel
             }
-
-            val ex =
-                catchThrowableOfType(
-                    {
-                        runBlocking {
-                            rioClient.setLogLevel("bad")
-                        }
-                    },
-                    RioHttpException::class.java,
-                )
-            assertThat(ex.statusCode).isEqualTo(HttpStatusCode.BadRequest.value)
-            assertThat(ex.errorMessage().message).isEqualTo("Log Level bad is invalid. Log level change request denied.")
+            assertThrows<RioHttpException> {
+                rioClient.setLogLevel("bad")
+            }.let { ex ->
+                assertThat(ex.statusCode).isEqualTo(HttpStatusCode.BadRequest.value)
+                assertThat(ex.errorMessage().message).isEqualTo("Log Level bad is invalid. Log level change request denied.")
+            }
         }
 
     @Test

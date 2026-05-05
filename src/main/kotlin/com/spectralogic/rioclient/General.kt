@@ -145,3 +145,18 @@ data class RioDownstreamErrorMessage
         val resourceType: String,
         val cause: String,
     ) : RioErrorMessage
+
+interface DeviceAccessType
+
+enum class BrokerAccessType : DeviceAccessType {
+    VIEW,
+    ARCHIVE,
+    RESTORE,
+    DELETE,
+}
+
+enum class EndpointAccessType : DeviceAccessType {
+    VIEW,
+    ARCHIVE_FROM,
+    RESTORE_TO,
+}

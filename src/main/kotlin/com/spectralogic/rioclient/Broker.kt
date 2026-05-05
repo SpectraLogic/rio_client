@@ -24,13 +24,25 @@ data class BrokerResponse(
     val name: String,
     val creationDate: String,
     val objectCount: Long,
+    val totalSize: Long,
+    val hasLifecycle: Boolean,
+    val hasExport: Boolean,
+    val avActive: Boolean,
+    val avIndex: Boolean,
 ) : RioResponse()
+
+@Serializable
+data class BrokerAvRequest(
+    val avActive: Boolean,
+    val avIndex: Boolean,
+) : RioRequest
 
 @Serializable
 data class BrokerData(
     val name: String,
     val creationDate: String,
     val objectCount: Long,
+    val totalSize: Long,
 )
 
 @Serializable
@@ -351,4 +363,18 @@ data class BulkDeleteRequest(
 data class BulkDeleteResponse(
     val jobId: String? = null,
     val jobGroupId: String? = null,
+) : RioResponse()
+
+@Serializable
+data class BrokerExportRequest(
+    val exportHour: Int? = null,
+    val deferDays: Int,
+    val endpointNames: List<String>,
+) : RioRequest
+
+@Serializable
+data class BrokerExportResponse(
+    val exportHour: Int?,
+    val deferDays: Int,
+    val endpointNames: List<String>,
 ) : RioResponse()

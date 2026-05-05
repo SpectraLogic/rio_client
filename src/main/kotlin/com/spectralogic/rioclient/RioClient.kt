@@ -348,7 +348,17 @@ class RioClient(
     suspend fun listBrokers(
         page: Long? = null,
         perPage: Long? = null,
-    ): BrokerListResponse = client.myGet("$api/brokers", paramMap = pageParamMap(page, perPage))
+        brokerAccessType: BrokerAccessType? = null,
+        hasExport: Boolean? = null,
+        avActive: Boolean? = null,
+    ): BrokerListResponse {
+        val paramMap: Map<String, Any?> =
+            pageParamMap(page, perPage)
+                .plus(Pair("brokerAccessType", brokerAccessType))
+                .plus(Pair("hasExport", hasExport))
+                .plus(Pair("avActive", avActive))
+        return client.myGet("$api/brokers", paramMap = paramMap)
+    }
 
     suspend fun listAgents(
         brokerName: String,
@@ -415,6 +425,25 @@ class RioClient(
         return client.myPut("$api/brokers/$brokerName/agents/$agentName/index", paramMap = paramMap)
     }
 
+    suspend fun updateBrokerAv(
+        brokerName: String,
+        avActive: Boolean,
+        avIndex: Boolean,
+    ): BrokerResponse = client.myPost("$api/brokers/$brokerName/av", BrokerAvRequest(avActive, avIndex))
+
+    suspend fun scanBrokerAv(
+        brokerName: String,
+    ): EmptyResponse = client.myPost("$api/brokers/$brokerName/avScan")
+
+    suspend fun saveBrokerExport(
+        brokerName: String,
+        exportHour: Int? = null,
+        deferDays: Int,
+        endpointNames: List<String>,
+    ): BrokerExportResponse = client.myPut("$api/brokers/$brokerName/export", BrokerExportRequest(exportHour, deferDays, endpointNames))
+
+    suspend fun getBrokerExport(brokerName: String): BrokerExportResponse = client.myGet("$api/brokers/$brokerName/export")
+
     // Lifecycle
     suspend fun saveLifecyclePolicy(
         brokerName: String,
@@ -470,7 +499,11 @@ class RioClient(
         migration: Boolean? = null,
         paginationSetId: UUID? = null,
         includeAgentCopies: Boolean? = null, // for internal tests only
+        metadataList: List<Pair<String, String>>? = null,
     ): ObjectListResponse {
+        val metadata: String? = metadataList?.joinToString(separator = "&") {
+            "metadata=${it.first},${it.second}"
+        }
         val paramMap =
             pageParamMap(page, perPage)
                 .plus(
@@ -485,6 +518,7 @@ class RioClient(
                         Pair("migration", migration),
                         Pair("pagination_set_id", paginationSetId),
                         Pair("includeAgentCopies", includeAgentCopies),
+                        Pair("metadata", metadata),
                     ),
                 ).let {
                     if (!internalMetadataKey.isNullOrBlank() && !internalMetadataValue.isNullOrBlank()) {
