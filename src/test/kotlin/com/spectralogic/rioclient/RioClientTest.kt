@@ -114,9 +114,7 @@ class RioClientTest {
             val mgmtHostError = mgmtBaseError.copy(errorType = "network_error")
             val mgmtUriError = mgmtBaseError.copy(errorType = "invalid_uri", reason = "Invalid Format")
             val mgmtUsernameError = mgmtBaseError.copy("username", "string", errorType = "invalid_string_value")
-            //val mgmtPasswordError = mgmtBaseError.copy("password", "password", errorType = "invalid_credentials")
             val credsUserError = RioValidationMessage("username", "string", "invalid_string_value", "", EMPTY_ERROR)
-            //val credsPassError = RioValidationMessage("password", "password", errorType = "invalid_credentials")
 
             var testNum = 0
             val testFmt = "spectraDeviceTest-%d"

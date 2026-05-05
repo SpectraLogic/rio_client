@@ -325,6 +325,11 @@ class RioClient(
         return client.myGet("$api/devices/$type/$name/list", paramMap = paramMap)
     }
 
+    suspend fun saveEndpointAccess(
+        name: String,
+        endpointAccessRequest: EndpointAccessRequest
+    ): EndpointAccessResponse = client.myPut("$api/devices/endpoint/$name/access", endpointAccessRequest)
+
     /**
      * Broker
      */
