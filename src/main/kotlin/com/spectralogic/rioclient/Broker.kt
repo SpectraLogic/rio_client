@@ -20,17 +20,37 @@ data class BrokerCreateRequest(
 ) : RioRequest
 
 @Serializable
+data class UpdateBrokerRequest(
+    val brokerAv: BrokerAvRequest? = null,
+    val access: BrokerAccessRequest? = null,
+    val export: BrokerExportRequest? = null,
+    val lifecyclePolicy: SaveLifecyclePolicyRequest? = null,
+) : RioRequest
+
+@Serializable
 data class BrokerResponse(
     val name: String,
     val creationDate: String,
     val objectCount: Long,
+    val totalSize: Long,
+    val hasLifecycle: Boolean,
+    val hasExport: Boolean,
+    val avActive: Boolean,
+    val avIndex: Boolean,
 ) : RioResponse()
+
+@Serializable
+data class BrokerAvRequest(
+    val avActive: Boolean,
+    val avIndex: Boolean,
+) : RioRequest
 
 @Serializable
 data class BrokerData(
     val name: String,
     val creationDate: String,
     val objectCount: Long,
+    val totalSize: Long,
 )
 
 @Serializable
@@ -351,4 +371,31 @@ data class BulkDeleteRequest(
 data class BulkDeleteResponse(
     val jobId: String? = null,
     val jobGroupId: String? = null,
+) : RioResponse()
+
+@Serializable
+data class BrokerExportRequest(
+    val exportHour: Int? = null,
+    val deferDays: Int,
+    val endpointNames: List<String>,
+) : RioRequest
+
+@Serializable
+data class BrokerAccessRequest(
+    val rioGroupAccess: List<RioGroupBrokerAccess>,
+) : RioRequest
+
+@Serializable
+data class RioGroupBrokerAccess(
+    val rioGroupUuid: String,
+    val archiveAccess: Boolean,
+    val restoreAccess: Boolean,
+    val deleteAccess: Boolean,
+)
+
+@Serializable
+data class BrokerExportResponse(
+    val exportHour: Int?,
+    val deferDays: Int,
+    val endpointNames: List<String>,
 ) : RioResponse()

@@ -325,6 +325,11 @@ class RioClient(
         return client.myGet("$api/devices/$type/$name/list", paramMap = paramMap)
     }
 
+    suspend fun saveEndpointAccess(
+        name: String,
+        endpointAccessRequest: EndpointAccessRequest
+    ): EndpointAccessResponse = client.myPut("$api/devices/endpoint/$name/access", endpointAccessRequest)
+
     /**
      * Broker
      */
@@ -335,6 +340,11 @@ class RioClient(
     }
 
     suspend fun createBroker(brokerCreateRequest: BrokerCreateRequest): BrokerResponse = client.myPost("$api/brokers", brokerCreateRequest)
+
+    suspend fun updateBroker(
+        brokerName: String,
+        updateBrokerRequest: UpdateBrokerRequest
+    ): BrokerResponse = client.myPut("$api/brokers/$brokerName", updateBrokerRequest)
 
     suspend fun deleteBroker(
         brokerName: String,
@@ -348,7 +358,17 @@ class RioClient(
     suspend fun listBrokers(
         page: Long? = null,
         perPage: Long? = null,
-    ): BrokerListResponse = client.myGet("$api/brokers", paramMap = pageParamMap(page, perPage))
+        brokerAccessType: BrokerAccessType? = null,
+        hasExport: Boolean? = null,
+        avActive: Boolean? = null,
+    ): BrokerListResponse {
+        val paramMap: Map<String, Any?> =
+            pageParamMap(page, perPage)
+                .plus(Pair("brokerAccessType", brokerAccessType))
+                .plus(Pair("hasExport", hasExport))
+                .plus(Pair("avActive", avActive))
+        return client.myGet("$api/brokers", paramMap = paramMap)
+    }
 
     suspend fun listAgents(
         brokerName: String,
@@ -415,6 +435,22 @@ class RioClient(
         return client.myPut("$api/brokers/$brokerName/agents/$agentName/index", paramMap = paramMap)
     }
 
+    suspend fun updateBrokerAv(
+        brokerName: String,
+        brokerAvRequest: BrokerAvRequest,
+    ): BrokerResponse = client.myPut("$api/brokers/$brokerName/av", brokerAvRequest)
+
+    suspend fun scanBrokerAv(
+        brokerName: String,
+    ): EmptyResponse = client.myPost("$api/brokers/$brokerName/avScan")
+
+    suspend fun saveBrokerExport(
+        brokerName: String,
+        brokerExportRequest: BrokerExportRequest,
+    ): BrokerExportResponse = client.myPut("$api/brokers/$brokerName/export", brokerExportRequest)
+
+    suspend fun getBrokerExport(brokerName: String): BrokerExportResponse = client.myGet("$api/brokers/$brokerName/export")
+
     // Lifecycle
     suspend fun saveLifecyclePolicy(
         brokerName: String,
@@ -470,7 +506,11 @@ class RioClient(
         migration: Boolean? = null,
         paginationSetId: UUID? = null,
         includeAgentCopies: Boolean? = null, // for internal tests only
+        metadataList: List<Pair<String, String>>? = null,
     ): ObjectListResponse {
+        val metadata: String? = metadataList?.joinToString(separator = "&") {
+            "metadata=${it.first},${it.second}"
+        }
         val paramMap =
             pageParamMap(page, perPage)
                 .plus(
@@ -485,6 +525,7 @@ class RioClient(
                         Pair("migration", migration),
                         Pair("pagination_set_id", paginationSetId),
                         Pair("includeAgentCopies", includeAgentCopies),
+                        Pair("metadata", metadata),
                     ),
                 ).let {
                     if (!internalMetadataKey.isNullOrBlank() && !internalMetadataValue.isNullOrBlank()) {
@@ -1140,7 +1181,7 @@ class RioClient(
             patch(url) {
                 contentType(jsonContentType)
                 request?.let { setBody(encodeRioRequest(it)) }
-            } as HttpResponse
+            }
             true
         } catch (t: ClientRequestException) {
             when (t.response.status.value) {

@@ -109,3 +109,21 @@ data class EndpointUriDeviceResponse(
     val endpoint: String,
 ) : RioResponse(),
     EndpointDeviceResponse
+
+@Serializable
+data class EndpointAccessRequest(
+    val rioGroupAccess: List<RioGroupEndpointAccess>,
+) : RioRequest
+
+@Serializable
+data class EndpointAccessResponse(
+    val endpointName: String,
+    val rioGroupAccess: List<RioGroupEndpointAccess>,
+) : RioResponse()
+
+@Serializable
+data class RioGroupEndpointAccess(
+    val rioGroupUuid: String,
+    val archiveFromAccess: Boolean,
+    val restoreToAccess: Boolean,
+)
