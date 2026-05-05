@@ -621,6 +621,116 @@ class RioClientTest {
     }
 
     @Test
+    fun avBrokerTest(
+        @TempDir tempDir: Path,
+    ) = blockingTest {
+        val avBrokerName = "av-broker-${uuid()}"
+        try {
+            val avBrokers = rioClient.listBrokers(avActive = true).page.totalItems
+            rioClient.createBroker(
+                BrokerCreateRequest(
+                    avBrokerName,
+                    "agent-name",
+                    NasAgentConfig(tempDir.toUri().toString()).toConfigMap(),
+                    "nas_agent",
+                )
+            ).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+            }
+            rioClient.updateBrokerAv(
+                avBrokerName,
+                BrokerAvRequest(avActive = true, avIndex = false),
+            ).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.avActive).isTrue
+                assertThat(resp.avIndex).isFalse
+            }
+
+            rioClient.listBrokers(avActive = true).let { resp ->
+                assertThat(resp.page.totalItems).isEqualTo(avBrokers + 1)
+            }
+        } finally {
+            if (rioClient.headBroker(avBrokerName)) {
+                rioClient.deleteBroker(avBrokerName, true)
+            }
+        }
+    }
+
+    @Test
+    fun exportBrokerTest(
+        @TempDir tempDir: Path,
+    ) = blockingTest {
+        val uuid = uuid()
+        val exportBrokerName = "export-broker-$uuid"
+        val endpointName = "export-endpoint-$uuid"
+        try {
+            rioClient.createBroker(
+                BrokerCreateRequest(
+                    exportBrokerName,
+                    "agent-name",
+                    NasAgentConfig(tempDir.toUri().toString()).toConfigMap(),
+                    "nas_agent",
+                )
+            ).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+            }
+            rioClient.createUriEndpointDevice(
+                UriEndpointDeviceCreateRequest(
+                    endpointName,
+                    tempDir.toUri().toString()
+                )
+            ).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                assertThat(resp.name).isEqualTo(endpointName)
+            }
+            rioClient.saveBrokerExport(
+                exportBrokerName,
+                BrokerExportRequest(
+                    14,
+                    10,
+                    listOf(endpointName)
+                )
+            ).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.exportHour).isEqualTo(14)
+                assertThat(resp.deferDays).isEqualTo(10)
+                assertThat(resp.endpointNames).hasSize(1).contains(endpointName)
+            }
+            rioClient.getBrokerExport(exportBrokerName).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.exportHour).isEqualTo(14)
+                assertThat(resp.deferDays).isEqualTo(10)
+                assertThat(resp.endpointNames).hasSize(1).contains(endpointName)
+            }
+            rioClient.updateBroker(
+                exportBrokerName,
+                UpdateBrokerRequest(
+                    export = BrokerExportRequest(
+                        11,
+                        8,
+                        listOf(endpointName)
+                    )
+                )
+            ).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+            }
+            rioClient.getBrokerExport(exportBrokerName).let { resp ->
+                assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                assertThat(resp.exportHour).isEqualTo(11)
+                assertThat(resp.deferDays).isEqualTo(8)
+                assertThat(resp.endpointNames).hasSize(1).contains(endpointName)
+            }
+        } finally {
+            if (rioClient.headBroker(exportBrokerName)) {
+                rioClient.deleteBroker(exportBrokerName, true)
+            }
+            if (rioClient.headEndpointDevice(endpointName)) {
+                rioClient.deleteEndpointDevice(endpointName)
+            }
+        }
+    }
+
+    @Test
     fun endPointTest(
         @TempDir uriDir: Path,
     ) = blockingTest {

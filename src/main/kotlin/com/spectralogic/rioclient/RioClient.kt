@@ -336,6 +336,11 @@ class RioClient(
 
     suspend fun createBroker(brokerCreateRequest: BrokerCreateRequest): BrokerResponse = client.myPost("$api/brokers", brokerCreateRequest)
 
+    suspend fun updateBroker(
+        brokerName: String,
+        updateBrokerRequest: UpdateBrokerRequest
+    ): BrokerResponse = client.myPut("$api/brokers/$brokerName", updateBrokerRequest)
+
     suspend fun deleteBroker(
         brokerName: String,
         force: Boolean,
@@ -427,9 +432,8 @@ class RioClient(
 
     suspend fun updateBrokerAv(
         brokerName: String,
-        avActive: Boolean,
-        avIndex: Boolean,
-    ): BrokerResponse = client.myPost("$api/brokers/$brokerName/av", BrokerAvRequest(avActive, avIndex))
+        brokerAvRequest: BrokerAvRequest,
+    ): BrokerResponse = client.myPut("$api/brokers/$brokerName/av", brokerAvRequest)
 
     suspend fun scanBrokerAv(
         brokerName: String,
@@ -437,10 +441,8 @@ class RioClient(
 
     suspend fun saveBrokerExport(
         brokerName: String,
-        exportHour: Int? = null,
-        deferDays: Int,
-        endpointNames: List<String>,
-    ): BrokerExportResponse = client.myPut("$api/brokers/$brokerName/export", BrokerExportRequest(exportHour, deferDays, endpointNames))
+        brokerExportRequest: BrokerExportRequest,
+    ): BrokerExportResponse = client.myPut("$api/brokers/$brokerName/export", brokerExportRequest)
 
     suspend fun getBrokerExport(brokerName: String): BrokerExportResponse = client.myGet("$api/brokers/$brokerName/export")
 
@@ -1174,7 +1176,7 @@ class RioClient(
             patch(url) {
                 contentType(jsonContentType)
                 request?.let { setBody(encodeRioRequest(it)) }
-            } as HttpResponse
+            }
             true
         } catch (t: ClientRequestException) {
             when (t.response.status.value) {

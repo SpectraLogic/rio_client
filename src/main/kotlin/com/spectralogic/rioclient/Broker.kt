@@ -20,6 +20,14 @@ data class BrokerCreateRequest(
 ) : RioRequest
 
 @Serializable
+data class UpdateBrokerRequest(
+    val brokerAv: BrokerAvRequest? = null,
+    val access: BrokerAccessRequest? = null,
+    val export: BrokerExportRequest? = null,
+    val lifecyclePolicy: SaveLifecyclePolicyRequest? = null,
+) : RioRequest
+
+@Serializable
 data class BrokerResponse(
     val name: String,
     val creationDate: String,
@@ -371,6 +379,19 @@ data class BrokerExportRequest(
     val deferDays: Int,
     val endpointNames: List<String>,
 ) : RioRequest
+
+@Serializable
+data class BrokerAccessRequest(
+    val rioGroupAccess: List<RioGroupBrokerAccess>,
+) : RioRequest
+
+@Serializable
+data class RioGroupBrokerAccess(
+    val rioGroupUuid: String,
+    val archiveAccess: Boolean,
+    val restoreAccess: Boolean,
+    val deleteAccess: Boolean,
+)
 
 @Serializable
 data class BrokerExportResponse(
