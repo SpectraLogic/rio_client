@@ -111,6 +111,7 @@ open class JobResponse(
     val priority: String? = null,
     val sessionId: String? = null,
     val callbacks: List<JobCallback>? = null,
+    val bundleName: String? = null
 ) : RioResponse()
 
 @Serializable
