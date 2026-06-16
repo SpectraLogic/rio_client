@@ -907,6 +907,7 @@ class RioClientTest {
                 ensureBrokerExists()
 
                 val archiveJobName = "archive-job-${uuid()}"
+                val bundleName = "Bundle Name ${uuid()}"
                 val metadata = mapOf(Pair("key1", "val1"), Pair("key2", "val2"))
                 val archiveRequest =
                     ArchiveRequest(
@@ -915,12 +916,14 @@ class RioClientTest {
                             FileToArchive(uuid(), URI("aToZSequence://file"), 1024L, metadata),
                             FileToArchive(uuid(), URI("aToZSequence://file"), 2048L, metadata),
                         ),
+                        bundleName = bundleName,
                     )
                 val archiveJob = rioClient.createArchiveJob(testBroker, archiveRequest, failFast = true)
                 assertThat(archiveJob.statusCode).isEqualTo(HttpStatusCode.Created)
                 assertThat(archiveJob.name).isEqualTo(archiveJobName)
                 assertThat(archiveJob.numberOfFiles).isEqualTo(2)
                 assertThat(archiveJob.totalSizeInBytes).isEqualTo(3072)
+                assertThat(archiveJob.bundleName).isEqualTo(bundleName)
 
                 assertThat(rioClient.headJob(archiveJob.id.toString())).isTrue
 

@@ -14,6 +14,7 @@ data class ArchiveRequest(
     val files: List<FileToArchive>,
     val metadata: Map<String, String>? = null,
     val callbacks: List<JobCallback>? = null,
+    val bundleName: String? = null,
 ) : RioRequest
 
 @Serializable
@@ -34,6 +35,7 @@ data class ArchiveFolderRequest(
     val files: List<FileToArchive>? = null,
     val folders: List<FolderToArchive>? = null,
     val callbacks: List<JobCallback>? = null,
+    val bundleName: String? = null,
 ) : RioRequest
 
 @Serializable
