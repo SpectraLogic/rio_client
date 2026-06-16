@@ -88,6 +88,7 @@ open class DetailedJobResponse(
     > = emptyMap(),
     val priority: String? = null,
     val callbacks: List<JobCallback>? = null,
+    val bundleName: String? = null,
 ) : RioResponse()
 
 @Serializable
