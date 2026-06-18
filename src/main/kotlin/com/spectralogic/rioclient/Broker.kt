@@ -37,12 +37,14 @@ data class BrokerResponse(
     val hasExport: Boolean,
     val avActive: Boolean,
     val avIndex: Boolean,
+    val avImmediate: Boolean,
 ) : RioResponse()
 
 @Serializable
 data class BrokerAvRequest(
     val avActive: Boolean,
     val avIndex: Boolean,
+    val avImmediate: Boolean,
 ) : RioRequest
 
 @Serializable
