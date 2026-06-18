@@ -650,6 +650,48 @@ class RioClient(
     }
 
     /**
+     * Bundle
+     */
+    suspend fun createBundleName(bundleNameRequest: BundleNameRequest): BundleNameResponse =
+        client.myPost("$api/bundle", bundleNameRequest)
+
+    suspend fun listBundleNames(
+        page: Long? = null,
+        perPage: Long? = null,
+    ): ListBundleNameResponse =
+        client.myGet("$api/bundle", paramMap = pageParamMap(page, perPage))
+
+    suspend fun headBundle(bundleUuid: UUID): Boolean =
+        client.myHead("$api/bundle/$bundleUuid")
+
+    suspend fun updateBundleName(bundleUuid: UUID, bundleNameRequest: BundleNameRequest): BundleNameResponse =
+        client.myPut("$api/bundle/$bundleUuid", bundleNameRequest)
+
+    suspend fun deleteBundleName(bundleUuid: UUID): EmptyResponse =
+        client.myDelete("$api/bundle/$bundleUuid")
+
+    suspend fun getBundleName(bundleUuid: UUID): BundleDetailsResponse =
+        client.myGet("$api/bundle/$bundleUuid")
+
+    suspend fun addObjectsToBundle(
+        bundleUuid: UUID,
+        bundleObjectRequest: BundleObjectRequest
+    ): EmptyResponse =
+        client.myPost("$api/bundle/$bundleUuid", bundleObjectRequest)
+
+    suspend fun setBundleObjects(
+        bundleUuid: UUID,
+        bundleObjectRequest: BundleObjectRequest
+    ): EmptyResponse =
+        client.myPut("$api/bundle/$bundleUuid", bundleObjectRequest)
+
+    suspend fun removeObjectsFromBundle(
+        bundleUuid: UUID,
+        bundleObjectRequest: BundleObjectRequest
+    ): Boolean =
+        client.myPatch("$api/bundle/$bundleUuid", bundleObjectRequest)
+
+    /**
      * Job
      */
     suspend fun createArchiveJob(

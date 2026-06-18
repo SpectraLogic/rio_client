@@ -637,7 +637,7 @@ class RioClientTest {
             }
             rioClient.updateBrokerAv(
                 avBrokerName,
-                BrokerAvRequest(avActive = true, avIndex = false),
+                BrokerAvRequest(avActive = true, avIndex = false, avImmediate = false),
             ).let { resp ->
                 assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
                 assertThat(resp.avActive).isTrue
@@ -2281,6 +2281,47 @@ class RioClientTest {
                 assertThat(verifyCleared.rioGroupUuids).isEmpty()
             } finally {
                 rioClient.deleteUserLogin(userUuid)
+            }
+        }
+
+    @Test
+    fun bundleTest() =
+        blockingTest {
+            val bundleName = "bundle-${uuid()}"
+            var bundleUuid = UUID.randomUUID()
+            try {
+                assertThat(rioClient.headBundle(bundleUuid)).isFalse
+
+                rioClient.createBundleName(BundleNameRequest(bundleName)).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.Created)
+                    assertThat(resp.bundleName).isEqualTo(bundleName)
+                    bundleUuid = UUID.fromString(resp.bundleUuid)
+                }
+
+                assertThat(rioClient.headBundle(bundleUuid)).isTrue
+
+                rioClient.getBundleName(bundleUuid).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.bundleName).isEqualTo(bundleName)
+                    assertThat(resp.page.totalItems).isEqualTo(0L)
+                    assertThat(resp.bundleMembers).isEmpty()
+                }
+
+                rioClient.updateBundleName(bundleUuid, BundleNameRequest("$bundleName-new")).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
+                    assertThat(resp.bundleName).isEqualTo("$bundleName-new")
+                    assertThat(resp.bundleUuid).isEqualTo(bundleUuid.toString())
+                }
+
+                rioClient.deleteBundleName(bundleUuid).let { resp ->
+                    assertThat(resp.statusCode).isEqualTo(HttpStatusCode.NoContent)
+                }
+
+                assertThat(rioClient.headBundle(bundleUuid)).isFalse
+            } finally {
+                if (rioClient.headBundle(bundleUuid)) {
+                    rioClient.deleteBundleName(bundleUuid)
+                }
             }
         }
 
