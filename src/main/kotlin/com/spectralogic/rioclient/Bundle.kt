@@ -37,7 +37,6 @@ data class BundleObjectResponse(
 
 @Serializable
 data class BundleDetailsResponse(
-    val bundleName: String,
     val page: PageInfo,
     val bundleMembers: List<BundleObjectResponse>,
 ) : RioResponse()

@@ -2302,7 +2302,6 @@ class RioClientTest {
 
                 rioClient.getBundleName(bundleUuid).let { resp ->
                     assertThat(resp.statusCode).isEqualTo(HttpStatusCode.OK)
-                    assertThat(resp.bundleName).isEqualTo(bundleName)
                     assertThat(resp.page.totalItems).isEqualTo(0L)
                     assertThat(resp.bundleMembers).isEmpty()
                 }
